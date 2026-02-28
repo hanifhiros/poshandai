@@ -1,0 +1,25 @@
+{
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "build": "vite build",
+        "dev": "vite"
+    },
+    "devDependencies": {
+        "@tailwindcss/postcss": "^4.0.14",
+        "autoprefixer": "^10.4.21",
+        "axios": "^1.7.4",
+        "concurrently": "^9.0.1",
+        "daisyui": "^5.0.6",
+        "laravel-vite-plugin": "^1.2.0",
+        "postcss": "^8.5.3",
+        "tailwindcss": "^4.0.14",
+        "vite": "^6.0.11"
+    },
+    "dependencies": {
+        "@lottiefiles/dotlottie-web": "^0.42.0",
+        "@tailwindcss/vite": "^4.0.14",
+        "firebase": "^11.4.0",
+        "swiper": "^11.2.5"
+    }
+}
