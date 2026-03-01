@@ -106,7 +106,7 @@
             <select name="category" class="pp-select">
                 <option value="">Semua Kategori</option>
                 @foreach(($categories ?? collect()) as $cat)
-                    <option value="{{ $cat->id }}" {{ ($selectedCategory ?? '') == $cat->id ? 'selected' : '' }}>
+                    <option value="{{ $cat->id }}" {{ ($categoryFilter ?? '') == $cat->id ? 'selected' : '' }}>
                         {{ $cat->category_name }}
                     </option>
                 @endforeach

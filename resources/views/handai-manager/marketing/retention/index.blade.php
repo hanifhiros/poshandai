@@ -112,7 +112,7 @@
             </div>
             <p class="mk-val">{{ number_format($retentionRate ?? 0, 1) }}%</p>
             <div class="flex items-center gap-2 mt-2">
-                @php $rtc = $retentionRateChange ?? 0; @endphp
+                @php $rtc = $retentionChange ?? 0; @endphp
                 <span class="mk-badge {{ $rtc >= 0 ? 'mk-badge-up' : 'mk-badge-down' }}">
                     <i class="ti {{ $rtc >= 0 ? 'ti-arrow-up-right' : 'ti-arrow-down-right' }} text-xs"></i>
                     {{ number_format(abs($rtc), 1) }}%
@@ -131,7 +131,7 @@
             </div>
             <p class="mk-val">{{ number_format($churnRate ?? 0, 1) }}%</p>
             <div class="flex items-center gap-2 mt-2">
-                @php $crc = $churnRateChange ?? 0; @endphp
+                @php $crc = $churnChange ?? 0; @endphp
                 {{-- Churn up = bad (red), churn down = good (green) --}}
                 <span class="mk-badge {{ $crc <= 0 ? 'mk-badge-up' : 'mk-badge-down' }}">
                     <i class="ti {{ $crc <= 0 ? 'ti-arrow-down-right' : 'ti-arrow-up-right' }} text-xs"></i>

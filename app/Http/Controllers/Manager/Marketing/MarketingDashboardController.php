@@ -863,7 +863,7 @@ class MarketingDashboardController extends Controller
 
             return compact(
                 'totalRevenue', 'previousRevenue', 'revenueGrowth',
-                'revenuePerCustomer', 'aov',
+                'revenuePerCustomer', 'aov', 'totalOrders',
                 'revenueTrend', 'aovTrend',
                 'revenueByCategory', 'revenueByPaymentMethod'
             );
@@ -985,7 +985,14 @@ class MarketingDashboardController extends Controller
                 ->get();
 
             // ── Promo effectiveness summary ──
+            $revenueLiftPct = $nonPromoAov > 0 ? round(($promoAov - $nonPromoAov) / $nonPromoAov * 100, 1) : 0;
+            $marginImpactPct = $marginWithoutPromo > 0 ? round($marginAfterPromo - $marginWithoutPromo, 1) : 0;
+            $aovImpactPct = $nonPromoAov > 0 ? round(($promoAov - $nonPromoAov) / $nonPromoAov * 100, 1) : 0;
+
             $promoEffectiveness = [
+                'revenue_lift_pct' => $revenueLiftPct,
+                'margin_impact_pct' => $marginImpactPct,
+                'aov_impact_pct' => $aovImpactPct,
                 'promo_revenue' => $promoRevenue,
                 'non_promo_revenue' => $nonPromoRevenue,
                 'promo_margin' => $marginAfterPromo,

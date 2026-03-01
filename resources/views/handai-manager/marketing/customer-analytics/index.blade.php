@@ -450,8 +450,8 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // --- Frequency Segment Donut ---
-    const freqLabels = @json(($segmentByFrequency ?? collect())->pluck('segment_label'));
-    const freqData   = @json(($segmentByFrequency ?? collect())->pluck('count'));
+    const freqLabels = @json(($frequencySegments ?? collect())->pluck('segment_label'));
+    const freqData   = @json(($frequencySegments ?? collect())->pluck('count'));
 
     if (freqLabels.length > 0) {
         const freqChart = new Chart(document.getElementById('chartFreqSegment'), {
@@ -489,8 +489,8 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // --- Spend Segment Donut ---
-    const spendLabels = @json(($segmentBySpend ?? collect())->pluck('segment_label'));
-    const spendData   = @json(($segmentBySpend ?? collect())->pluck('count'));
+    const spendLabels = @json(($spendSegments ?? collect())->pluck('segment_label'));
+    const spendData   = @json(($spendSegments ?? collect())->pluck('count'));
 
     if (spendLabels.length > 0) {
         const spendChart = new Chart(document.getElementById('chartSpendSegment'), {
