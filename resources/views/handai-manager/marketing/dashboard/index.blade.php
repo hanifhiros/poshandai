@@ -268,7 +268,7 @@
             </div>
             <ul class="space-y-1 pl-5 list-disc" style="color:#78350f;">
                 @foreach($alerts as $alert)
-                    <li>{{ $alert }}</li>
+                    <li>{{ is_array($alert) ? ($alert['message'] ?? '') : $alert }}</li>
                 @endforeach
             </ul>
         </div>
