@@ -18,6 +18,7 @@ use App\Http\Controllers\Manager\Operational\OrderController;
 use App\Http\Controllers\Manager\Finance\InvoiceController;
 use App\Http\Controllers\Manager\Finance\StockBatchesController;
 use App\Http\Controllers\Manager\Marketing\CustomerController;
+use App\Http\Controllers\Manager\Marketing\MarketingDashboardController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Manager\Finance\EmployeeController;
 use App\Http\Controllers\Manager\Finance\AccountingController;
@@ -150,6 +151,14 @@ Route::middleware(['web', 'auth', 'cekrole:Manager'])->group(function () {
         Route::get('/rnd/log', [RNDLogController::class, 'index'])->name('manager.finance.rnd.log');
     });
     Route::prefix('/marketing')->name('manager.marketing.')->group(function () {
+        // Marketing Dashboard
+        Route::get('/dashboard', [MarketingDashboardController::class, 'index'])->name('dashboard');
+        Route::get('/customer-analytics', [MarketingDashboardController::class, 'customerAnalytics'])->name('customer-analytics');
+        Route::get('/retention', [MarketingDashboardController::class, 'retention'])->name('retention');
+        Route::get('/product-performance', [MarketingDashboardController::class, 'productPerformance'])->name('product-performance');
+        Route::get('/revenue-analytics', [MarketingDashboardController::class, 'revenueAnalytics'])->name('revenue-analytics');
+        Route::get('/campaign-analysis', [MarketingDashboardController::class, 'campaignAnalysis'])->name('campaign-analysis');
+
         Route::get('/customers', [CustomerController::class, 'index'])->name('customers.index');
         Route::get('/customers/create', [CustomerController::class, 'create'])->name('customers.create');
         Route::post('/customers', [CustomerController::class, 'store'])->name('customers.store');

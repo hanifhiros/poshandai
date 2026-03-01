@@ -317,6 +317,15 @@
          ZONE C: Strategic Focus Tables
     ═══════════════════════════════════════════════ --}}
 
+    @php
+        $rankStyles = [
+            0 => ['bg' => '#fef9c3', 'color' => '#a16207'],
+            1 => ['bg' => '#f1f5f9', 'color' => '#475569'],
+            2 => ['bg' => '#fff7ed', 'color' => '#c2410c'],
+        ];
+        $rankDefault = ['bg' => '#f8fafc', 'color' => '#94a3b8'];
+    @endphp
+
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
 
         {{-- Top 5 Revenue Products --}}
@@ -332,9 +341,10 @@
                 </thead>
                 <tbody>
                     @forelse(($top5RevenueProducts ?? collect()) as $i => $p)
+                    @php $rs = $rankStyles[$i] ?? $rankDefault; @endphp
                     <tr>
                         <td>
-                            <span class="mk-rank" style="background:{{ $i === 0 ? '#fef9c3' : ($i === 1 ? '#f1f5f9' : ($i === 2 ? '#fff7ed' : '#f8fafc')) }};color:{{ $i === 0 ? '#a16207' : ($i === 1 ? '#475569' : ($i === 2 ? '#c2410c' : '#94a3b8')) }};">
+                            <span class="mk-rank" style="background:{{ $rs['bg'] }};color:{{ $rs['color'] }};">
                                 {{ $i + 1 }}
                             </span>
                         </td>
@@ -363,9 +373,10 @@
                 </thead>
                 <tbody>
                     @forelse(($top5MarginProducts ?? collect()) as $i => $p)
+                    @php $rs = $rankStyles[$i] ?? $rankDefault; @endphp
                     <tr>
                         <td>
-                            <span class="mk-rank" style="background:{{ $i === 0 ? '#ecfdf5' : '#f8fafc' }};color:{{ $i === 0 ? '#059669' : '#94a3b8' }};">
+                            <span class="mk-rank" style="background:{{ $rs['bg'] }};color:{{ $rs['color'] }};">
                                 {{ $i + 1 }}
                             </span>
                         </td>
@@ -394,9 +405,10 @@
                 </thead>
                 <tbody>
                     @forelse(($topRepeatProducts ?? collect()) as $i => $p)
+                    @php $rs = $rankStyles[$i] ?? $rankDefault; @endphp
                     <tr>
                         <td>
-                            <span class="mk-rank" style="background:{{ $i === 0 ? '#faf5ff' : '#f8fafc' }};color:{{ $i === 0 ? '#7c3aed' : '#94a3b8' }};">
+                            <span class="mk-rank" style="background:{{ $rs['bg'] }};color:{{ $rs['color'] }};">
                                 {{ $i + 1 }}
                             </span>
                         </td>
@@ -418,7 +430,7 @@
 @endsection
 
 @section('vendor-script')
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7"></script>
 @endsection
 
 @section('page-script')
