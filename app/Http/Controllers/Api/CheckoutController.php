@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Models\{Customer, Order, Promo, ProductVariants, CustomerStore};
+use App\Services\InventoryService;
+use App\Services\AccountingService;
 
 class CheckoutController extends Controller
 {
@@ -84,12 +86,19 @@ class CheckoutController extends Controller
         $promoCode = session('promo_code');
         $promoDiscount = session('promo_discount') ?? 0;
         $deliveryFee = floatval($request->input('delivery_fee', 0));
-        $grossAmount = max($totals['grandTotal'] - $promoDiscount + $deliveryFee, 0);        
+        $grossAmount = max($totals['grandTotal'] - $promoDiscount + $deliveryFee, 0);
         $orderedQty = 0;
         $storeId = session('selected_store') ?? $request->input('store_id');
-
-        // return response()->json(['success' => false, 'message' => $totals, $cart,  session('cart', [])], 400);
         $proofPath = null;
+
+        // ── Stock Validation (deduction happens on ship) ──
+        $stockErrors = InventoryService::validateCartStock($cart);
+        if (!empty($stockErrors)) {
+            return response()->json([
+                'success' => false,
+                'message' => implode(', ', $stockErrors)
+            ], 400);
+        }
 
         if ($request->has('payment_proof_base64')) {
             try {
@@ -186,20 +195,6 @@ class CheckoutController extends Controller
                         'last_ordered_at' => now(),
                     ]);
                 }
-            // CustomerStore::updateOrCreate(
-            //     [
-            //         'customer_id' => $customerId,
-            //         'store_id' => $storeId,
-            //     ],
-            //     [
-            //         'qty_ordered' => DB::raw("qty_ordered + $orderedQty"),
-            //         'qty_avg' => DB::raw("ROUND((qty_ordered + $orderedQty) / (orders + 1))"),
-            //         'orders' => DB::raw("orders + 1"),
-            //         'last_ordered_at' => now(),
-            //         'first_ordered_at' => DB::raw("COALESCE(first_ordered_at, NOW())"),
-            //         'updated_at' => now(),
-            //     ]
-            // );
 
             DB::commit();
             session()->forget(['cart', 'promo_code', 'promo_discount']);
@@ -212,10 +207,13 @@ class CheckoutController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Checkout error: ' . $e->getMessage());
+            Log::error('API Checkout error: ' . $e->getMessage(), [
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal menyimpan order: ' . $e->getMessage()
+                'message' => 'Gagal menyimpan order. Silakan coba lagi.'
             ], 500);
         }
     }

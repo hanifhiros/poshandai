@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Kasir;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 use App\Models\ProductVariants;
 use App\Models\ProductionHistory;
@@ -13,6 +14,9 @@ use Midtrans\Config;
 use App\Models\Customer;
 use Midtrans\Snap;
 use App\Models\Order;
+use App\Services\InventoryService;
+use App\Services\AccountingService;
+
 class CartController extends Controller
 {
     public function index()
@@ -37,7 +41,7 @@ class CartController extends Controller
         $ppn = $cartTotalPrice * 0.0;
         $grandTotal = $cartTotalPrice + $ppn;
 
-        $customers=Customer::orderBy('name')->get(); 
+        $customers = Customer::where('store_id', session('selected_store'))->orderBy('name')->get();
         return view('handai-kasir.checkout.checkout-kasir', compact(
             'cart', 'cartTotalItems', 'subTotal', 'discountTotal', 'cartTotalPrice', 'ppn', 'grandTotal', 'customers'
         ));
@@ -60,9 +64,12 @@ class CartController extends Controller
         }
     
         $request->validate([
-              'payment_method' => 'required|in:cash,transfer,qris,tunai,non_tunai,campuran',
+            'payment_method' => 'required|in:cash,transfer,qris,tunai,non_tunai,campuran',
             'delivery_date' => 'required|date',
-            'delivery_time' => 'required'
+            'delivery_time' => 'required',
+            'additional_charges.pajak' => 'nullable|integer|min:0',
+            'additional_charges.ongkos_kirim' => 'nullable|integer|min:0',
+            'additional_charges.kemasan' => 'nullable|integer|min:0',
         ]);
     
         $customerId = $request->input('customer_id');
@@ -102,6 +109,16 @@ class CartController extends Controller
         
         $grossAmount = max($totals['grandTotal'] - $promoDiscount + $totalAdditionalCharges, 0);
         $orderedQty = 0;
+
+        // ── Stock Validation (deduction happens on ship) ──
+        $stockErrors = InventoryService::validateCartStock($cart);
+        if (!empty($stockErrors)) {
+            return response()->json([
+                'success' => false,
+                'message' => implode(', ', $stockErrors)
+            ], 400);
+        }
+
         DB::beginTransaction();
         try {
             $order = Order::create([
@@ -152,19 +169,21 @@ class CartController extends Controller
                 'total_hpp_orders' => $totalHpp
             ]);
             
-            DB::commit();
+            // Update customer stats inside transaction
             $customer = Customer::find($order->customer_id);
             if ($customer) {
                 $totalQty = $customer->qty_ordered ?? 0;
                 $newQtyTotal = $totalQty + $orderedQty;
             
-                $totalOrders = Order::where('customer_id', $customer->id)->count(); // atau pakai kolom jika sudah disimpan
+                $totalOrders = Order::where('customer_id', $customer->id)->count();
             
                 $customer->qty_ordered = $newQtyTotal;
                 $customer->qty_ordered_avg = $totalOrders > 0 ? round($newQtyTotal / $totalOrders) : $newQtyTotal;
                 $customer->has_ordered = 1;
                 $customer->save();
             }
+
+            DB::commit();
             $cart_items=session('cart');
             session()->forget(['cart', 'promo_code', 'promo_discount']);
     
@@ -177,19 +196,17 @@ class CartController extends Controller
             
             
         } catch (\Exception $e) {
-            \Log::error('Checkout error: ' . $e->getMessage(), [
+            Log::error('Kasir checkout error: ' . $e->getMessage(), [
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
                 'trace' => $e->getTraceAsString()
             ]);
             DB::rollBack();
 
- 
-
-    return response()->json([
-        'success' => false,
-        'message' => 'Gagal menyimpan order: ' . $e->getMessage()
-    ], 500);
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menyimpan order. Silakan coba lagi.'
+            ], 500);
             
         }
     }
@@ -208,7 +225,7 @@ class CartController extends Controller
         $variantId = $request->variant_id;
         $quantity = $request->quantity;
     
-        $variant = ProductVariants::with('product')->findOrFail($variantId);
+        $variant = ProductVariants::with(['product', 'options.attribute'])->findOrFail($variantId);
     
         $finalPrice = ($variant->is_promo === 'yes')
             ? ($variant->price - $variant->price_discount)
@@ -226,8 +243,6 @@ class CartController extends Controller
         }
     
         if (!$found) {
-            $variant = ProductVariants::with('options.attribute')->findOrFail($variantId);
-
             $cart[] = [
                 'product_id' => $variant->product_id,
                 'variant_id' => $variant->id,
@@ -509,7 +524,6 @@ class CartController extends Controller
 
     private function calculateGrossAmount($totalItemPrice, $ppn, $discount)
     {   
-        // dd($totalItemPrice, $ppn, $discount);
         $gross = $totalItemPrice + $ppn - $discount;
         return $gross < 0 ? 0 : $gross;
     }

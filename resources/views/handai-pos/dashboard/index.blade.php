@@ -20,22 +20,127 @@
         border-color: #0C9044;
     }
 
+    /* ========= GRID LAYOUT — explicit grid-template-columns ========= */
+    .product-grid-wrap {
+        display: grid;
+        width: 100%;
+        max-width: 100%;
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .grid-mode-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+    .grid-mode-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+    .grid-mode-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+    .grid-mode-5 { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; }
+
     /* Product grid card */
     .prod-card {
         transition: all 0.2s cubic-bezier(0.4,0,0.2,1);
         cursor: pointer;
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        min-width: 0;
+        max-width: 100%;
     }
     .prod-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 25px -5px rgba(0,0,0,0.07);
-        border-color: rgba(12,144,68,0.3);
+        transform: translateY(-3px);
+        box-shadow: 0 10px 25px -8px rgba(0,0,0,0.1), 0 4px 10px -4px rgba(0,0,0,0.04);
+        border-color: rgba(12,144,68,0.4);
     }
     .prod-card:active {
         transform: translateY(0);
+        box-shadow: 0 2px 8px -2px rgba(0,0,0,0.06);
     }
     .prod-card.sold-out {
         opacity: 0.5;
         pointer-events: none;
+        filter: grayscale(0.3);
+    }
+
+    /* Card image container */
+    .prod-img {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        background: #f8fafc;
+    }
+    .prod-img img {
+        max-width: 75%;
+        max-height: 75%;
+        object-fit: contain;
+        transition: transform 0.3s ease;
+    }
+    .prod-card:hover .prod-img img {
+        transform: scale(1.05);
+    }
+
+    /* 2 cols — spacious */
+    .grid-mode-2 .prod-img { height: 160px; }
+    .grid-mode-2 .prod-info { padding: 12px 14px; }
+    .grid-mode-2 .prod-name { font-size: 15px; }
+    .grid-mode-2 .prod-price { font-size: 15px; }
+
+    /* 3 cols */
+    .grid-mode-3 .prod-img { height: 130px; }
+    .grid-mode-3 .prod-info { padding: 10px 12px; }
+    .grid-mode-3 .prod-name { font-size: 13.5px; }
+    .grid-mode-3 .prod-price { font-size: 13.5px; }
+
+    /* 4 cols — balanced default */
+    .grid-mode-4 .prod-img { height: 110px; }
+    .grid-mode-4 .prod-info { padding: 10px 12px; }
+    .grid-mode-4 .prod-name { font-size: 12.5px; }
+    .grid-mode-4 .prod-price { font-size: 12.5px; }
+
+    /* 5 cols — compact */
+    .grid-mode-5 .prod-img { height: 90px; }
+    .grid-mode-5 .prod-info { padding: 8px 10px; }
+    .grid-mode-5 .prod-name { font-size: 11.5px; }
+    .grid-mode-5 .prod-price { font-size: 11.5px; }
+    .grid-mode-5 .prod-badge-fav { width: 22px; height: 22px; }
+    .grid-mode-5 .prod-badge-fav i { font-size: 10px; }
+    .grid-mode-5 .prod-badge-promo { font-size: 8px; padding: 1px 5px; }
+
+    /* List view card */
+    .prod-card-list {
+        flex-direction: row;
+        cursor: pointer;
+        transition: all 0.2s cubic-bezier(0.4,0,0.2,1);
+    }
+    .prod-card-list:hover {
+        box-shadow: 0 4px 16px -4px rgba(0,0,0,0.08);
+        border-color: rgba(12,144,68,0.3);
+        background: #f0fdf4;
+    }
+    .prod-card-list:active {
+        background: #dcfce7;
+    }
+    .prod-card-list.sold-out {
+        opacity: 0.5;
+        pointer-events: none;
+        filter: grayscale(0.3);
+    }
+
+    /* (grid-wrap styles moved to main grid section above) */
+
+    /* Line clamp utility */
+    .line-clamp-1 { display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+    .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+    /* Layout control buttons */
+    .layout-btn {
+        transition: all 0.15s ease;
+    }
+    .layout-btn:hover:not(.layout-active) {
+        background-color: #f1f5f9;
+        color: #475569;
+    }
+    .layout-active {
+        background-color: #0C9044;
+        color: white;
+        box-shadow: 0 2px 8px rgba(12,144,68,0.25);
     }
 
     /* Cart item */
@@ -118,15 +223,96 @@
     .cart-drawer-panel {
         transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
+
+    /* Mobile header adjustments */
+    @media (max-width: 767px) {
+        .header-divider { display: none; }
+        .header-user-info { display: none; }
+    }
+
+    /* ========= MOBILE RESPONSIVE: force 1-2 cols on small screens ========= */
+    @media (max-width: 479px) {
+        .grid-mode-3,
+        .grid-mode-4,
+        .grid-mode-5 {
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+            gap: 10px !important;
+        }
+        .grid-mode-3 .prod-img,
+        .grid-mode-4 .prod-img,
+        .grid-mode-5 .prod-img { height: 120px !important; }
+        .grid-mode-3 .prod-info,
+        .grid-mode-4 .prod-info,
+        .grid-mode-5 .prod-info { padding: 8px 10px !important; }
+        .grid-mode-3 .prod-name,
+        .grid-mode-4 .prod-name,
+        .grid-mode-5 .prod-name { font-size: 12px !important; }
+        .grid-mode-3 .prod-price,
+        .grid-mode-4 .prod-price,
+        .grid-mode-5 .prod-price { font-size: 12px !important; }
+    }
+
+    /* Tablet: max 3 cols */
+    @media (min-width: 480px) and (max-width: 767px) {
+        .grid-mode-4,
+        .grid-mode-5 {
+            grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+            gap: 12px !important;
+        }
+        .grid-mode-4 .prod-img,
+        .grid-mode-5 .prod-img { height: 110px !important; }
+    }
+
+    /* ========= MOBILE CART MINI BAR ========= */
+    .mobile-cart-bar {
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* ========= HORIZONTAL SCROLL MODE (Desktop) ========= */
+    .product-hscroll-wrap {
+        display: flex;
+        gap: 14px;
+        overflow-x: auto;
+        overflow-y: hidden;
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 8px;
+    }
+    .product-hscroll-wrap::-webkit-scrollbar { height: 5px; }
+    .product-hscroll-wrap::-webkit-scrollbar-track { background: transparent; }
+    .product-hscroll-wrap::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 999px; }
+    .product-hscroll-wrap::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
+
+    .product-hscroll-wrap .prod-card {
+        scroll-snap-align: start;
+        flex-shrink: 0;
+    }
+    .hscroll-sm .prod-card { width: 160px; }
+    .hscroll-sm .prod-img { height: 100px; }
+    .hscroll-sm .prod-info { padding: 8px 10px; }
+    .hscroll-sm .prod-name { font-size: 12px; }
+    .hscroll-sm .prod-price { font-size: 12px; }
+
+    .hscroll-md .prod-card { width: 200px; }
+    .hscroll-md .prod-img { height: 120px; }
+    .hscroll-md .prod-info { padding: 10px 12px; }
+    .hscroll-md .prod-name { font-size: 13px; }
+    .hscroll-md .prod-price { font-size: 13px; }
+
+    .hscroll-lg .prod-card { width: 240px; }
+    .hscroll-lg .prod-img { height: 140px; }
+    .hscroll-lg .prod-info { padding: 12px 14px; }
+    .hscroll-lg .prod-name { font-size: 14px; }
+    .hscroll-lg .prod-price { font-size: 14px; }
 </style>
 @endsection
 
 @section('header')
 {{-- Top Info Bar --}}
-<div class="h-[52px] bg-white border-b border-slate-200/80 flex items-center justify-between px-5 shrink-0">
+<div class="h-[52px] bg-white border-b border-slate-200/80 flex items-center justify-between px-3 md:px-5 shrink-0">
     {{-- Left: Store info --}}
-    <div class="flex items-center gap-4">
-        <div class="flex items-center gap-2">
+    <div class="flex items-center gap-2 md:gap-4 min-w-0 overflow-x-auto">
+        <div class="flex items-center gap-2 shrink-0">
             <div class="w-7 h-7 rounded-lg bg-green-100 flex items-center justify-center">
                 <i class="ti ti-building-store text-[#0C9044] text-sm"></i>
             </div>
@@ -137,8 +323,8 @@
                 <p class="text-[10px] text-slate-400 leading-none mt-0.5">Outlet</p>
             </div>
         </div>
-        <div class="w-px h-6 bg-slate-200"></div>
-        <div class="flex items-center gap-2">
+        <div class="w-px h-6 bg-slate-200 header-divider"></div>
+        <div class="flex items-center gap-2 header-user-info shrink-0">
             <div class="w-7 h-7 rounded-lg bg-emerald-100 flex items-center justify-center">
                 <i class="ti ti-user text-emerald-600 text-sm"></i>
             </div>
@@ -149,7 +335,7 @@
                 <p class="text-[10px] text-slate-400 leading-none mt-0.5">Kasir</p>
             </div>
         </div>
-        <div class="w-px h-6 bg-slate-200"></div>
+        <div class="w-px h-6 bg-slate-200 header-divider"></div>
         {{-- Shift Indicator --}}
         <div x-data="shiftManager()" class="flex items-center gap-2">
             <button @click="toggleShift()"
@@ -201,7 +387,7 @@
     <div class="flex-1 flex flex-col overflow-hidden min-w-0">
 
         {{-- Search + Category Bar --}}
-        <div class="bg-white border-b border-slate-100 px-5 py-3 shrink-0">
+        <div class="bg-white border-b border-slate-100 px-3 md:px-5 py-3 shrink-0">
             <div class="flex items-center gap-3 mb-3">
                 {{-- Search --}}
                 <div class="flex-1 relative">
@@ -229,12 +415,83 @@
                         </button>
                     </div>
                 </div>
-                {{-- View toggle --}}
-                <button class="h-11 w-11 rounded-xl border border-slate-200 bg-white flex items-center justify-center text-slate-400 hover:text-[#0C9044] hover:border-green-200 transition cursor-pointer"
-                        @click="gridCols = gridCols === 4 ? 3 : gridCols === 3 ? 5 : 4"
-                        title="Change grid size">
-                    <i class="ti ti-layout-grid text-lg"></i>
-                </button>
+            </div>
+
+            {{-- === LAYOUT CONTROLS BAR === --}}
+            <div class="flex items-center gap-2 sm:gap-3 mb-3 overflow-x-auto hide-scrollbar">
+                {{-- View mode tabs: Kolom / Baris / Scroll --}}
+                <div class="flex items-center gap-0.5 bg-slate-100 rounded-lg p-0.5 shrink-0">
+                    <button @click="setViewMode('grid')"
+                            class="flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-md text-[11px] sm:text-xs font-semibold transition-all duration-200 cursor-pointer"
+                            :class="viewMode === 'grid' ? 'bg-white text-[#0C9044] shadow-sm' : 'text-slate-400 hover:text-slate-600'">
+                        <i class="ti ti-layout-grid text-sm"></i>
+                        <span class="hidden xs:inline">Kolom</span>
+                    </button>
+                    <button @click="setViewMode('list')"
+                            class="flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-md text-[11px] sm:text-xs font-semibold transition-all duration-200 cursor-pointer"
+                            :class="viewMode === 'list' ? 'bg-white text-[#0C9044] shadow-sm' : 'text-slate-400 hover:text-slate-600'">
+                        <i class="ti ti-list text-sm"></i>
+                        <span class="hidden xs:inline">Baris</span>
+                    </button>
+                    <button @click="setViewMode('hscroll')"
+                            class="hidden md:flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-md text-[11px] sm:text-xs font-semibold transition-all duration-200 cursor-pointer"
+                            :class="viewMode === 'hscroll' ? 'bg-white text-[#0C9044] shadow-sm' : 'text-slate-400 hover:text-slate-600'">
+                        <i class="ti ti-arrows-left-right text-sm"></i>
+                        Scroll
+                    </button>
+                </div>
+
+                {{-- Column count selector — grid mode --}}
+                <div class="flex items-center gap-1 shrink-0" x-show="viewMode === 'grid'" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 -translate-x-2" x-transition:enter-end="opacity-100 translate-x-0">
+                    <div class="w-px h-5 bg-slate-200"></div>
+                    <template x-for="n in gridColOptions" :key="n">
+                        <button @click="setGridCols(n)"
+                                class="layout-btn w-7 h-7 sm:w-8 sm:h-8 rounded-lg border border-slate-200 flex items-center justify-center text-[10px] sm:text-xs font-bold text-slate-500 cursor-pointer"
+                                :class="gridCols === n ? 'layout-active' : ''"
+                                x-text="n">
+                        </button>
+                    </template>
+                </div>
+
+                {{-- Row size selector — list mode --}}
+                <div class="flex items-center gap-1 shrink-0" x-show="viewMode === 'list'" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 -translate-x-2" x-transition:enter-end="opacity-100 translate-x-0">
+                    <div class="w-px h-5 bg-slate-200"></div>
+                    <button @click="listSize = 'compact'; localStorage.setItem('pos_list_size', 'compact')"
+                            class="layout-btn h-7 sm:h-8 px-2 sm:px-2.5 rounded-lg border border-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-500 cursor-pointer gap-1"
+                            :class="listSize === 'compact' ? 'layout-active' : ''">
+                        <i class="ti ti-layout-rows text-xs"></i> <span class="hidden sm:inline">Kecil</span>
+                    </button>
+                    <button @click="listSize = 'normal'; localStorage.setItem('pos_list_size', 'normal')"
+                            class="layout-btn h-7 sm:h-8 px-2 sm:px-2.5 rounded-lg border border-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-500 cursor-pointer gap-1"
+                            :class="listSize === 'normal' ? 'layout-active' : ''">
+                        <i class="ti ti-layout-list text-xs"></i> <span class="hidden sm:inline">Normal</span>
+                    </button>
+                    <button @click="listSize = 'large'; localStorage.setItem('pos_list_size', 'large')"
+                            class="layout-btn h-7 sm:h-8 px-2 sm:px-2.5 rounded-lg border border-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-500 cursor-pointer gap-1"
+                            :class="listSize === 'large' ? 'layout-active' : ''">
+                        <i class="ti ti-layout-bottombar text-xs"></i> <span class="hidden sm:inline">Besar</span>
+                    </button>
+                </div>
+
+                {{-- Scroll card size selector — hscroll mode --}}
+                <div class="flex items-center gap-1 shrink-0" x-show="viewMode === 'hscroll'" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 -translate-x-2" x-transition:enter-end="opacity-100 translate-x-0">
+                    <div class="w-px h-5 bg-slate-200"></div>
+                    <button @click="hscrollSize = 'sm'; localStorage.setItem('pos_hscroll_size', 'sm')"
+                            class="layout-btn h-8 px-2.5 rounded-lg border border-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-500 cursor-pointer gap-1"
+                            :class="hscrollSize === 'sm' ? 'layout-active' : ''">
+                        S
+                    </button>
+                    <button @click="hscrollSize = 'md'; localStorage.setItem('pos_hscroll_size', 'md')"
+                            class="layout-btn h-8 px-2.5 rounded-lg border border-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-500 cursor-pointer gap-1"
+                            :class="hscrollSize === 'md' ? 'layout-active' : ''">
+                        M
+                    </button>
+                    <button @click="hscrollSize = 'lg'; localStorage.setItem('pos_hscroll_size', 'lg')"
+                            class="layout-btn h-8 px-2.5 rounded-lg border border-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-500 cursor-pointer gap-1"
+                            :class="hscrollSize === 'lg' ? 'layout-active' : ''">
+                        L
+                    </button>
+                </div>
             </div>
 
             {{-- Category Filter Pills --}}
@@ -265,7 +522,7 @@
         </div>
 
         {{-- Product Grid --}}
-        <div class="flex-1 overflow-y-auto pos-scroll p-5">
+        <div class="flex-1 overflow-y-auto overflow-x-hidden pos-scroll p-3 md:p-5">
             {{-- Results info --}}
             <div class="flex items-center justify-between mb-4">
                 <p class="text-xs text-slate-400 font-medium">
@@ -276,63 +533,240 @@
                 </p>
             </div>
 
-            {{-- Grid --}}
-            <div class="grid gap-3"
+            {{-- === GRID VIEW === --}}
+            <div x-show="viewMode === 'grid'" class="product-grid-wrap"
                  :class="{
-                    'grid-cols-2 sm:grid-cols-3': gridCols === 3,
-                    'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4': gridCols === 4,
-                    'grid-cols-3 sm:grid-cols-4 lg:grid-cols-5': gridCols === 5
+                    'grid-mode-2': gridCols === 2,
+                    'grid-mode-3': gridCols === 3,
+                    'grid-mode-4': gridCols === 4,
+                    'grid-mode-5': gridCols === 5
                  }">
-                <template x-for="item in filteredProducts" :key="item.product.id">
-                    <div class="prod-card bg-white rounded-xl border border-slate-200/80 overflow-hidden"
+                <template x-for="item in filteredProducts" :key="'grid-'+item.product.id">
+                    <div class="prod-card bg-white rounded-xl border border-slate-200/60 overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.04)]"
                          :class="{ 'sold-out': item.isSoldOut }"
                          @click="!item.isSoldOut && openVariantModal(item)">
 
-                        {{-- Image --}}
-                        <div class="relative aspect-square bg-slate-50 flex items-center justify-center p-3 overflow-hidden">
+                        {{-- Image — fixed height container --}}
+                        <div class="prod-img rounded-t-xl">
                             <img :src="item.product.image_url ? '{{ asset('') }}' + item.product.image_url : '{{ asset('assets/image.png') }}'"
                                  :alt="item.product.name"
-                                 class="max-h-full max-w-full object-contain"
+                                 loading="lazy"
                                  onerror="this.src='{{ asset('assets/image.png') }}'">
 
                             {{-- Favorite star --}}
                             <button @click.stop="toggleFavorite(item.product.id)"
-                                    class="absolute top-2 right-2 w-7 h-7 rounded-full flex items-center justify-center transition-all cursor-pointer"
-                                    :class="isFavorite(item.product.id) ? 'bg-amber-100 text-amber-500 shadow-sm' : 'bg-white/80 text-slate-300 hover:text-amber-400 hover:bg-amber-50'"
+                                    class="prod-badge-fav absolute top-2 right-2 w-7 h-7 rounded-full flex items-center justify-center bg-white border border-slate-200/80 shadow-sm transition-all duration-200 cursor-pointer hover:shadow-md hover:scale-110 focus:outline-none"
                                     :title="isFavorite(item.product.id) ? 'Hapus dari favorit' : 'Tambah ke favorit'">
-                                <i class="text-sm" :class="isFavorite(item.product.id) ? 'ti ti-star-filled' : 'ti ti-star'"></i>
+                                <svg x-show="!isFavorite(item.product.id)" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                    <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" stroke="#cbd5e1" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                <svg x-show="isFavorite(item.product.id)" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" fill="#f59e0b"/>
+                                </svg>
                             </button>
 
                             {{-- Promo badge --}}
                             <div x-show="item.isPromo === 'yes'" class="absolute top-2 left-2">
-                                <span class="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-md bg-red-500 text-white text-[10px] font-bold uppercase tracking-wide">
-                                    <i class="ti ti-discount-2 text-xs"></i> Promo
+                                <span class="prod-badge-promo inline-flex items-center gap-0.5 px-2 py-0.5 rounded-md bg-red-500 text-white text-[9px] font-bold uppercase tracking-wide shadow-sm">
+                                    <i class="ti ti-discount-2 text-[10px]"></i> Promo
                                 </span>
                             </div>
 
                             {{-- Sold out overlay --}}
-                            <div x-show="item.isSoldOut" class="absolute inset-0 bg-white/70 flex items-center justify-center">
-                                <span class="px-3 py-1 rounded-lg bg-slate-800 text-white text-xs font-bold" x-text="t('sold_out')"></span>
+                            <div x-show="item.isSoldOut" class="absolute inset-0 bg-white/70 backdrop-blur-[2px] flex items-center justify-center">
+                                <span class="px-3 py-1 rounded-lg bg-slate-800/85 text-white text-[10px] font-bold shadow-lg" x-text="t('sold_out')"></span>
                             </div>
                         </div>
 
                         {{-- Info --}}
-                        <div class="p-3 border-t border-slate-100">
-                            <h4 class="text-sm font-semibold text-slate-800 truncate" x-text="item.product.name"></h4>
-                            <div class="mt-1.5 flex items-baseline gap-1.5">
-                                <span class="text-sm font-bold"
-                                      :class="item.isPromo === 'yes' ? 'text-red-600' : 'text-[#3A3A3A]'"
+                        <div class="prod-info border-t border-slate-100/60 flex flex-col flex-1">
+                            <h4 class="prod-name font-semibold text-slate-800 line-clamp-2 leading-snug"
+                                x-text="item.product.name"></h4>
+                            <div class="mt-auto pt-1.5 flex items-baseline gap-1.5">
+                                <span class="prod-price font-bold"
+                                      :class="item.isPromo === 'yes' ? 'text-red-600' : 'text-[#0C9044]'"
                                       x-text="'Rp ' + Number(item.price).toLocaleString('id-ID')">
                                 </span>
                                 <span x-show="item.isPromo === 'yes' && item.normal_price"
-                                      class="text-[11px] text-slate-400 line-through"
+                                      class="text-[10px] text-slate-400 line-through"
                                       x-text="'Rp ' + Number(item.normal_price).toLocaleString('id-ID')">
                                 </span>
                             </div>
                             {{-- Stock indicator --}}
-                            <div class="mt-2 flex items-center gap-1" x-show="!item.isSoldOut">
-                                <div class="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
-                                <span class="text-[10px] text-slate-400 font-medium" x-text="t('available')"></span>
+                            <div class="mt-1.5 flex items-center gap-1.5" x-show="!item.isSoldOut">
+                                <div class="w-1.5 h-1.5 rounded-full" :class="item.totalStock > 10 ? 'bg-emerald-400' : item.totalStock > 0 ? 'bg-amber-400' : 'bg-red-400'"></div>
+                                <span class="text-[10px] text-slate-400 font-medium" x-text="item.totalStock > 10 ? t('available') : (item.totalStock > 0 ? 'Stok: ' + item.totalStock : t('sold_out'))"></span>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+            </div>
+
+            {{-- === LIST / BARIS VIEW === --}}
+            <div x-show="viewMode === 'list'" class="flex flex-col"
+                 :class="{
+                    'gap-1.5': listSize === 'compact',
+                    'gap-2.5': listSize === 'normal',
+                    'gap-3': listSize === 'large'
+                 }">
+                <template x-for="item in filteredProducts" :key="'list-'+item.product.id">
+                    <div class="prod-card-list bg-white rounded-xl border border-slate-200/60 overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.04)] flex"
+                         :class="{
+                            'sold-out': item.isSoldOut,
+                            'rounded-lg': listSize === 'compact'
+                         }"
+                         @click="!item.isSoldOut && openVariantModal(item)">
+
+                        {{-- Image (adaptive thumbnail) --}}
+                        <div class="relative bg-slate-50 flex items-center justify-center shrink-0"
+                             :class="{
+                                'w-14 h-14 p-1.5': listSize === 'compact',
+                                'w-20 h-20 sm:w-24 sm:h-24 p-2': listSize === 'normal',
+                                'w-28 h-28 sm:w-32 sm:h-32 p-3': listSize === 'large'
+                             }">
+                            <img :src="item.product.image_url ? '{{ asset('') }}' + item.product.image_url : '{{ asset('assets/image.png') }}'"
+                                 :alt="item.product.name"
+                                 class="max-h-full max-w-full object-contain"
+                                 loading="lazy"
+                                 onerror="this.src='{{ asset('assets/image.png') }}'">
+
+                            {{-- Promo badge --}}
+                            <div x-show="item.isPromo === 'yes'" class="absolute top-1 left-1">
+                                <span class="inline-flex items-center rounded bg-red-500 text-white font-bold uppercase"
+                                      :class="listSize === 'compact' ? 'px-1 py-0 text-[7px]' : 'px-1.5 py-0.5 text-[9px]'">
+                                    Promo
+                                </span>
+                            </div>
+
+                            {{-- Sold out overlay --}}
+                            <div x-show="item.isSoldOut" class="absolute inset-0 bg-white/70 backdrop-blur-[1px] flex items-center justify-center">
+                                <span class="px-2 py-0.5 rounded-md bg-slate-800/85 text-white text-[10px] font-bold" x-text="t('sold_out')"></span>
+                            </div>
+                        </div>
+
+                        {{-- Info --}}
+                        <div class="flex-1 flex items-center min-w-0 border-l border-slate-100/60"
+                             :class="{
+                                'px-2.5 py-1.5': listSize === 'compact',
+                                'px-3 py-2.5': listSize === 'normal',
+                                'px-4 py-3': listSize === 'large'
+                             }">
+                            <div class="flex-1 min-w-0">
+                                {{-- Product name --}}
+                                <h4 class="font-semibold text-slate-800 line-clamp-1"
+                                    :class="{
+                                        'text-xs': listSize === 'compact',
+                                        'text-sm': listSize === 'normal',
+                                        'text-base': listSize === 'large'
+                                    }"
+                                    x-text="item.product.name"></h4>
+
+                                {{-- Category label — normal & large only --}}
+                                <p x-show="listSize !== 'compact'"
+                                   class="text-slate-400 mt-0.5 line-clamp-1"
+                                   :class="listSize === 'large' ? 'text-xs' : 'text-[11px]'"
+                                   x-text="item.product.category?.category_name || item.product.product_category?.category_name || ''"></p>
+
+                                {{-- Price row --}}
+                                <div class="flex items-baseline gap-1.5"
+                                     :class="listSize === 'compact' ? 'mt-0.5' : 'mt-1.5'">
+                                    <span class="font-bold"
+                                          :class="{
+                                            'text-xs': listSize === 'compact',
+                                            'text-sm': listSize === 'normal',
+                                            'text-base': listSize === 'large'
+                                          }"
+                                          :style="item.isPromo === 'yes' ? 'color: #dc2626' : 'color: #0C9044'"
+                                          x-text="'Rp ' + Number(item.price).toLocaleString('id-ID')">
+                                    </span>
+                                    <span x-show="item.isPromo === 'yes' && item.normal_price"
+                                          class="text-[10px] text-slate-400 line-through"
+                                          x-text="'Rp ' + Number(item.normal_price).toLocaleString('id-ID')">
+                                    </span>
+                                </div>
+
+                                {{-- Stock indicator — only on large --}}
+                                <div x-show="listSize === 'large' && !item.isSoldOut" class="mt-1 flex items-center gap-1.5">
+                                    <div class="w-1.5 h-1.5 rounded-full" :class="item.totalStock > 10 ? 'bg-emerald-400' : item.totalStock > 0 ? 'bg-amber-400' : 'bg-red-400'"></div>
+                                    <span class="text-[10px] text-slate-400 font-medium" x-text="item.totalStock > 10 ? t('available') : 'Stok: ' + item.totalStock"></span>
+                                </div>
+                            </div>
+
+                            {{-- Right side: stock badge + favorite --}}
+                            <div class="flex items-center gap-2 shrink-0 ml-2">
+                                {{-- Stock badge — compact & normal --}}
+                                <div x-show="listSize !== 'large' && !item.isSoldOut" class="flex items-center gap-1">
+                                    <div class="w-1.5 h-1.5 rounded-full" :class="item.totalStock > 10 ? 'bg-emerald-400' : item.totalStock > 0 ? 'bg-amber-400' : 'bg-red-400'"></div>
+                                    <span x-show="listSize === 'normal'" class="text-[10px] text-slate-400 font-medium" x-text="item.totalStock > 10 ? t('available') : 'Stok: ' + item.totalStock"></span>
+                                </div>
+
+                                {{-- Favorite --}}
+                                <button @click.stop="toggleFavorite(item.product.id)"
+                                        class="rounded-full flex items-center justify-center shrink-0 bg-transparent cursor-pointer hover:bg-slate-50 focus:outline-none"
+                                        :class="listSize === 'compact' ? 'w-6 h-6' : 'w-7 h-7'"
+                                        :title="isFavorite(item.product.id) ? 'Hapus dari favorit' : 'Tambah ke favorit'">
+                                    <svg x-show="!isFavorite(item.product.id)" xmlns="http://www.w3.org/2000/svg" :class="listSize === 'compact' ? 'w-3 h-3' : 'w-4 h-4'" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                        <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" stroke="#cbd5e1" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                    <svg x-show="isFavorite(item.product.id)" xmlns="http://www.w3.org/2000/svg" :class="listSize === 'compact' ? 'w-3 h-3' : 'w-4 h-4'" viewBox="0 0 24 24" aria-hidden="true">
+                                        <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" fill="#f59e0b"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+            </div>
+
+            {{-- === HORIZONTAL SCROLL VIEW (Desktop) === --}}
+            <div x-show="viewMode === 'hscroll'" class="product-hscroll-wrap"
+                 :class="'hscroll-' + hscrollSize">
+                <template x-for="item in filteredProducts" :key="'hs-'+item.product.id">
+                    <div class="prod-card bg-white rounded-xl border border-slate-200/60 overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.04)]"
+                         :class="{ 'sold-out': item.isSoldOut }"
+                         @click="!item.isSoldOut && openVariantModal(item)">
+
+                        {{-- Image --}}
+                        <div class="prod-img rounded-t-xl">
+                            <img :src="item.product.image_url ? '{{ asset('') }}' + item.product.image_url : '{{ asset('assets/image.png') }}'"
+                                 :alt="item.product.name"
+                                 loading="lazy"
+                                 onerror="this.src='{{ asset('assets/image.png') }}'">
+
+                            {{-- Favorite star --}}
+                            <button @click.stop="toggleFavorite(item.product.id)"
+                                    class="prod-badge-fav absolute top-1.5 right-1.5 w-6 h-6 rounded-full flex items-center justify-center bg-white border border-slate-200/80 shadow-sm transition-all duration-200 cursor-pointer hover:shadow-md hover:scale-110 focus:outline-none"
+                                    :title="isFavorite(item.product.id) ? 'Hapus dari favorit' : 'Tambah ke favorit'">
+                                <svg x-show="!isFavorite(item.product.id)" xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                    <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" stroke="#cbd5e1" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                <svg x-show="isFavorite(item.product.id)" xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" fill="#f59e0b"/>
+                                </svg>
+                            </button>
+
+                            {{-- Promo badge --}}
+                            <div x-show="item.isPromo === 'yes'" class="absolute top-1.5 left-1.5">
+                                <span class="prod-badge-promo inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md bg-red-500 text-white text-[8px] font-bold uppercase tracking-wide shadow-sm">
+                                    <i class="ti ti-discount-2 text-[9px]"></i> Promo
+                                </span>
+                            </div>
+
+                            {{-- Sold out overlay --}}
+                            <div x-show="item.isSoldOut" class="absolute inset-0 bg-white/70 backdrop-blur-[2px] flex items-center justify-center">
+                                <span class="px-2 py-0.5 rounded-lg bg-slate-800/85 text-white text-[9px] font-bold shadow-lg" x-text="t('sold_out')"></span>
+                            </div>
+                        </div>
+
+                        {{-- Info --}}
+                        <div class="prod-info border-t border-slate-100/60 flex flex-col flex-1">
+                            <h4 class="prod-name font-semibold text-slate-800 line-clamp-2 leading-snug"
+                                x-text="item.product.name"></h4>
+                            <div class="mt-auto pt-1 flex items-baseline gap-1">
+                                <span class="prod-price font-bold"
+                                      :class="item.isPromo === 'yes' ? 'text-red-600' : 'text-[#0C9044]'"
+                                      x-text="'Rp ' + Number(item.price).toLocaleString('id-ID')">
+                                </span>
                             </div>
                         </div>
                     </div>
@@ -353,30 +787,61 @@
         </div>
     </div>
 
+    {{-- ===== MOBILE CART FAB ===== --}}
+    <button @click="mobileCartOpen = true"
+            x-show="!mobileCartOpen"
+            class="md:hidden fixed bottom-20 right-4 z-30 w-14 h-14 rounded-full bg-[#0C9044] text-white flex items-center justify-center mobile-cart-fab cursor-pointer">
+        <i class="ti ti-shopping-cart text-xl"></i>
+        <span x-show="cartItems.length > 0"
+              class="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center badge-bounce"
+              x-text="cartTotalQty"></span>
+    </button>
+
+    {{-- ===== MOBILE CART BACKDROP ===== --}}
+    <div x-show="mobileCartOpen"
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         @click="mobileCartOpen = false"
+         class="md:hidden fixed inset-0 bg-black/40 backdrop-blur-sm z-40"></div>
+
     {{-- ===== RIGHT: Cart & Checkout Panel ===== --}}
-    <div class="w-[360px] xl:w-[380px] bg-white border-l border-slate-200/80 flex flex-col shrink-0 overflow-hidden">
+    <div class="cart-drawer-panel fixed inset-y-0 right-0 z-50 w-[85vw] max-w-[380px]
+                md:relative md:z-auto md:w-[360px] xl:md:w-[380px] md:max-w-none
+                bg-white border-l border-slate-200/80 flex flex-col shrink-0 overflow-hidden"
+         :class="mobileCartOpen ? 'translate-x-0' : 'translate-x-full md:translate-x-0'">
 
         {{-- Cart Header --}}
-        <div class="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between shrink-0">
-            <div class="flex items-center gap-2">
-                <div class="relative">
-                    <i class="ti ti-shopping-cart text-xl text-slate-600"></i>
-                    <span x-show="cartItems.length > 0"
-                          class="absolute -top-1.5 -right-2 w-4 h-4 rounded-full bg-[#0C9044] text-white text-[10px] font-bold flex items-center justify-center badge-bounce"
-                          x-text="cartTotalQty">
-                    </span>
+        <div class="px-5 py-4 border-b border-slate-100 shrink-0">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2.5">
+                    {{-- Mobile close button --}}
+                    <button @click="mobileCartOpen = false"
+                            class="md:hidden w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition cursor-pointer -ml-1">
+                        <i class="ti ti-arrow-right text-lg"></i>
+                    </button>
+                    <div class="relative">
+                        <i class="ti ti-shopping-cart text-xl text-slate-600"></i>
+                        <span x-show="cartItems.length > 0"
+                              class="absolute -top-1.5 -right-2 w-4 h-4 rounded-full bg-[#0C9044] text-white text-[10px] font-bold flex items-center justify-center badge-bounce"
+                              x-text="cartTotalQty">
+                        </span>
+                    </div>
+                    <h3 class="text-sm font-bold text-slate-800" x-text="t('cart')"></h3>
                 </div>
-                <h3 class="text-sm font-bold text-slate-800" x-text="t('cart')"></h3>
+                <button x-show="cartItems.length > 0"
+                        @click="confirmClearCart()"
+                        class="text-xs text-red-400 hover:text-red-600 font-medium transition cursor-pointer flex items-center gap-1 px-2 py-1.5 rounded-lg hover:bg-red-50">
+                    <i class="ti ti-trash text-sm"></i> <span x-text="t('delete_all')"></span>
+                </button>
             </div>
-            <button x-show="cartItems.length > 0"
-                    @click="confirmClearCart()"
-                    class="text-xs text-red-400 hover:text-red-600 font-medium transition cursor-pointer flex items-center gap-1">
-                <i class="ti ti-trash text-sm"></i> <span x-text="t('delete_all')"></span>
-            </button>
         </div>
 
         {{-- Cart Items --}}
-        <div class="flex-1 overflow-y-auto pos-scroll px-4 py-3" x-ref="cartList">
+        <div class="flex-1 overflow-y-auto pos-scroll px-4 py-4" x-ref="cartList">
             {{-- Empty cart --}}
             <div x-show="cartItems.length === 0" class="flex flex-col items-center justify-center h-full text-center py-10">
                 <div class="w-16 h-16 rounded-full bg-slate-50 flex items-center justify-center mb-3">
@@ -387,9 +852,9 @@
             </div>
 
             {{-- Cart item list --}}
-            <div class="space-y-2">
+            <div class="space-y-3">
                 <template x-for="(item, idx) in cartItems" :key="item.variant_id">
-                    <div class="cart-item rounded-xl border border-slate-100 p-3 group">
+                    <div class="cart-item rounded-xl border border-slate-100 p-3.5 group">
                         <div class="flex items-start gap-3">
                             {{-- Info --}}
                             <div class="flex-1 min-w-0">
@@ -436,7 +901,7 @@
         </div>
 
         {{-- Cart Summary & Checkout --}}
-        <div class="border-t border-slate-200 bg-white px-5 py-4 shrink-0 space-y-3">
+        <div class="border-t border-slate-200 bg-white px-5 py-5 shrink-0 space-y-3.5">
             {{-- Summary rows --}}
             <div class="space-y-2">
                 <div class="flex items-center justify-between">
@@ -640,6 +1105,22 @@
                     <p class="text-[10px] text-slate-400 uppercase tracking-wider font-bold mb-2.5">Tampilan</p>
                     <div class="space-y-2">
                         <div class="flex items-center justify-between py-1.5">
+                            <span class="text-sm text-slate-600">Toggle Kolom / Baris view</span>
+                            <div class="flex items-center gap-1">
+                                <kbd class="kbd kbd-sm bg-slate-100 border-slate-200 text-slate-600">Alt</kbd>
+                                <span class="text-slate-400">+</span>
+                                <kbd class="kbd kbd-sm bg-slate-100 border-slate-200 text-slate-600">V</kbd>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between py-1.5">
+                            <span class="text-sm text-slate-600">Ubah jumlah kolom / ukuran baris</span>
+                            <div class="flex items-center gap-1">
+                                <kbd class="kbd kbd-sm bg-slate-100 border-slate-200 text-slate-600">Alt</kbd>
+                                <span class="text-slate-400">+</span>
+                                <kbd class="kbd kbd-sm bg-slate-100 border-slate-200 text-slate-600">G</kbd>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between py-1.5">
                             <span class="text-sm text-slate-600">Toggle mode gelap/terang</span>
                             <div class="flex items-center gap-1">
                                 <kbd class="kbd kbd-sm bg-slate-100 border-slate-200 text-slate-600">Alt</kbd>
@@ -685,8 +1166,8 @@
                             <span>Tambahkan catatan per-item di modal varian</span>
                         </div>
                         <div class="flex items-start gap-2">
-                            <i class="ti ti-bolt text-amber-500 mt-0.5"></i>
-                            <span>Klik ikon grid untuk mengubah ukuran tampilan produk</span>
+                            <i class="ti ti-layout-grid text-emerald-500 mt-0.5"></i>
+                            <span>Pilih tampilan Kolom atau Baris dan atur jumlah kolom / ukuran baris sesuai preferensi. Pengaturan otomatis tersimpan.</span>
                         </div>
                         <div class="flex items-start gap-2">
                             <i class="ti ti-bolt text-amber-500 mt-0.5"></i>
@@ -780,7 +1261,11 @@
             filteredProducts: [],
             searchQuery: '{{ $searchTerm }}',
             activeCategory: '{{ $categoryName }}',
-            gridCols: 4,
+
+            // Layout preferences (persisted in localStorage)
+            gridCols: parseInt(localStorage.getItem('pos_grid_cols')) || 4,
+            viewMode: localStorage.getItem('pos_view_mode') || 'grid',
+            listSize: localStorage.getItem('pos_list_size') || 'normal',
 
             // Cart data from server session
             cartItems: @json($cartDetails),
@@ -807,8 +1292,27 @@
             // Favorites (localStorage)
             favorites: JSON.parse(localStorage.getItem('pos_favorites') || '[]'),
 
+            // Mobile cart drawer
+            mobileCartOpen: false,
+
             init() {
                 this.filterProducts();
+                // Apply responsive defaults if no preference saved
+                if (!localStorage.getItem('pos_grid_cols')) {
+                    this.gridCols = window.innerWidth < 640 ? 2 : window.innerWidth < 1024 ? 3 : 4;
+                }
+            },
+
+            // ===== Layout Controls =====
+            setGridCols(n) {
+                this.gridCols = n;
+                this.viewMode = 'grid';
+                localStorage.setItem('pos_grid_cols', n);
+                localStorage.setItem('pos_view_mode', 'grid');
+            },
+            setViewMode(mode) {
+                this.viewMode = mode;
+                localStorage.setItem('pos_view_mode', mode);
             },
 
             // ===== Favorites =====
@@ -881,6 +1385,9 @@
                     const q = this.searchQuery.toLowerCase();
                     products = products.filter(p => p.product.name.toLowerCase().includes(q));
                 }
+
+                // Sort A-Z by product name
+                products.sort((a, b) => a.product.name.localeCompare(b.product.name, 'id'));
 
                 this.filteredProducts = products;
             },
@@ -1148,6 +1655,28 @@
                     this.searchQuery = '';
                     this.activeCategory = 'All Products';
                     this.filterProducts();
+                }
+                // Alt+V: Toggle Grid/List view
+                if (e.altKey && (e.key === 'v' || e.key === 'V')) {
+                    e.preventDefault();
+                    this.setViewMode(this.viewMode === 'grid' ? 'list' : 'grid');
+                    showToast(this.viewMode === 'grid' ? 'Mode: Kolom' : 'Mode: Baris', 'info', 1200);
+                }
+                // Alt+G: Cycle grid columns (2→3→4→5→2) or list sizes (compact→normal→large→compact)
+                if (e.altKey && (e.key === 'g' || e.key === 'G')) {
+                    e.preventDefault();
+                    if (this.viewMode === 'grid') {
+                        const next = this.gridCols >= 5 ? 2 : this.gridCols + 1;
+                        this.setGridCols(next);
+                        showToast(next + ' kolom', 'info', 1200);
+                    } else {
+                        const sizes = ['compact', 'normal', 'large'];
+                        const idx = sizes.indexOf(this.listSize);
+                        this.listSize = sizes[(idx + 1) % sizes.length];
+                        localStorage.setItem('pos_list_size', this.listSize);
+                        const labels = { compact: 'Kecil', normal: 'Normal', large: 'Besar' };
+                        showToast('Baris: ' + labels[this.listSize], 'info', 1200);
+                    }
                 }
             }
         };

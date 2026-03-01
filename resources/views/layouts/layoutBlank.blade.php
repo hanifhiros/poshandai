@@ -216,19 +216,8 @@ Tes Loading
 @yield('page-script')
 @stack('scripts')
 <script>
-    window.addEventListener('loading-start', () => console.log("🔄 START LOADING"));
-window.addEventListener('loading-end', () => console.log("✅ END LOADING"));
-
-// document.addEventListener('alpine:init', () => {
-//     Alpine.store('main', {
-//         theme: localStorage.getItem('theme') || 'light',
-//         loading: false,
-//         init() {
-//             this.theme = localStorage.getItem('theme') || 'light';
-//         }
-//     });
-// });
-
+    window.addEventListener('loading-start', () => {});
+    window.addEventListener('loading-end', () => {});
 
     document.addEventListener('DOMContentLoaded', () => {
         const loader = document.getElementById('lottie-loading');

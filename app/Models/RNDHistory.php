@@ -8,6 +8,10 @@ class RNDHistory extends Model
 {
     protected $fillable = ['store_id','rnd_name','pic_id','rnd_date','deskripsi'];
     protected $table = "rnd_history";
+
+    protected $casts = [
+        'rnd_date' => 'date',
+    ];
     public function pic()
 {
     return $this->belongsTo(\App\Models\Employee::class, 'pic_id');

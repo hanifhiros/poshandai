@@ -28,14 +28,22 @@ class AppServiceProvider extends ServiceProvider
     {
         Route::aliasMiddleware('cekrole', CekRole::class);
         Route::aliasMiddleware('role', CheckRole::class);
-        Route::aliasMiddleware('cors', CorsMiddleware::class); 
-        Paginator::useTailwind();
+        Route::aliasMiddleware('cors', CorsMiddleware::class);
         Paginator::useBootstrap();
         Passport::hashClientSecrets();
+
+        // Cache Store::find per request — avoids N+1 query on every partial/component render
         View::composer('*', function ($view) {
-            $storeId = session('selected_store') ?? session('selected_store_');
-            $selected_store = $storeId ? Store::find($storeId) : null;
-            $view->with('selected_store', $selected_store);
+            static $resolved = false;
+            static $cachedStore = null;
+
+            if (!$resolved) {
+                $storeId = session('selected_store') ?? session('selected_store_');
+                $cachedStore = $storeId ? Store::find($storeId) : null;
+                $resolved = true;
+            }
+
+            $view->with('selected_store', $cachedStore);
         });
         
     }

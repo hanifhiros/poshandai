@@ -85,7 +85,7 @@ public function createProduksi()
             return $variant->product->name . '|' . ($variant->options->first()?->sort_order ?? 0);
         });
 
-    $employees = Employee::all()->where('store_id', $selected_store_id);;
+    $employees = Employee::where('store_id', $selected_store_id)->get();
     $units = Unit::all();
     $stocks = Stock::with('unit')->where('store_id', $selected_store_id)->get();
 
@@ -167,11 +167,17 @@ public function produksiStore(Request $request)
                     session('selected_store'), $stock, $usedQty, $bom->unit_id, $production->id
                 );
 
-                $totalCost += $bom->quantity_required *$conversionRate* $stock->price_per_unit;
+                $totalCost += $bom->quantity_required * $conversionRate * $qtyProduced * $stock->price_per_unit;
             }
         } else {
-            foreach ($request->manual_ingredients ?? [] as $ingredient) {
-                $stock = Stock::find($ingredient['stock_id']);
+            // Pre-load all stocks for manual ingredients
+            $manualIngredients = $request->manual_ingredients ?? [];
+            $manualStockIds = collect($manualIngredients)->pluck('stock_id')->unique()->toArray();
+            $manualStocksMap = Stock::whereIn('id', $manualStockIds)->get()->keyBy('id');
+
+            foreach ($manualIngredients as $ingredient) {
+                $stock = $manualStocksMap->get($ingredient['stock_id']);
+                if (!$stock) continue;
                 $inputQty = $ingredient['quantity'];
                 $inputUnitId = $ingredient['unit_id'];
                 $stockUnitId = $stock->unit_id;

@@ -30,6 +30,12 @@ class DashboardManager extends Controller
     {
         $store_id = session('selected_store');
         $selected_store = $store_id ? Store::find($store_id) : null;
+
+        if (!$store_id || !$selected_store) {
+            return redirect()->route('manager.outlet')
+                ->withErrors(['store' => 'Silakan pilih outlet terlebih dahulu.']);
+        }
+
         $user = Auth::user();
 
         $today = Carbon::today();
@@ -46,8 +52,8 @@ class DashboardManager extends Controller
         else $greeting = 'Selamat Malam';
         $userName = $user->name ?? 'Manager';
 
-        // Cache key unique per store, refresh every 5 minutes
-        $cacheKey = "dashboard_manager_{$store_id}";
+        // Cache key unique per store + date, refresh every 5 minutes
+        $cacheKey = "dashboard_manager_{$store_id}_" . $today->toDateString();
         $cacheTTL = 300; // 5 minutes
 
         $dashData = Cache::remember($cacheKey, $cacheTTL, function () use ($store_id, $today, $yesterday, $startOfMonth, $endOfMonth, $sevenDaysAgo) {
@@ -80,13 +86,16 @@ class DashboardManager extends Controller
             $transactionsYesterday = (int)($yesterdayStats->transactions ?? 0);
 
             $revenueGrowth = $revenueYesterday > 0
-                ? round((($revenueToday - $revenueYesterday) / $revenueYesterday) * 100, 1) : 0;
+                ? round((($revenueToday - $revenueYesterday) / $revenueYesterday) * 100, 1)
+                : ($revenueToday > 0 ? 100 : 0);
             $grossProfitToday = $revenueToday - $hppToday;
             $grossProfitYesterday = $revenueYesterday - $hppYesterday;
             $grossProfitGrowth = $grossProfitYesterday > 0
-                ? round((($grossProfitToday - $grossProfitYesterday) / $grossProfitYesterday) * 100, 1) : 0;
+                ? round((($grossProfitToday - $grossProfitYesterday) / $grossProfitYesterday) * 100, 1)
+                : ($grossProfitToday > 0 ? 100 : 0);
             $transactionsGrowth = $transactionsYesterday > 0
-                ? round((($transactionsToday - $transactionsYesterday) / $transactionsYesterday) * 100, 1) : 0;
+                ? round((($transactionsToday - $transactionsYesterday) / $transactionsYesterday) * 100, 1)
+                : ($transactionsToday > 0 ? 100 : 0);
 
             // Revenue MTD
             $revenueMTD = Order::where('store_id', $store_id)
@@ -96,7 +105,8 @@ class DashboardManager extends Controller
             $revenueLastMTD = Order::where('store_id', $store_id)
                 ->whereBetween('created_at', [$lastMonthStart, $lastMonthSameDay])->sum('gross_amount');
             $revenueMTDGrowth = $revenueLastMTD > 0
-                ? round((($revenueMTD - $revenueLastMTD) / $revenueLastMTD) * 100, 1) : 0;
+                ? round((($revenueMTD - $revenueLastMTD) / $revenueLastMTD) * 100, 1)
+                : ($revenueMTD > 0 ? 100 : 0);
 
             // Items sold today/yesterday — single query
             $itemsSoldData = DB::table('invoice')
@@ -111,13 +121,15 @@ class DashboardManager extends Controller
             $itemsSoldToday = (int)($itemsSoldData[$todayStr] ?? 0);
             $itemsSoldYesterday = (int)($itemsSoldData[$yesterdayStr] ?? 0);
             $itemsSoldGrowth = $itemsSoldYesterday > 0
-                ? round((($itemsSoldToday - $itemsSoldYesterday) / $itemsSoldYesterday) * 100, 1) : 0;
+                ? round((($itemsSoldToday - $itemsSoldYesterday) / $itemsSoldYesterday) * 100, 1)
+                : ($itemsSoldToday > 0 ? 100 : 0);
 
             // AOV
             $aovToday = $transactionsToday > 0 ? round($revenueToday / $transactionsToday, 0) : 0;
             $aovYesterday = $transactionsYesterday > 0 ? round($revenueYesterday / $transactionsYesterday, 0) : 0;
             $aovGrowth = $aovYesterday > 0
-                ? round((($aovToday - $aovYesterday) / $aovYesterday) * 100, 1) : 0;
+                ? round((($aovToday - $aovYesterday) / $aovYesterday) * 100, 1)
+                : ($aovToday > 0 ? 100 : 0);
 
             // ═══════════════════════════════════════════
             // OPTIMIZED: Last 7 days data in single query
@@ -338,7 +350,8 @@ class DashboardManager extends Controller
                 ->whereBetween('created_at', [$lastMonthStart, $lastMonthSameDay])
                 ->count();
             $newCustomerGrowth = $lastMonthNewCustomers > 0
-                ? round((($newCustomersMonth - $lastMonthNewCustomers) / $lastMonthNewCustomers) * 100, 1) : 0;
+                ? round((($newCustomersMonth - $lastMonthNewCustomers) / $lastMonthNewCustomers) * 100, 1)
+                : ($newCustomersMonth > 0 ? 100 : 0);
 
             // Top customers by spending (this store, this month)
             $topCustomers = DB::table('orders')
@@ -416,14 +429,18 @@ class DashboardManager extends Controller
                 ->limit(8)
                 ->get();
 
-            // Production last 7 days trend
+            // Production last 7 days trend (single query)
+            $sevenDaysAgo = Carbon::today()->subDays(6)->toDateString();
+            $productionByDate = ProductionHistory::where('store_id', $store_id)
+                ->whereDate('production_date', '>=', $sevenDaysAgo)
+                ->selectRaw('DATE(production_date) as d, COALESCE(SUM(quantity_produced), 0) as qty')
+                ->groupBy('d')
+                ->pluck('qty', 'd');
+
             $production7Days = [];
             for ($i = 6; $i >= 0; $i--) {
                 $date = Carbon::today()->subDays($i)->toDateString();
-                $qty = ProductionHistory::where('store_id', $store_id)
-                    ->whereDate('production_date', $date)
-                    ->sum('quantity_produced');
-                $production7Days[] = (int) $qty;
+                $production7Days[] = (int) ($productionByDate[$date] ?? 0);
             }
 
             return compact(

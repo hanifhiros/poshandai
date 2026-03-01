@@ -2,47 +2,14 @@
 
 namespace App\Http\Controllers\Manager\Marketing;
 
-
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Customer;
 use App\Models\Store;
+
 class CustomerController extends Controller
 {
-    // public function index()
-    // {
-    //     $selected_store_id = session('selected_store');
-    //     $selected_store = $selected_store_id ? Store::find($selected_store_id) : null;
-    //     $customers = Customer::when(request('search'), function($query) {
-    //         $query->where('name', 'like', '%' . request('search') . '%')
-    //               ->orWhere('email', 'like', '%' . request('search') . '%');
-    //     })->paginate(5);
-        
-    //     return view('handai-manager.marketing.customers.index', compact('customers','selected_store'));
-//     // }
-//     public function index()
-// {
-//     $store_id = session('store_id');
-//     $global_id = session('global_id'); // id user superadmin atau owner
-
-//     $customers = Customer::query()
-//         ->where(function ($query) use ($store_id, $global_id) {
-//             $query->where('store_id', $store_id)
-//                   ->orWhere(function ($q) use ($global_id) {
-//                       $q->whereNull('store_id')->where('created_by', $global_id); // customer global
-//                   });
-//         })
-//         ->when(request('search'), function ($q) {
-//             $q->where('name', 'like', '%' . request('search') . '%')
-//               ->orWhere('email', 'like', '%' . request('search') . '%');
-//         })
-//         ->paginate(5);
-
-//     $selected_store = $store_id ? Store::find($store_id) : null;
-
-//     return view('handai-manager.marketing.customers.index', compact('customers', 'selected_store'));
-// }
-public function index(Request $request)
+    public function index(Request $request)
 {
     $user = auth()->user();
     $selected_store_id = session('selected_store');
@@ -90,10 +57,11 @@ public function update(Request $request, Customer $customer)
         'contact_number' => 'required|string|max:20',
         'email' => 'nullable|email',
         'address' => 'nullable|string|max:255',
+        'gender' => 'nullable|in:Laki-laki,Perempuan',
     ]);
 
     $customer->update(array_merge(
-        $request->only(['name', 'contact_number', 'email', 'address']),
+        $request->only(['name', 'contact_number', 'email', 'address', 'gender']),
         [
             'store_id' => $customer->store_id ?? session('store_id'),
             'created_by' => $customer->created_by ?? session('global_id'),
@@ -104,21 +72,7 @@ public function update(Request $request, Customer $customer)
     return redirect()->route('manager.marketing.customers.index')->with('success', 'Customer updated successfully.');
 }
 
-
-// public function update(Request $request, Customer $customer)
-// {
-//     $request->validate([
-//         'name' => 'required|string|max:255',
-//         'contact_number' => 'required|string|max:20',
-//         'email' => 'nullable|email',
-//         'address' => 'nullable|string|max:255',
-//     ]);
-
-//     $customer->update($request->all());
-//     return redirect()->route('manager.marketing.customers.index')->with('success', 'Customer updated successfully.');
-// }
-
-public function destroy(Customer $customer)
+    public function destroy(Customer $customer)
 {
     $customer->delete();
     return redirect()->route('manager.marketing.customers.index')->with('success', 'Customer deleted successfully.');
@@ -140,7 +94,6 @@ public function destroy(Customer $customer)
         'address' => 'nullable|string|max:255',
     ]);
     $user = auth()->user();
-    // dd(session('selected_store'));
     Customer::create([
         'name' => $request->name,
         'contact_number' => $request->contact_number,

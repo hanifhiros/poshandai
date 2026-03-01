@@ -31,7 +31,6 @@ class InvoiceController extends Controller
 
                 ];
             });
-            // dd($items);
             return view('handai-kasir.invoice.print', [
                 'order' => $order,
                 'items' => $items,

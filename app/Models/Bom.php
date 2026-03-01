@@ -29,13 +29,7 @@ class Bom extends Model
         return $this->belongsTo(Stock::class);
     }
 
-    public function sizePrice()
-    {
-        return $this->belongsTo(ProductVariants::class, 'size_price_id');
-    }
-    // App\Models\Bom.php
-
-public function ProductVariants()
+    public function ProductVariants()
 {
     return $this->belongsTo(ProductVariants::class, 'product_variants_id');
 }

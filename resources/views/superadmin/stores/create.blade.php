@@ -14,6 +14,16 @@
         <form action="{{ route('superadmin.stores.store') }}" method="POST" class="space-y-5">
             @csrf
 
+            @if($errors->any())
+                <div class="bg-red-50 border border-red-300 text-red-700 px-4 py-3 rounded-lg text-sm">
+                    <ul class="list-disc list-inside">
+                        @foreach($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
             <div>
                 <label class="block text-sm font-semibold text-gray-700 mb-1">Nama Toko</label>
                 <input type="text" name="name" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#199F3E]" required>

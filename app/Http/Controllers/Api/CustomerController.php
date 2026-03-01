@@ -11,7 +11,24 @@ class CustomerController extends Controller
 {
     public function custMobile(Request $request)
     {
+        $request->validate([
+            'store_id' => 'required|integer|exists:store,id',
+        ]);
+
         $storeId = $request->query('store_id');
+
+        // Verify the authenticated user has access to this store
+        $user = auth()->user();
+        if ($user) {
+            $hasAccess = Store::where('id', $storeId)
+                ->where(function ($q) use ($user) {
+                    $q->where('owner_id', $user->id)
+                      ->orWhere('owner_id', $user->created_by);
+                })->exists();
+            if (!$hasAccess) {
+                return response()->json(['status' => 'error', 'message' => 'Unauthorized store access.'], 403);
+            }
+        }
 
         $customers = Customer::with('store')
             ->where('store_id', $storeId)

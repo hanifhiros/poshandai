@@ -27,6 +27,7 @@ class Journal extends Model
     const SOURCE_PRODUCTION = 'PRODUCTION';
     const SOURCE_ADJUSTMENT = 'ADJUSTMENT';
     const SOURCE_EXPIRED    = 'EXPIRED';
+    const SOURCE_WASTE      = 'WASTE';
     const SOURCE_CANCEL     = 'CANCEL';
     const SOURCE_MANUAL     = 'MANUAL';
 
@@ -69,6 +70,7 @@ class Journal extends Model
         $last = static::where('store_id', $storeId)
             ->where('journal_number', 'like', "{$prefix}%")
             ->orderByDesc('id')
+            ->lockForUpdate()
             ->value('journal_number');
 
         if ($last) {

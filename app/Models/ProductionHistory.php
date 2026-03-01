@@ -10,16 +10,19 @@ class ProductionHistory extends Model
 
     use HasFactory;
     protected $table = 'production_history';
+    protected $casts = [
+        'quantity_produced' => 'integer',
+        'production_date'   => 'date',
+    ];
+
     protected $fillable = [
         'quantity_produced',
         'production_date',
         'pic_id',
         'product_variants_id',
         'store_id',
-        'product_name',                // tambah ini
+        'product_name',
         'variant_option_summary',
-      // ✅ pastikan bisa null
-     
     ];
 
     public function product()

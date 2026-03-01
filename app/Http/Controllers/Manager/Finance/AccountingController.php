@@ -8,83 +8,116 @@ use App\Models\Journal;
 use App\Models\JournalEntry;
 use App\Models\Order;
 use App\Models\Stock;
+use App\Models\Store;
 use App\Models\ProductVariants;
 use App\Services\AccountingService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
 class AccountingController extends Controller
 {
+    /**
+     * Resolve store from session. Aborts 403 if no store selected.
+     */
+    private function resolveStore(): array
+    {
+        $storeId = session('selected_store');
+        if (!$storeId) {
+            abort(403, 'Pilih store terlebih dahulu.');
+        }
+        $store = Store::findOrFail($storeId);
+        return [$storeId, $store];
+    }
+
     // ══════════════════════════════════════════════════
     //  FINANCE DASHBOARD
     // ══════════════════════════════════════════════════
     public function dashboard()
     {
-        $storeId = session('selected_store');
-        $store = $storeId ? \App\Models\Store::find($storeId) : null;
+        [$storeId, $store] = $this->resolveStore();
 
-        $now = Carbon::now();
-        $startOfMonth = $now->copy()->startOfMonth()->toDateString();
-        $endOfMonth   = $now->copy()->endOfMonth()->toDateString();
+        $cacheKey = "finance_dashboard_{$storeId}";
+        $data = Cache::remember($cacheKey, now()->addMinutes(5), function () use ($storeId) {
+            $now = Carbon::now();
+            $startOfMonth = $now->copy()->startOfMonth()->toDateString();
+            $endOfMonth   = $now->copy()->endOfMonth()->toDateString();
 
-        // Revenue this month
-        $revenue = AccountingService::sumByType($storeId, 'revenue', $startOfMonth, $endOfMonth);
-        // COGS this month
-        $cogs = AccountingService::sumByType($storeId, 'cogs', $startOfMonth, $endOfMonth);
-        // Expenses this month
-        $expenses = AccountingService::sumByType($storeId, 'expense', $startOfMonth, $endOfMonth);
-        // Net Profit
-        $netProfit = $revenue - $cogs - $expenses;
+            // Previous month range (for comparison)
+            $prevStart = $now->copy()->subMonth()->startOfMonth()->toDateString();
+            $prevEnd   = $now->copy()->subMonth()->endOfMonth()->toDateString();
 
-        // Cash Position (all-time balance)
-        $cashAccount = ChartOfAccount::resolve($storeId, ChartOfAccount::SUB_KAS);
-        $cashPosition = $cashAccount ? $cashAccount->getBalance() : 0;
+            // Revenue this month
+            $revenue = AccountingService::sumByType($storeId, 'revenue', $startOfMonth, $endOfMonth);
+            // COGS this month
+            $cogs = AccountingService::sumByType($storeId, 'cogs', $startOfMonth, $endOfMonth);
+            // Expenses this month
+            $expenses = AccountingService::sumByType($storeId, 'expense', $startOfMonth, $endOfMonth);
+            // Net Profit
+            $netProfit = $revenue - $cogs - $expenses;
 
-        // Bank balance
-        $bankAccount = ChartOfAccount::resolve($storeId, ChartOfAccount::SUB_BANK);
-        $bankPosition = $bankAccount ? $bankAccount->getBalance() : 0;
+            // Previous month KPIs
+            $prevRevenue  = AccountingService::sumByType($storeId, 'revenue', $prevStart, $prevEnd);
+            $prevCogs     = AccountingService::sumByType($storeId, 'cogs', $prevStart, $prevEnd);
+            $prevExpenses = AccountingService::sumByType($storeId, 'expense', $prevStart, $prevEnd);
+            $prevNetProfit = $prevRevenue - $prevCogs - $prevExpenses;
 
-        // Inventory values
-        $rawInvAccount = ChartOfAccount::resolve($storeId, ChartOfAccount::SUB_INVENTORY_RAW);
-        $fgInvAccount  = ChartOfAccount::resolve($storeId, ChartOfAccount::SUB_INVENTORY_FG);
-        $inventoryRaw  = $rawInvAccount ? $rawInvAccount->getBalance() : 0;
-        $inventoryFg   = $fgInvAccount ? $fgInvAccount->getBalance() : 0;
-        $inventoryTotal = $inventoryRaw + $inventoryFg;
+            // Cash Position (all-time balance)
+            $cashAccount = ChartOfAccount::resolve($storeId, ChartOfAccount::SUB_KAS);
+            $cashPosition = $cashAccount ? $cashAccount->getBalance() : 0;
 
-        // Hutang
-        $hutangAccount = ChartOfAccount::resolve($storeId, ChartOfAccount::SUB_HUTANG);
-        $hutang = $hutangAccount ? $hutangAccount->getBalance() : 0;
+            // Bank balance
+            $bankAccount = ChartOfAccount::resolve($storeId, ChartOfAccount::SUB_BANK);
+            $bankPosition = $bankAccount ? $bankAccount->getBalance() : 0;
 
-        // Monthly trend (last 6 months)
-        $monthlyTrend = [];
-        for ($i = 5; $i >= 0; $i--) {
-            $m = $now->copy()->subMonths($i);
-            $ms = $m->startOfMonth()->toDateString();
-            $me = $m->endOfMonth()->toDateString();
-            $mRevenue  = AccountingService::sumByType($storeId, 'revenue', $ms, $me);
-            $mCogs     = AccountingService::sumByType($storeId, 'cogs', $ms, $me);
-            $mExpense  = AccountingService::sumByType($storeId, 'expense', $ms, $me);
-            $monthlyTrend[] = [
-                'label'   => $m->format('M Y'),
-                'revenue' => $mRevenue,
-                'cogs'    => $mCogs,
-                'expense' => $mExpense,
-                'profit'  => $mRevenue - $mCogs - $mExpense,
-            ];
-        }
+            // Inventory values
+            $rawInvAccount = ChartOfAccount::resolve($storeId, ChartOfAccount::SUB_INVENTORY_RAW);
+            $fgInvAccount  = ChartOfAccount::resolve($storeId, ChartOfAccount::SUB_INVENTORY_FG);
+            $inventoryRaw  = $rawInvAccount ? $rawInvAccount->getBalance() : 0;
+            $inventoryFg   = $fgInvAccount ? $fgInvAccount->getBalance() : 0;
+            $inventoryTotal = $inventoryRaw + $inventoryFg;
 
-        // Recent journals
+            // Hutang
+            $hutangAccount = ChartOfAccount::resolve($storeId, ChartOfAccount::SUB_HUTANG);
+            $hutang = $hutangAccount ? $hutangAccount->getBalance() : 0;
+
+            // Monthly trend (last 6 months) — fixed Carbon mutation
+            $monthlyTrend = [];
+            for ($i = 5; $i >= 0; $i--) {
+                $m = $now->copy()->subMonths($i);
+                $ms = $m->copy()->startOfMonth()->toDateString();
+                $me = $m->copy()->endOfMonth()->toDateString();
+                $mRevenue  = AccountingService::sumByType($storeId, 'revenue', $ms, $me);
+                $mCogs     = AccountingService::sumByType($storeId, 'cogs', $ms, $me);
+                $mExpense  = AccountingService::sumByType($storeId, 'expense', $ms, $me);
+                $monthlyTrend[] = [
+                    'label'   => $m->format('M Y'),
+                    'revenue' => $mRevenue,
+                    'cogs'    => $mCogs,
+                    'expense' => $mExpense,
+                    'profit'  => $mRevenue - $mCogs - $mExpense,
+                ];
+            }
+
+            return compact(
+                'revenue', 'cogs', 'expenses', 'netProfit',
+                'prevRevenue', 'prevCogs', 'prevExpenses', 'prevNetProfit',
+                'cashPosition', 'bankPosition', 'inventoryRaw', 'inventoryFg',
+                'inventoryTotal', 'hutang', 'monthlyTrend'
+            );
+        });
+
+        // Recent journals — not cached (always fresh)
         $recentJournals = Journal::where('store_id', $storeId)
             ->orderByDesc('journal_date')
             ->orderByDesc('id')
             ->limit(10)
             ->get();
 
-        return view('handai-manager.finance.accounting.dashboard', compact(
-            'store', 'revenue', 'cogs', 'expenses', 'netProfit',
-            'cashPosition', 'bankPosition', 'inventoryRaw', 'inventoryFg',
-            'inventoryTotal', 'hutang', 'monthlyTrend', 'recentJournals'
+        return view('handai-manager.finance.accounting.dashboard', array_merge(
+            $data,
+            compact('store', 'recentJournals')
         ));
     }
 
@@ -93,8 +126,7 @@ class AccountingController extends Controller
     // ══════════════════════════════════════════════════
     public function chartOfAccounts()
     {
-        $storeId = session('selected_store');
-        $store = $storeId ? \App\Models\Store::find($storeId) : null;
+        [$storeId, $store] = $this->resolveStore();
 
         $accounts = ChartOfAccount::where('store_id', $storeId)
             ->orderBy('code')
@@ -109,8 +141,14 @@ class AccountingController extends Controller
     // ══════════════════════════════════════════════════
     public function journalEntries(Request $request)
     {
-        $storeId = session('selected_store');
-        $store = $storeId ? \App\Models\Store::find($storeId) : null;
+        $request->validate([
+            'start_date' => 'nullable|date',
+            'end_date'   => 'nullable|date|after_or_equal:start_date',
+            'source'     => 'nullable|string|max:50',
+            'search'     => 'nullable|string|max:200',
+        ]);
+
+        [$storeId, $store] = $this->resolveStore();
 
         $query = Journal::where('store_id', $storeId)
             ->with('entries.account');
@@ -120,15 +158,16 @@ class AccountingController extends Controller
         }
 
         if ($request->filled('start_date')) {
-            $query->where('journal_date', '>=', $request->start_date);
+            $query->whereRaw('DATE(journal_date) >= ?', [$request->start_date]);
         }
 
         if ($request->filled('end_date')) {
-            $query->where('journal_date', '<=', $request->end_date);
+            $query->whereRaw('DATE(journal_date) <= ?', [$request->end_date]);
         }
 
         if ($request->filled('search')) {
-            $query->where('description', 'like', '%' . $request->search . '%');
+            $escaped = str_replace(['%', '_'], ['\%', '\_'], $request->search);
+            $query->where('description', 'like', '%' . $escaped . '%');
         }
 
         $journals = $query->orderByDesc('journal_date')
@@ -150,8 +189,13 @@ class AccountingController extends Controller
     // ══════════════════════════════════════════════════
     public function incomeStatement(Request $request)
     {
-        $storeId = session('selected_store');
-        $store = $storeId ? \App\Models\Store::find($storeId) : null;
+        $request->validate([
+            'period'     => 'nullable|in:daily,monthly,yearly,custom',
+            'start_date' => 'nullable|date',
+            'end_date'   => 'nullable|date|after_or_equal:start_date',
+        ]);
+
+        [$storeId, $store] = $this->resolveStore();
 
         $period = $request->input('period', 'monthly');
         $now = Carbon::now();
@@ -162,12 +206,12 @@ class AccountingController extends Controller
                 $endDate   = $request->input('end_date', $now->toDateString());
                 break;
             case 'yearly':
-                $startDate = $request->input('start_date', $now->startOfYear()->toDateString());
-                $endDate   = $request->input('end_date', $now->endOfYear()->toDateString());
+                $startDate = $request->input('start_date', $now->copy()->startOfYear()->toDateString());
+                $endDate   = $request->input('end_date', $now->copy()->endOfYear()->toDateString());
                 break;
             case 'custom':
-                $startDate = $request->input('start_date', $now->startOfMonth()->toDateString());
-                $endDate   = $request->input('end_date', $now->endOfMonth()->toDateString());
+                $startDate = $request->input('start_date', $now->copy()->startOfMonth()->toDateString());
+                $endDate   = $request->input('end_date', $now->copy()->endOfMonth()->toDateString());
                 break;
             default: // monthly
                 $startDate = $request->input('start_date', $now->copy()->startOfMonth()->toDateString());
@@ -196,8 +240,11 @@ class AccountingController extends Controller
     // ══════════════════════════════════════════════════
     public function balanceSheet(Request $request)
     {
-        $storeId = session('selected_store');
-        $store = $storeId ? \App\Models\Store::find($storeId) : null;
+        $request->validate([
+            'as_of_date' => 'nullable|date',
+        ]);
+
+        [$storeId, $store] = $this->resolveStore();
 
         $asOfDate = $request->input('as_of_date', now()->toDateString());
 
@@ -226,68 +273,88 @@ class AccountingController extends Controller
     }
 
     // ══════════════════════════════════════════════════
-    //  CASH FLOW STATEMENT
+    //  CASH FLOW STATEMENT (Optimized — SQL aggregation)
     // ══════════════════════════════════════════════════
     public function cashFlow(Request $request)
     {
-        $storeId = session('selected_store');
-        $store = $storeId ? \App\Models\Store::find($storeId) : null;
+        $request->validate([
+            'start_date' => 'nullable|date',
+            'end_date'   => 'nullable|date|after_or_equal:start_date',
+        ]);
 
-        $startDate = $request->input('start_date', now()->startOfMonth()->toDateString());
-        $endDate   = $request->input('end_date', now()->endOfMonth()->toDateString());
+        [$storeId, $store] = $this->resolveStore();
+
+        $startDate = $request->input('start_date', now()->copy()->startOfMonth()->toDateString());
+        $endDate   = $request->input('end_date', now()->copy()->endOfMonth()->toDateString());
 
         $cashAccount = ChartOfAccount::resolve($storeId, ChartOfAccount::SUB_KAS);
         $bankAccount = ChartOfAccount::resolve($storeId, ChartOfAccount::SUB_BANK);
 
         $cashAccountIds = collect([$cashAccount?->id, $bankAccount?->id])->filter()->toArray();
 
-        // Get all journal entries that touch cash/bank accounts in period
-        $cashEntries = JournalEntry::whereIn('account_id', $cashAccountIds)
-            ->whereHas('journal', function ($q) use ($storeId, $startDate, $endDate) {
-                $q->where('store_id', $storeId)
-                  ->whereBetween('journal_date', [$startDate, $endDate]);
-            })
-            ->with('journal')
-            ->get();
-
-        // Categorize by source
+        // Aggregate cash entries by source using SQL GROUP BY (instead of loading all into PHP)
         $operating = ['POS', 'KASIR', 'PURCHASE', 'PRODUCTION', 'EXPIRED', 'CANCEL'];
-        $investing = [];
         $financing = ['MANUAL'];
+
+        $sourceAggregates = [];
+        if (!empty($cashAccountIds)) {
+            $sourceAggregates = DB::table('journal_entries')
+                ->join('journals', 'journals.id', '=', 'journal_entries.journal_id')
+                ->whereIn('journal_entries.account_id', $cashAccountIds)
+                ->where('journals.store_id', $storeId)
+                ->whereBetween('journals.journal_date', [$startDate, $endDate])
+                ->groupBy('journals.source')
+                ->selectRaw('journals.source, COALESCE(SUM(journal_entries.debit),0) as total_in, COALESCE(SUM(journal_entries.credit),0) as total_out')
+                ->get()
+                ->keyBy('source');
+        }
 
         $operatingIn = 0; $operatingOut = 0;
         $investingIn = 0; $investingOut = 0;
         $financingIn = 0; $financingOut = 0;
 
+        foreach ($sourceAggregates as $source => $row) {
+            if (in_array($source, $operating)) {
+                $operatingIn  += (float) $row->total_in;
+                $operatingOut += (float) $row->total_out;
+            } elseif (in_array($source, $financing)) {
+                $financingIn  += (float) $row->total_in;
+                $financingOut += (float) $row->total_out;
+            } else {
+                $investingIn  += (float) $row->total_in;
+                $investingOut += (float) $row->total_out;
+            }
+        }
+
+        // Detail rows for operating & financing (keep limited for display)
         $operatingDetails = [];
         $financingDetails = [];
+        if (!empty($cashAccountIds)) {
+            $detailQuery = DB::table('journal_entries')
+                ->join('journals', 'journals.id', '=', 'journal_entries.journal_id')
+                ->whereIn('journal_entries.account_id', $cashAccountIds)
+                ->where('journals.store_id', $storeId)
+                ->whereBetween('journals.journal_date', [$startDate, $endDate]);
 
-        foreach ($cashEntries as $entry) {
-            $source = $entry->journal->source;
-            $inflow  = (float) $entry->debit;
-            $outflow = (float) $entry->credit;
+            $detailTotal = $detailQuery->count();
+            $detailRows = $detailQuery
+                ->select('journals.source', 'journals.journal_date', 'journals.description', 'journal_entries.debit', 'journal_entries.credit')
+                ->orderByDesc('journals.journal_date')
+                ->limit(200)
+                ->get();
 
-            if (in_array($source, $operating)) {
-                $operatingIn  += $inflow;
-                $operatingOut += $outflow;
-                $operatingDetails[] = [
-                    'date'        => $entry->journal->journal_date->format('d/m/Y'),
-                    'description' => $entry->journal->description,
-                    'in'          => $inflow,
-                    'out'         => $outflow,
+            foreach ($detailRows as $row) {
+                $detail = [
+                    'date'        => Carbon::parse($row->journal_date)->format('d/m/Y'),
+                    'description' => $row->description,
+                    'in'          => (float) $row->debit,
+                    'out'         => (float) $row->credit,
                 ];
-            } elseif (in_array($source, $financing)) {
-                $financingIn  += $inflow;
-                $financingOut += $outflow;
-                $financingDetails[] = [
-                    'date'        => $entry->journal->journal_date->format('d/m/Y'),
-                    'description' => $entry->journal->description,
-                    'in'          => $inflow,
-                    'out'         => $outflow,
-                ];
-            } else {
-                $investingIn  += $inflow;
-                $investingOut += $outflow;
+                if (in_array($row->source, $operating)) {
+                    $operatingDetails[] = $detail;
+                } elseif (in_array($row->source, $financing)) {
+                    $financingDetails[] = $detail;
+                }
             }
         }
 
@@ -296,20 +363,28 @@ class AccountingController extends Controller
         $netFinancing  = $financingIn - $financingOut;
         $netCashChange = $netOperating + $netInvesting + $netFinancing;
 
-        // Opening cash balance
+        // Opening cash balance (single query instead of per-account loop)
         $openingCash = 0;
-        foreach ($cashAccountIds as $aid) {
-            $acc = ChartOfAccount::find($aid);
-            if ($acc) $openingCash += $acc->getBalance(null, Carbon::parse($startDate)->subDay()->toDateString());
+        if (!empty($cashAccountIds)) {
+            $beforeDate = Carbon::parse($startDate)->subDay()->toDateString();
+            $result = DB::table('journal_entries')
+                ->join('journals', 'journals.id', '=', 'journal_entries.journal_id')
+                ->whereIn('journal_entries.account_id', $cashAccountIds)
+                ->where('journals.store_id', $storeId)
+                ->whereRaw('DATE(journals.journal_date) <= ?', [$beforeDate])
+                ->selectRaw('COALESCE(SUM(journal_entries.debit),0) - COALESCE(SUM(journal_entries.credit),0) as balance')
+                ->first();
+            $openingCash = $result ? (float) $result->balance : 0;
         }
         $closingCash = $openingCash + $netCashChange;
+        $detailTruncated = isset($detailTotal) && $detailTotal > 200;
 
         return view('handai-manager.finance.accounting.cash-flow', compact(
             'store', 'startDate', 'endDate',
             'operatingIn', 'operatingOut', 'netOperating', 'operatingDetails',
             'investingIn', 'investingOut', 'netInvesting',
             'financingIn', 'financingOut', 'netFinancing', 'financingDetails',
-            'netCashChange', 'openingCash', 'closingCash'
+            'netCashChange', 'openingCash', 'closingCash', 'detailTruncated'
         ));
     }
 }

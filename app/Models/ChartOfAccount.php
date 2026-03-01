@@ -86,6 +86,7 @@ class ChartOfAccount extends Model
     // ── Helpers ──
     /**
      * Get account balance (debit-based or credit-based depending on type).
+     * Single query instead of two separate SUM calls.
      */
     public function getBalance(?string $startDate = null, ?string $endDate = null): float
     {
@@ -93,14 +94,16 @@ class ChartOfAccount extends Model
             ->join('journals', 'journal_entries.journal_id', '=', 'journals.id');
 
         if ($startDate) {
-            $query->where('journals.journal_date', '>=', $startDate);
+            $query->whereRaw('DATE(journals.journal_date) >= ?', [$startDate]);
         }
         if ($endDate) {
-            $query->where('journals.journal_date', '<=', $endDate);
+            $query->whereRaw('DATE(journals.journal_date) <= ?', [$endDate]);
         }
 
-        $totalDebit  = (float) $query->sum('journal_entries.debit');
-        $totalCredit = (float) $query->sum('journal_entries.credit');
+        $result = $query->selectRaw('COALESCE(SUM(journal_entries.debit), 0) as total_debit, COALESCE(SUM(journal_entries.credit), 0) as total_credit')->first();
+
+        $totalDebit  = (float) ($result->total_debit ?? 0);
+        $totalCredit = (float) ($result->total_credit ?? 0);
 
         // Debit-normal: asset, expense, cogs → balance = debit - credit
         // Credit-normal: liability, equity, revenue → balance = credit - debit
@@ -113,12 +116,29 @@ class ChartOfAccount extends Model
 
     /**
      * Resolve a system account for a store by sub_type.
+     * Uses static request-level cache to avoid repeated queries.
      */
+    protected static array $resolveCache = [];
+
     public static function resolve(int $storeId, string $subType): ?self
     {
-        return static::where('store_id', $storeId)
-            ->where('sub_type', $subType)
-            ->where('is_system', true)
-            ->first();
+        $key = "{$storeId}:{$subType}";
+
+        if (!array_key_exists($key, static::$resolveCache)) {
+            static::$resolveCache[$key] = static::where('store_id', $storeId)
+                ->where('sub_type', $subType)
+                ->where('is_system', true)
+                ->first();
+        }
+
+        return static::$resolveCache[$key];
+    }
+
+    /**
+     * Clear the resolve cache (useful after seeding COA).
+     */
+    public static function clearResolveCache(): void
+    {
+        static::$resolveCache = [];
     }
 }

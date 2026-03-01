@@ -107,64 +107,114 @@
 </button>
 
 
-  <div x-show="dropdowns.operational" x-transition class="pl-12 mt-1 space-y-1 text-sm text-slate-600">
+  <div x-show="dropdowns.operational" x-transition class="pl-10 mt-1 space-y-0.5 text-sm text-slate-600">
 
-    {{-- 1. Resep (BOM) — definisi resep harus ada dulu --}}
-    @if (RoleHelper::hasRole('Manager-Operational-RnD'))
-    <a href="{{ route('manager.inventory.recipes.index') }}"
-      class="block text-sm px-4 py-1 rounded hover:text-green-600 {{ request()->is('manager/inventory/recipes') ? 'text-green-600 font-semibold' : '' }}">
-      Daftar Resep
-    </a>
+    {{-- ═══ SUPPLY CHAIN ═══ --}}
+    <p class="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 pt-2 pb-1 px-4" x-show="open">
+      <i class="ti ti-truck text-xs"></i> Supply Chain
+    </p>
+
+    @if (RoleHelper::hasAnyRoleIncludingDescendants(['Manager-Operational-InventoryController']))
+      <a href="{{ route('manager.operational.suppliers.index') }}"
+        class="flex items-center gap-2 px-4 py-1.5 rounded hover:bg-green-50/50 transition {{ request()->is('manager/operational/suppliers*') ? 'bg-green-50/50 text-green-700 font-semibold' : '' }}">
+        <i class="ti ti-building-store text-base"></i> <span>Supplier</span>
+      </a>
     @endif
 
-    {{-- 2. Pembelian Bahan — beli bahan baku per batch --}}
     @if (RoleHelper::hasAnyRoleIncludingDescendants(['Manager-Operational-InventoryController']))
       <a href="{{ route('manager.inventory.stock-batches.index') }}"
-        class="block text-sm px-4 py-1 rounded hover:text-green-600 {{ request()->is('manager/inventory/stock-batches') ? 'text-green-600 font-semibold' : '' }}">
-        Pembelian Bahan
+        class="flex items-center gap-2 px-4 py-1.5 rounded hover:bg-green-50/50 transition {{ request()->is('manager/inventory/stock-batches*') ? 'bg-green-50/50 text-green-700 font-semibold' : '' }}">
+        <i class="ti ti-package-import text-base"></i> <span>Pembelian Bahan</span>
       </a>
     @endif
 
-    {{-- 3. Stok Gudang — stok bahan baku di gudang --}}
+    {{-- ═══ GUDANG & STOK ═══ --}}
+    <p class="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 pt-3 pb-1 px-4" x-show="open">
+      <i class="ti ti-building-warehouse text-xs"></i> Gudang & Stok
+    </p>
+
     @if (RoleHelper::hasAnyRoleIncludingDescendants(['Manager-Operational-InventoryController']))
       <a href="{{ route('manager.inventory.stock') }}"
-        class="block text-sm px-4 py-1 rounded hover:text-green-600 {{ request()->is('manager/inventory/stock') ? 'text-green-600 font-semibold' : '' }}">
-        Stok Gudang
+        class="flex items-center gap-2 px-4 py-1.5 rounded hover:bg-green-50/50 transition {{ request()->is('manager/inventory/stock') ? 'bg-green-50/50 text-green-700 font-semibold' : '' }}">
+        <i class="ti ti-packages text-base"></i> <span>Stok Gudang</span>
       </a>
     @endif
 
-    {{-- 4. Riset & Pengembangan — eksperimen produk baru --}}
-    @if (RoleHelper::hasRole('Manager-Operational-RnD'))
-    <a href="{{ route('manager.operational.rnd') }}"
-      class="block text-sm px-4 py-1 rounded hover:text-green-600 {{ request()->is('manager/operational/rnd') ? 'text-green-600 font-semibold' : '' }}">
-      Riset & Pengembangan
-    </a>
-    @endif
-
-    {{-- 5. Produksi — jalankan resep, kurangi stok, hasilkan produk --}}
-    @if (RoleHelper::hasRole('Manager-Operational-ProductionController'))
-      <a href="{{ route('manager.operational.produksi') }}"
-          class="block text-sm px-4 py-1 rounded hover:text-green-600 {{ request()->is('manager/operational/produksi') ? 'text-green-600 font-semibold' : '' }}">
-          Produksi
+    @if (RoleHelper::hasAnyRoleIncludingDescendants(['Manager-Operational-InventoryController']))
+      <a href="{{ route('manager.operational.stock-movements.index') }}"
+        class="flex items-center gap-2 px-4 py-1.5 rounded hover:bg-green-50/50 transition {{ request()->is('manager/operational/stock-movements*') ? 'bg-green-50/50 text-green-700 font-semibold' : '' }}">
+        <i class="ti ti-transfer text-base"></i> <span>Mutasi Stok</span>
       </a>
     @endif
 
-    {{-- 6. Produk Jadi — katalog produk siap jual --}}
+    @if (RoleHelper::hasAnyRoleIncludingDescendants(['Manager-Operational-InventoryController']))
+      <a href="{{ route('manager.operational.stock-opname.index') }}"
+        class="flex items-center gap-2 px-4 py-1.5 rounded hover:bg-green-50/50 transition {{ request()->is('manager/operational/stock-opname*') ? 'bg-green-50/50 text-green-700 font-semibold' : '' }}">
+        <i class="ti ti-clipboard-check text-base"></i> <span>Stock Opname</span>
+      </a>
+    @endif
+
+    {{-- ═══ PRODUK & RESEP ═══ --}}
+    <p class="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 pt-3 pb-1 px-4" x-show="open">
+      <i class="ti ti-recipe text-xs"></i> Produk & Resep
+    </p>
+
     @if (RoleHelper::hasAnyRoleIncludingDescendants(['Manager-Operational']))
       <a href="{{ route('manager.inventory.products') }}"
-        class="block text-sm px-4 py-1 rounded hover:text-green-600 {{ request()->is('manager/inventory/products') ? 'text-green-600 font-semibold' : '' }}">
-        Produk Jadi
+        class="flex items-center gap-2 px-4 py-1.5 rounded hover:bg-green-50/50 transition {{ request()->is('manager/inventory/products*') ? 'bg-green-50/50 text-green-700 font-semibold' : '' }}">
+        <i class="ti ti-box text-base"></i> <span>Daftar Produk</span>
       </a>
     @endif
 
-    {{-- 7. Pesanan — penjualan & fulfillment --}}
-    @if (RoleHelper::hasRole('Manager-Operational-OrderController'))
-    <a href="{{ route('manager.operational.orders.index') }}"
-        class="block text-sm px-4 py-1 rounded hover:text-green-600 {{ request()->is('manager/operational/orders') ? 'text-green-600 font-semibold' : '' }}">
-        Pesanan
-    </a>
+    @if (RoleHelper::hasRole('Manager-Operational-RnD'))
+      <a href="{{ route('manager.inventory.recipes.index') }}"
+        class="flex items-center gap-2 px-4 py-1.5 rounded hover:bg-green-50/50 transition {{ request()->is('manager/inventory/recipes*') ? 'bg-green-50/50 text-green-700 font-semibold' : '' }}">
+        <i class="ti ti-chef-hat text-base"></i> <span>Resep / BOM</span>
+      </a>
     @endif
 
+    {{-- ═══ PRODUKSI ═══ --}}
+    <p class="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 pt-3 pb-1 px-4" x-show="open">
+      <i class="ti ti-assembly text-xs"></i> Produksi
+    </p>
+
+    @if (RoleHelper::hasRole('Manager-Operational-ProductionController'))
+      <a href="{{ route('manager.operational.produksi') }}"
+        class="flex items-center gap-2 px-4 py-1.5 rounded hover:bg-green-50/50 transition {{ request()->is('manager/operational/produksi*') ? 'bg-green-50/50 text-green-700 font-semibold' : '' }}">
+        <i class="ti ti-tools-kitchen-2 text-base"></i> <span>Riwayat Produksi</span>
+      </a>
+    @endif
+
+    @if (RoleHelper::hasRole('Manager-Operational-RnD'))
+      <a href="{{ route('manager.operational.rnd') }}"
+        class="flex items-center gap-2 px-4 py-1.5 rounded hover:bg-green-50/50 transition {{ request()->is('manager/operational/rnd*') ? 'bg-green-50/50 text-green-700 font-semibold' : '' }}">
+        <i class="ti ti-flask text-base"></i> <span>Riset & Pengembangan</span>
+      </a>
+    @endif
+
+    {{-- ═══ WASTE ═══ --}}
+    <p class="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 pt-3 pb-1 px-4" x-show="open">
+      <i class="ti ti-trash text-xs"></i> Waste
+    </p>
+
+    @if (RoleHelper::hasAnyRoleIncludingDescendants(['Manager-Operational']))
+      <a href="{{ route('manager.operational.waste.index') }}"
+        class="flex items-center gap-2 px-4 py-1.5 rounded hover:bg-green-50/50 transition {{ request()->is('manager/operational/waste*') ? 'bg-green-50/50 text-green-700 font-semibold' : '' }}">
+        <i class="ti ti-recycle text-base"></i> <span>Waste / Basi</span>
+      </a>
+    @endif
+
+    {{-- ═══ PENJUALAN ═══ --}}
+    <p class="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 pt-3 pb-1 px-4" x-show="open">
+      <i class="ti ti-shopping-cart text-xs"></i> Penjualan
+    </p>
+
+    @if (RoleHelper::hasRole('Manager-Operational-OrderController'))
+      <a href="{{ route('manager.operational.orders.index') }}"
+        class="flex items-center gap-2 px-4 py-1.5 rounded hover:bg-green-50/50 transition {{ request()->is('manager/operational/orders*') ? 'bg-green-50/50 text-green-700 font-semibold' : '' }}">
+        <i class="ti ti-receipt text-base"></i> <span>Riwayat Pesanan</span>
+      </a>
+    @endif
 
   </div>
 </div>
@@ -323,7 +373,9 @@
      <!-- tambahin button logout -->
      <div class="relative ">
       <div class="relative flex w-full cursor-pointer text-red-600 items-center justify-between transition-colors hover:bg-red-100">
-      <a  href="{{ route('logout') }}" class="w-full flex items-center m-2 transition-colors">
+      <form action="{{ route('logout') }}" method="POST" class="w-full">
+          @csrf
+          <button type="submit" class="w-full flex items-center m-2 transition-colors cursor-pointer">
           <div class="flex items-center ms-3 p-2">
             <div class="grid place-content-center ">
             <i class="ti ti-logout"></i> 
@@ -332,7 +384,8 @@
               Logout
             </span>
           </div>
-        </a>
+        </button>
+      </form>
       </div>
     </div>
   </nav>

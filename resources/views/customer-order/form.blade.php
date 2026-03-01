@@ -30,7 +30,7 @@
             <div
                 class="grid  grid-cols-2 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3 sm:gap-3 lg:gap-4 py-4">
                 <!-- Card Produk  -->
-                @foreach ($productsWithDetails as $item)
+                @forelse ($productsWithDetails as $item)
 
                     <div class="relative bg-white rounded-lg shadow-md transform transition duration-150 hover:scale-105">
                         <div class="relative flex items-center justify-center">
@@ -135,7 +135,11 @@
 
 
                     </div>
-                @endforeach
+                @empty
+                    <div class="col-span-full text-center py-12">
+                        <p class="text-gray-500 text-lg">Belum ada produk tersedia.</p>
+                    </div>
+                @endforelse
 
             </div>
         </div>
@@ -196,10 +200,7 @@
 @section('page-script')
     <script>
         var cartData = @json($cart);
-        console.log("Cart data:", cartData);
-
         var allProducts = @json($productsWithDetails);
-        console.log(allProducts);
 
         function cartForm(variants) {
             return {

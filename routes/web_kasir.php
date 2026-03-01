@@ -3,7 +3,6 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Kasir\DashboardController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Kasir\KasirController;
-use App\Http\Controllers\Kasir\OrderController;
 use App\Http\Controllers\Kasir\CartController;
 use App\Http\Controllers\Kasir\CheckoutController;
 Route::middleware(['web', 'auth', 'cekrole:Kasir'])->group(function () {
@@ -15,8 +14,6 @@ Route::middleware(['web', 'auth', 'cekrole:Kasir'])->group(function () {
     // Card related routes
     Route::get('/cart', [CartController::class, 'index'])->name('kasir.cart.index');
     Route::post('/cart/add', [CartController::class, 'addToCart'])->name('kasir.cart.add');
-    Route::post('/cart/store', [CartController::class, 'store'])->name('kasir.card.store');
-    Route::delete('/cart/{id}', [CartController::class, 'destroy'])->name('kasir.card.destroy');
 
     // Order related routes
    
@@ -28,7 +25,6 @@ Route::middleware(['web', 'auth', 'cekrole:Kasir'])->group(function () {
     Route::post('cart/remove-promo', 'CartController@removePromo')->name('kasir.cart.removePromo');
     // Checkout related routes
     Route::get('/checkout', [CartController::class, 'index'])->name('kasir.checkout');
-    Route::post('/checkout/submit', [CheckoutController::class, 'submit'])->name('kasir.checkout.submit');
     Route::get('/invoice/{id}', [KasirController::class, 'showInvoice'])->name('kasir.invoice');
     Route::post('/cart/remove-item', [CartController::class, 'removeItem'])->name('kasir.cart.removeItem');
     Route::get('/invoice/print/{order}', [\App\Http\Controllers\Kasir\InvoiceController::class, 'show'])->name('kasir.invoice.print');

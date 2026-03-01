@@ -26,11 +26,13 @@ class DashboardMobileController extends Controller
             ], 400);
         }
 
-        // Total penjualan dan transaksi
-        $orders = Order::where('store_id', $store_id)->get();
-        $totalSales = $orders->sum('gross_amount');
-        $totalTransaction = $orders->count();
-        $LabaBersih = $orders->sum('gross_amount') - $orders->sum('total_hpp_orders');
+        // Total penjualan dan transaksi (aggregate query — no full table load)
+        $stats = Order::where('store_id', $store_id)
+            ->selectRaw('COALESCE(SUM(gross_amount), 0) as totalSales, COUNT(*) as totalTransaction, COALESCE(SUM(gross_amount) - SUM(total_hpp_orders), 0) as LabaBersih')
+            ->first();
+        $totalSales = $stats->totalSales;
+        $totalTransaction = $stats->totalTransaction;
+        $LabaBersih = $stats->LabaBersih;
 
         // Stok minimum
         $stocksMinimum = Stock::where('store_id', $store_id)
@@ -57,27 +59,27 @@ class DashboardMobileController extends Controller
             ->get();
 
 
-        // Penjualan (harian, mingguan, bulanan, tahunan)
+        // Penjualan (harian, mingguan, bulanan, tahunan) — SQLite compatible
         $penjualanHarian = Order::where('store_id', $store_id)
-            ->selectRaw('DATE(GREATEST(created_at, updated_at)) as tanggal, SUM(gross_amount) as total_penjualan')
+            ->selectRaw("DATE(MAX(created_at, updated_at)) as tanggal, SUM(gross_amount) as total_penjualan")
             ->groupBy('tanggal')
             ->orderBy('tanggal')
             ->get();
 
         $penjualanMingguan = Order::where('store_id', $store_id)
-            ->selectRaw('WEEK(GREATEST(created_at, updated_at), 1) as minggu_ke, SUM(gross_amount) as total_penjualan')
+            ->selectRaw("strftime('%W', MAX(created_at, updated_at)) as minggu_ke, SUM(gross_amount) as total_penjualan")
             ->groupBy('minggu_ke')
             ->orderBy('minggu_ke')
             ->get();
 
         $penjualanBulanan = Order::where('store_id', $store_id)
-            ->selectRaw("DATE_FORMAT(GREATEST(created_at, updated_at), '%Y-%m') as bulan, SUM(gross_amount) as total_penjualan")
+            ->selectRaw("strftime('%Y-%m', MAX(created_at, updated_at)) as bulan, SUM(gross_amount) as total_penjualan")
             ->groupBy('bulan')
             ->orderBy('bulan')
             ->get();
 
         $penjualanTahunan = Order::where('store_id', $store_id)
-            ->selectRaw("YEAR(GREATEST(created_at, updated_at)) as tahun, SUM(gross_amount) as total_penjualan")
+            ->selectRaw("strftime('%Y', MAX(created_at, updated_at)) as tahun, SUM(gross_amount) as total_penjualan")
             ->groupBy('tahun')
             ->orderBy('tahun')
             ->get();
@@ -96,7 +98,7 @@ class DashboardMobileController extends Controller
             'product.name as product_name',
             'product_variants.id as variant_id',
             'product_variants.quantity',
-            DB::raw("GROUP_CONCAT(CONCAT(variant_attributes.name, ': ', variant_options.name) SEPARATOR ', ') as variant_attributes")
+            DB::raw("group_concat(variant_attributes.name || ': ' || variant_options.name, ', ') as variant_attributes")
         )
         ->groupBy('product_variants.id', 'product.name', 'product_variants.quantity')
         ->orderBy('product_variants.quantity', 'asc')
@@ -133,7 +135,7 @@ class DashboardMobileController extends Controller
             ->where('orders.store_id', $store_id);
 
         if ($start && $end) {
-            $query->whereBetween(DB::raw('GREATEST(orders.created_at, orders.updated_at)'), [
+            $query->whereBetween(DB::raw('MAX(orders.created_at, orders.updated_at)'), [
                 $start->toDateTimeString(),
                 $end->toDateTimeString()
             ]);

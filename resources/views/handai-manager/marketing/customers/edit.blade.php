@@ -10,6 +10,16 @@
         @csrf
         @method('PUT')
 
+        @if($errors->any())
+            <div class="alert alert-error mb-4">
+                <ul class="list-disc list-inside text-sm">
+                    @foreach($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div>
                 <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Name</label>

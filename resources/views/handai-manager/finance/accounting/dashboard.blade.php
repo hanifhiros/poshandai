@@ -15,86 +15,80 @@
 @endsection
 
 @section('content')
-<div class="container mx-auto px-4 sm:px-6 lg:px-8 py-6">
+<div class="container mx-auto px-4 sm:px-6 lg:px-8 py-6" x-data="{ loaded: false }" x-init="$nextTick(() => loaded = true)">
 
     {{-- Header --}}
-    <div class="mb-8">
-        <h1 class="text-2xl font-bold text-gray-800">Finance Dashboard</h1>
-        <p class="text-sm text-gray-500 mt-1">{{ $store->name ?? 'Semua Store' }} &mdash; {{ now()->translatedFormat('F Y') }}</p>
+    <div class="mb-8 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-800">Finance Dashboard</h1>
+            <p class="text-sm text-gray-500 mt-1">{{ $store?->name ?? 'Semua Store' }} &mdash; {{ now()->translatedFormat('F Y') }}</p>
+        </div>
+        <div class="flex items-center gap-2 text-xs text-gray-400">
+            <i class="ti ti-clock text-sm"></i>
+            <span>Cache 5 menit — data diperbarui otomatis saat ada transaksi baru</span>
+        </div>
     </div>
 
-    {{-- KPI Cards --}}
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-
-        {{-- Revenue --}}
-        <div class="fc p-5">
-            <div class="flex items-center gap-3 mb-3">
-                <div class="w-10 h-10 rounded-xl bg-green-100 flex items-center justify-center">
-                    <i class="ti ti-chart-bar text-green-600 text-xl"></i>
+    {{-- KPI Cards with comparison --}}
+    @php
+        $kpis = [
+            ['label' => 'Revenue',      'value' => $revenue,   'prev' => $prevRevenue,   'icon' => 'ti-chart-bar',   'iconBg' => 'bg-green-100',   'iconColor' => 'text-green-600',   'good' => 'up'],
+            ['label' => 'HPP (COGS)',   'value' => $cogs,      'prev' => $prevCogs,      'icon' => 'ti-package',     'iconBg' => 'bg-orange-100',  'iconColor' => 'text-orange-600',  'good' => 'down'],
+            ['label' => 'Biaya',        'value' => $expenses,  'prev' => $prevExpenses,  'icon' => 'ti-receipt',     'iconBg' => 'bg-red-100',     'iconColor' => 'text-red-600',     'good' => 'down'],
+            ['label' => 'Laba Bersih',  'value' => $netProfit, 'prev' => $prevNetProfit, 'icon' => 'ti-trending-up', 'iconBg' => $netProfit >= 0 ? 'bg-emerald-100' : 'bg-red-100', 'iconColor' => $netProfit >= 0 ? 'text-emerald-600' : 'text-red-600', 'good' => 'up'],
+        ];
+    @endphp
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8"
+         x-show="loaded" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-2" x-transition:enter-end="opacity-100 translate-y-0">
+        @foreach ($kpis as $kpi)
+            @php
+                $change = $kpi['prev'] != 0 ? round((($kpi['value'] - $kpi['prev']) / abs($kpi['prev'])) * 100, 1) : ($kpi['value'] > 0 ? 100 : 0);
+                $isPositiveChange = $change > 0;
+                // For costs, going UP is bad; for revenue/profit, going UP is good
+                $isGood = $kpi['good'] === 'up' ? $isPositiveChange : !$isPositiveChange;
+                $changeColor = $change == 0 ? 'text-gray-400' : ($isGood ? 'text-green-600' : 'text-red-500');
+                $changeIcon  = $change > 0 ? 'ti-arrow-up-right' : ($change < 0 ? 'ti-arrow-down-right' : 'ti-minus');
+            @endphp
+            <div class="fc p-5">
+                <div class="flex items-center gap-3 mb-3">
+                    <div class="w-10 h-10 rounded-xl {{ $kpi['iconBg'] }} flex items-center justify-center">
+                        <i class="ti {{ $kpi['icon'] }} {{ $kpi['iconColor'] }} text-xl"></i>
+                    </div>
+                    <p class="text-xs font-medium uppercase tracking-wide text-gray-400">{{ $kpi['label'] }}</p>
                 </div>
-                <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Revenue</p>
-            </div>
-            <p class="text-2xl font-bold text-gray-800">Rp{{ number_format($revenue, 0, ',', '.') }}</p>
-        </div>
-
-        {{-- COGS --}}
-        <div class="fc p-5">
-            <div class="flex items-center gap-3 mb-3">
-                <div class="w-10 h-10 rounded-xl bg-orange-100 flex items-center justify-center">
-                    <i class="ti ti-package text-orange-600 text-xl"></i>
+                <p class="text-2xl font-bold {{ $kpi['label'] === 'Laba Bersih' ? ($netProfit >= 0 ? 'text-green-700' : 'text-red-600') : 'text-gray-800' }}">
+                    Rp{{ number_format($kpi['value'], 0, ',', '.') }}
+                </p>
+                <div class="flex items-center gap-1 mt-2">
+                    <i class="ti {{ $changeIcon }} text-sm {{ $changeColor }}"></i>
+                    <span class="text-xs font-medium {{ $changeColor }}">{{ $change > 0 ? '+' : '' }}{{ $change }}%</span>
+                    <span class="text-xs text-gray-400 ml-1">vs bulan lalu</span>
                 </div>
-                <p class="text-xs font-medium uppercase tracking-wide text-gray-400">HPP (COGS)</p>
             </div>
-            <p class="text-2xl font-bold text-gray-800">Rp{{ number_format($cogs, 0, ',', '.') }}</p>
-        </div>
-
-        {{-- Expenses --}}
-        <div class="fc p-5">
-            <div class="flex items-center gap-3 mb-3">
-                <div class="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center">
-                    <i class="ti ti-receipt text-red-600 text-xl"></i>
-                </div>
-                <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Biaya</p>
-            </div>
-            <p class="text-2xl font-bold text-gray-800">Rp{{ number_format($expenses, 0, ',', '.') }}</p>
-        </div>
-
-        {{-- Net Profit --}}
-        <div class="fc p-5">
-            <div class="flex items-center gap-3 mb-3">
-                <div class="w-10 h-10 rounded-xl {{ $netProfit >= 0 ? 'bg-emerald-100' : 'bg-red-100' }} flex items-center justify-center">
-                    <i class="ti ti-trending-up {{ $netProfit >= 0 ? 'text-emerald-600' : 'text-red-600' }} text-xl"></i>
-                </div>
-                <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Laba Bersih</p>
-            </div>
-            <p class="text-2xl font-bold {{ $netProfit >= 0 ? 'text-green-700' : 'text-red-600' }}">
-                Rp{{ number_format($netProfit, 0, ',', '.') }}
-            </p>
-        </div>
+        @endforeach
     </div>
 
     {{-- Position Cards --}}
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8"
+         x-show="loaded" x-transition:enter="transition ease-out duration-500 delay-100" x-transition:enter-start="opacity-0 translate-y-2" x-transition:enter-end="opacity-100 translate-y-0">
+        @php
+            $positions = [
+                ['label' => 'Kas',              'value' => $cashPosition,  'icon' => 'ti-wallet',    'color' => 'text-gray-800'],
+                ['label' => 'Bank',             'value' => $bankPosition,  'icon' => 'ti-building-bank', 'color' => 'text-gray-800'],
+                ['label' => 'Inventory Bahan',  'value' => $inventoryRaw,  'icon' => 'ti-box',       'color' => 'text-gray-800'],
+                ['label' => 'Inventory Produk', 'value' => $inventoryFg,   'icon' => 'ti-package',   'color' => 'text-gray-800'],
+                ['label' => 'Hutang',           'value' => $hutang,        'icon' => 'ti-alert-triangle', 'color' => 'text-red-600'],
+            ];
+        @endphp
+        @foreach ($positions as $pos)
         <div class="fc p-4">
-            <p class="text-xs text-gray-400 uppercase mb-1">Kas</p>
-            <p class="text-lg font-bold text-gray-800">Rp{{ number_format($cashPosition, 0, ',', '.') }}</p>
+            <div class="flex items-center gap-2 mb-1">
+                <i class="ti {{ $pos['icon'] }} text-sm text-gray-400"></i>
+                <p class="text-xs text-gray-400 uppercase">{{ $pos['label'] }}</p>
+            </div>
+            <p class="text-lg font-bold {{ $pos['color'] }}">Rp{{ number_format($pos['value'], 0, ',', '.') }}</p>
         </div>
-        <div class="fc p-4">
-            <p class="text-xs text-gray-400 uppercase mb-1">Bank</p>
-            <p class="text-lg font-bold text-gray-800">Rp{{ number_format($bankPosition, 0, ',', '.') }}</p>
-        </div>
-        <div class="fc p-4">
-            <p class="text-xs text-gray-400 uppercase mb-1">Inventory Bahan</p>
-            <p class="text-lg font-bold text-gray-800">Rp{{ number_format($inventoryRaw, 0, ',', '.') }}</p>
-        </div>
-        <div class="fc p-4">
-            <p class="text-xs text-gray-400 uppercase mb-1">Inventory Produk</p>
-            <p class="text-lg font-bold text-gray-800">Rp{{ number_format($inventoryFg, 0, ',', '.') }}</p>
-        </div>
-        <div class="fc p-4">
-            <p class="text-xs text-gray-400 uppercase mb-1">Hutang</p>
-            <p class="text-lg font-bold text-red-600">Rp{{ number_format($hutang, 0, ',', '.') }}</p>
-        </div>
+        @endforeach
     </div>
 
     {{-- 6-Month Trend Chart --}}
@@ -184,6 +178,7 @@
 @endsection
 
 @push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const trend = @json($monthlyTrend);

@@ -5,7 +5,7 @@
     :class="sidebarOpen
         ? 'w-[220px]'
         : 'w-[68px]'"
-    class="sidebar-transition h-screen flex flex-col bg-white border-r border-slate-200/80 shrink-0 select-none z-30">
+    class="sidebar-transition h-screen hidden md:flex flex-col bg-white border-r border-slate-200/80 shrink-0 select-none z-30">
 
     {{-- Brand / Logo --}}
     <div class="flex items-center h-[60px] px-3 border-b border-slate-100">

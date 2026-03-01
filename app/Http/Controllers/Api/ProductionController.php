@@ -2,17 +2,20 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Helpers\ConversionHelper;
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use App\Models\ProductionHistory;
-use App\Models\ProductVariants;
 use App\Models\Bom;
-use App\Models\ProductionStockUsage;
 use App\Models\Employee;
 use App\Models\Product;
-use Illuminate\Support\Facades\DB;
-use App\Services\InventoryService;
+use App\Models\ProductionHistory;
+use App\Models\ProductionStockUsage;
+use App\Models\ProductVariants;
+use App\Models\Stock;
+use App\Models\Unit;
 use App\Services\AccountingService;
+use App\Services\InventoryService;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class ProductionController extends Controller
@@ -57,7 +60,8 @@ class ProductionController extends Controller
             $query->whereDate('production_date', '<=', $request->end_date);
         }
 
-        $productions = $query->orderBy('production_date', 'desc')->get();
+        $productions = $query->orderBy('production_date', 'desc')
+            ->paginate($request->input('per_page', 50));
 
         $data = $productions->map(function ($p) {
             return [
@@ -128,11 +132,11 @@ class ProductionController extends Controller
             ]);
 
         // Get stocks + unit_id
-        $stocks = \App\Models\Stock::where('store_id', $storeId)
+        $stocks = Stock::where('store_id', $storeId)
             ->get(['id', 'name', 'unit_id']);
 
         // Get units + unit_type
-        $units = \App\Models\Unit::all(['id', 'symbol', 'unit_type']);
+        $units = Unit::all(['id', 'symbol', 'unit_type']);
 
         return response()->json([
             'status' => 'success',
@@ -175,13 +179,18 @@ class ProductionController extends Controller
             if ($request->use_bom === 'no') {
                 $manualIngredients = $request->input('manual_ingredients', []);
 
+                // Pre-load stocks to avoid N+1
+                $stockIds = collect($manualIngredients)->pluck('stock_id')->unique()->toArray();
+                $stocksMap = Stock::whereIn('id', $stockIds)->get()->keyBy('id');
+
                 foreach ($manualIngredients as $ingredient) {
-                    $stock = \App\Models\Stock::find($ingredient['stock_id']);
+                    $stock = $stocksMap->get($ingredient['stock_id']);
+                    if (!$stock) continue;
                     $inputQty = $ingredient['quantity'];
                     $inputUnitId = $ingredient['unit_id'];
                     $stockUnitId = $stock->unit_id;
 
-                    $conversionRate = \App\Helpers\ConversionHelper::getConversionRate($inputUnitId, $stockUnitId);
+                    $conversionRate = ConversionHelper::getConversionRate($inputUnitId, $stockUnitId);
 
                     if ($conversionRate === null) {
                         throw new \Exception("Tidak ada konversi satuan dari unit ID $inputUnitId ke $stockUnitId.");
@@ -221,7 +230,7 @@ class ProductionController extends Controller
 
                 foreach ($boms as $bom) {
                     $stock = $bom->stock;
-                    $conversionRate = \App\Helpers\ConversionHelper::getConversionRate(
+                    $conversionRate = ConversionHelper::getConversionRate(
                         $bom->unit_id,
                         $stock->unit_id
                     );
@@ -239,7 +248,7 @@ class ProductionController extends Controller
 
                 foreach ($boms as $bom) {
                     $stock = $bom->stock;
-                    $conversionRate = \App\Helpers\ConversionHelper::getConversionRate(
+                    $conversionRate = ConversionHelper::getConversionRate(
                         $bom->unit_id,
                         $stock->unit_id
                     );
@@ -264,7 +273,7 @@ class ProductionController extends Controller
                 }
             }
 
-            $productVariant = \App\Models\ProductVariants::find($productVariantId);
+            $productVariant = ProductVariants::find($productVariantId);
 
             if (!$productVariant) {
                 throw new \Exception("Varian produk tidak ditemukan.");

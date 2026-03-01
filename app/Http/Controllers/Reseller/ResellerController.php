@@ -55,7 +55,6 @@ class ResellerController extends Controller
         $allResellers = Reseller::whereHas('stores', function ($q) use ($storeId) {
             $q->where('store_id', $storeId);
         })->get();
-        // dd($allResellers,$resellers,Reseller::all(),$storeId);
         return view('handai-manager.marketing.resellers.index', compact(
             'resellers',
             'allResellers',
@@ -68,10 +67,12 @@ class ResellerController extends Controller
     public function create()
 {
     $stores = auth()->user()->accessibleStores();; // hanya toko yang dimiliki user manager
-    $allResellers = Reseller::all(); // untuk dropdown "pilih reseller lama"
+    $allResellers = Reseller::whereDoesntHave('stores', function ($q) use ($selected_store_id) {
+        $q->where('store_id', $selected_store_id);
+    })->get(); // hanya reseller yang belum terdaftar di store ini
     $selected_store_id = session('selected_store');
      // 💡 pakai method tadi
-    $selected_store = $selected_store_id ? \App\Models\Store::find($selected_store_id) : null;
+    $selected_store = $selected_store_id ? Store::find($selected_store_id) : null;
     return view('handai-manager.marketing.resellers.create', compact('stores', 'allResellers','selected_store'));
 }
     

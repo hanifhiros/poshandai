@@ -11,6 +11,16 @@ class Order extends Model
 
     protected $table = 'orders';
 
+    protected $casts = [
+        'gross_amount'    => 'decimal:0',
+        'total_item_price' => 'decimal:0',
+        'delivery_fee'    => 'decimal:0',
+        'pajak'           => 'decimal:0',
+        'ongkos_kirim'    => 'decimal:0',
+        'kemasan'         => 'decimal:0',
+        'delivery_date'   => 'date',
+    ];
+
     protected $fillable = [
         'order_id',
         'snap_token',
@@ -65,18 +75,13 @@ public function invoices() {
     return $this->hasMany(Invoice::class);
 }
 
-    // public function payment()
-    // {
-    //     return $this->belongsTo(Payment::class);
-    // }
-
-    // public function seller()
-    // {
-    //     return $this->belongsTo(Seller::class);
-    // }
-
     public function store()
     {
         return $this->belongsTo(Store::class);
+    }
+
+    public function reseller()
+    {
+        return $this->belongsTo(Reseller::class);
     }
 }

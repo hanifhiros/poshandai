@@ -194,10 +194,7 @@
 @section('page-script')
     <script>
         var cartData = @json($cart);
-        console.log("Cart data:", cartData);
-
         var allProducts = @json($productsWithDetails);
-        console.log(allProducts);
 
         function cartForm(variants) {
             return {

@@ -3,15 +3,18 @@ namespace App\Http\Controllers\Public;
 
 use App\Http\Controllers\Controller;
 use App\Models\Customer;
+use App\Models\CustomerStore;
 use App\Models\Order;
-use App\Models\ProductVariants;
-use App\Models\ProductCategory;
 use App\Models\Product;
-use App\Models\Store;
+use App\Models\ProductCategory;
+use App\Models\ProductVariants;
 use App\Models\Promo;
-
+use App\Models\ResellerStore;
+use App\Models\Store;
+use App\Services\InventoryService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class CustomerOrderController extends Controller
 {
@@ -155,9 +158,15 @@ class CustomerOrderController extends Controller
         $request->validate([
             'payment_proof' => 'nullable|image|max:10000', // max 2MB
         ]);
-        
-       
-        
+
+        // ── Stock Validation (deduction happens on ship) ──
+        $stockErrors = InventoryService::validateCartStock($cart);
+        if (!empty($stockErrors)) {
+            return response()->json([
+                'success' => false,
+                'message' => implode(', ', $stockErrors)
+            ], 400);
+        }
 
         DB::beginTransaction();
         try {
@@ -230,7 +239,7 @@ class CustomerOrderController extends Controller
                 $customer->save();
 
                 // ✅ Update statistik di customer_store
-                $customerStore = \App\Models\CustomerStore::where('customer_id', $customer->id)
+                $customerStore = CustomerStore::where('customer_id', $customer->id)
                     ->where('store_id', $order->store_id)
                     ->first();
 
@@ -251,7 +260,7 @@ class CustomerOrderController extends Controller
             if (session()->has('reseller_id')) {
                 $resellerId = session('reseller_id');
             
-                $resellerStore = \App\Models\ResellerStore::where('reseller_id', $resellerId)
+                $resellerStore = ResellerStore::where('reseller_id', $resellerId)
                     ->where('store_id', $order->store_id)
                     ->first();
             
@@ -284,7 +293,7 @@ class CustomerOrderController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
 
-            \Log::error('Checkout error: ' . $e->getMessage(), [
+            Log::error('Customer checkout error: ' . $e->getMessage(), [
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
                 'trace' => $e->getTraceAsString()
@@ -292,7 +301,7 @@ class CustomerOrderController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal menyimpan order: ' . $e->getMessage()
+                'message' => 'Gagal menyimpan order. Silakan coba lagi.'
             ], 500);
         }
 
@@ -511,7 +520,7 @@ class CustomerOrderController extends Controller
         $variantId = $request->variant_id;
         $quantity = $request->quantity;
 
-        $variant = ProductVariants::with('product')->findOrFail($variantId);
+        $variant = ProductVariants::with(['product', 'options.attribute'])->findOrFail($variantId);
 
         $finalPrice = ($variant->is_promo === 'yes')
             ? ($variant->price - $variant->price_discount)
@@ -529,8 +538,6 @@ class CustomerOrderController extends Controller
         }
 
         if (!$found) {
-            $variant = ProductVariants::with('options.attribute')->findOrFail($variantId);
-
             $cart[] = [
                 'product_id' => $variant->product_id,
                 'variant_id' => $variant->id,
@@ -651,10 +658,10 @@ class CustomerOrderController extends Controller
                 'grandTotal' => number_format($grandTotal, 0, ',', '.'),
             ]);
         } catch (\Throwable $e) {
+            Log::error('Customer updateCartQuantity error: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
                 'message' => 'Terjadi kesalahan saat memperbarui keranjang.',
-                'error_detail' => $e->getMessage() // Bisa dihapus di production
             ], 500);
         }
     }

@@ -74,7 +74,7 @@ class rndController extends Controller
     public function create(Request $request)
     {
         $selected_store_id = session('selected_store');
-        $employees = Employee::all()->where('store_id', $selected_store_id);
+        $employees = Employee::where('store_id', $selected_store_id)->get();
         $units = Unit::all();
         $stocks = Stock::where('store_id', $selected_store_id)->with('unit')->get()->values();
 
@@ -91,16 +91,16 @@ class rndController extends Controller
             'rnd_date' => 'required|date',
             'pic_id' => 'required|exists:employee,id',
             'description' => 'nullable|string',
-            'ingredients.*.stock_id' => 'nullable|exists:stock,id',
-            'ingredients.*.manual_name' => 'nullable|string|required_if:ingredients.*.stock_id,manual',
-            'ingredients.*.quantity_used' => 'required|numeric|min:0.01',
-            'ingredients.*.unit_id' => 'required|exists:units,id',
-            'ingredients.*.cost' => 'required|decimal|min:0.01',
+            'rnd_ingredients' => 'required|array|min:1',
+            'rnd_ingredients.*.stock_id' => 'nullable',
+            'rnd_ingredients.*.manual_name' => 'nullable|string|required_if:rnd_ingredients.*.stock_id,manual',
+            'rnd_ingredients.*.quantity_used' => 'required|numeric|min:0.01',
+            'rnd_ingredients.*.unit_id' => 'required|exists:units,id',
+            'rnd_ingredients.*.cost' => 'required|numeric|min:0',
         ]);
         
         DB::beginTransaction();
         try {
-            //dd($request->pic_id,$request->rnd_date,$request->description,$request);
             $rnd = RNDHistory::create([
                 'rnd_name' => $request->rnd_name,
                 'rnd_date' => $request->rnd_date,
@@ -135,27 +135,44 @@ class rndController extends Controller
         }
     }
     public function fulfillApprovedRND($rndId)
-{
-    $usages = RNDStockUsage::where('rnd_id', $rndId)
-                ->where('status', 'approved')
-                ->whereNull('stock_id')
-                ->get();
+    {
+        $storeId = session('selected_store');
 
-    foreach ($usages as $usage) {
-        $stock = Stock::create([
-            'name' => $usage->manual_name,
-            'unit_id' => $usage->unit_id,
-            'unit_qty' => 0,
-            'store_id' => session('selected_store'),
-            'expired_duration' => 30,
-        ]);
+        // Verify the RND belongs to this store
+        $rnd = RNDHistory::where('id', $rndId)
+            ->where('store_id', $storeId)
+            ->firstOrFail();
 
-        $usage->stock_id = $stock->id;
-        $usage->save();
+        $usages = RNDStockUsage::where('rnd_id', $rnd->id)
+            ->where('status', 'approved')
+            ->whereNull('stock_id')
+            ->get();
+
+        if ($usages->isEmpty()) {
+            return back()->with('info', 'Tidak ada bahan manual yang perlu diproses.');
+        }
+
+        DB::beginTransaction();
+        try {
+            foreach ($usages as $usage) {
+                $stock = Stock::create([
+                    'name' => $usage->manual_name,
+                    'unit_id' => $usage->unit_id,
+                    'unit_qty' => 0,
+                    'store_id' => $storeId,
+                    'expired_duration' => 30,
+                ]);
+
+                $usage->stock_id = $stock->id;
+                $usage->save();
+            }
+            DB::commit();
+            return back()->with('success', 'Bahan manual berhasil dimasukkan ke stok!');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->withErrors(['error' => 'Gagal memproses: ' . $e->getMessage()]);
+        }
     }
-
-    return back()->with('success', 'Bahan manual berhasil dimasukkan ke stok!');
-}
 
 public function destroy($id)
 {

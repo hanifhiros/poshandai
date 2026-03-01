@@ -110,7 +110,9 @@
      <!-- tambahin button logout -->
      <div class="relative ">
       <div class="relative flex w-full cursor-pointer text-red-600 items-center justify-between transition-colors hover:bg-red-100">
-      <a  href="{{ route('logout') }}" class="w-full flex items-center m-2 transition-colors">
+      <form action="{{ route('logout') }}" method="POST" class="w-full">
+          @csrf
+          <button type="submit" class="w-full flex items-center m-2 transition-colors cursor-pointer">
           <div class="flex items-center ms-3 p-2">
             <div class="grid place-content-center ">
             <i class="ti ti-logout"></i> 
@@ -119,7 +121,8 @@
               Logout
             </span>
           </div>
-        </a>
+        </button>
+      </form>
       </div>
     </div>
   </nav>

@@ -1,25 +1,20 @@
 <?php
-use App\Http\Controllers\AuthController;
+
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SuperadminController;
 use App\Http\Controllers\Superadmin\AccountController;
 use App\Http\Controllers\Superadmin\SimulationController;
 use Illuminate\Http\Request;
-use App\Http\Controllers\Public\CustomerStoreSelectorController;
 use App\Http\Controllers\Superadmin\StoreController;
-// Route::get('/', function () {
-//     return view('handai-pos.checkout.checkout-pos');
-
-// });
 
 Route::group(['middleware' => ['web'], 'prefix' => '/', 'namespace' => 'App\Http\Controllers'], function () {
     Route::GET('/', 'Landingpage\HomeController@index')->name('home');
 
     Route::GET('login', 'Login@index')->name('login');
-    Route::POST('login/exe', 'Login@exe');
-    Route::GET('logout', 'Login@logout')->name('logout');
+    Route::POST('login/exe', 'Login@exe')->middleware('throttle:5,1');
+    Route::POST('logout', 'Login@logout')->name('logout');
     Route::GET('register', 'Login@register')->name('register');
-    Route::POST('register', 'Login@store');
+    Route::POST('register', 'Login@store')->middleware('throttle:5,1');
 
 });
 
@@ -57,13 +52,8 @@ Route::middleware(['auth', 'role:Superadmin'])->prefix('superadmin')->name('supe
 
 Route::post('/logout-universal', [\App\Http\Controllers\LogoutController::class, 'logout'])->name('universal.logout');
 
-
-Route::prefix('reseller')->middleware(['web', 'auth', 'cekrole:Reseller'])->namespace('App\Http\Controllers\Reseller')->group(base_path('routes/web_reseller.php'));
-
 Route::get('/reseller/register', [\App\Http\Controllers\Public\ResellerRegisterController::class, 'showForm'])->name('reseller.register.form');
 Route::post('/reseller/register', [\App\Http\Controllers\Public\ResellerRegisterController::class, 'submitForm'])->name('reseller.register.submit');
-// Route::get('/reseller/login', [Login::class, 'resellerLoginForm'])->name('reseller.login');
-// Route::post('/reseller/login', [Login::class, 'resellerLoginExe'])->name('reseller.login.exe');
 
 
 //PENGALIHAN Route

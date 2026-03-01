@@ -57,7 +57,15 @@ $sizesInfo = $boms->mapWithKeys(function ($bom) {
 
 public function destroy($variantId)
 {
-    BOM::where('product_variants_id', $variantId)->delete();
+    $storeId = session('selected_store');
+    $deleted = BOM::where('product_variants_id', $variantId)
+        ->where('store_id', $storeId)
+        ->delete();
+
+    if ($deleted === 0) {
+        return redirect()->route('manager.inventory.recipes.index')
+            ->withErrors(['error' => 'Resep tidak ditemukan atau bukan milik outlet ini.']);
+    }
 
     return redirect()->route('manager.inventory.recipes.index')
         ->with('success', 'Resep berhasil dihapus.');
@@ -69,12 +77,14 @@ public function destroy($variantId)
     $selected_store_id = session('selected_store');
     $selected_store = $selected_store_id ? \App\Models\Store::find($selected_store_id) : null;
 
-    $products = Product::all()->where('store_id', $selected_store_id);
+    $products = Product::where('store_id', $selected_store_id)->get();
     $stocks = Stock::with('unit')->where('store_id', $selected_store_id)->get(); // Pastikan sudah dengan unit-nya
     $units = Unit::all(); // Jangan lupa ini karena dibutuhkan di Blade
 
     // Ambil semua ukuran per produk
-    $sizePrices = ProductVariants::with('product')->get();
+    $sizePrices = ProductVariants::with('product')
+        ->whereHas('product', fn($q) => $q->where('store_id', $selected_store_id))
+        ->get();
     $sizePricesByProduct = $sizePrices->groupBy('product_id')->map(function ($items) {
         return $items->map(fn ($i) => [
             'id' => $i->id,

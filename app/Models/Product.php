@@ -21,6 +21,12 @@ class Product extends Model
         'image_url',
         'hpp',// ⬅️ tambahkan ini
     ];
+
+    protected $casts = [
+        'expired_duration' => 'integer',
+        'is_promo'         => 'boolean',
+        'price_discount'   => 'decimal:0',
+    ];
     public function getDefaultExpiredAt(Carbon $productionDate = null)
 {
     $productionDate = $productionDate ?? now();
@@ -56,9 +62,13 @@ public function activeProductions()
         return $this->belongsTo(ProductCategory::class, 'category_id');
     }
 
+    /**
+     * Alias for variants() — kept for backward compatibility in views/controllers
+     * that reference sizePrices. Points to the same relation.
+     */
     public function sizePrices()
     {
-        return $this->hasMany(ProductVariants::class, 'product_id');
+        return $this->variants();
     }
     public function productionHistories()
     {
@@ -89,16 +99,24 @@ public function activeProductions()
     }
 }
 
+/**
+ * Scope: products that have at least one expired production batch.
+ * Uses SQLite-compatible date arithmetic.
+ */
 public function scopeExpired($query)
 {
-    return $query->whereHas('product', function ($q) {
-        $q->whereNotNull('expired_duration');
-    })->whereRaw('DATE_ADD(production_date, INTERVAL expired_duration DAY) < NOW()');
+    return $query->whereHas('productionHistories', function ($q) {
+        $q->whereNotNull('expired_at')
+          ->where('expired_at', '<', now());
+    });
 }
 
+/**
+ * Alias for variants() — kept for backward compatibility in DashboardPOS.
+ */
 public function variantsById()
 {
-    return $this->hasMany(ProductVariants::class, 'product_id');
+    return $this->variants();
 }
 
 }

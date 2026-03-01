@@ -28,7 +28,8 @@
                 </a>
             </div>
 
-            <form action="{{ route('logout') }}" method="GET" class="mt-6 text-center">
+            <form action="{{ route('logout') }}" method="POST" class="mt-6 text-center">
+                @csrf
                 <button type="submit"
                         class="inline-block text-sm px-4 py-2 text-red-600 border border-red-500 rounded-lg bg-white hover:bg-red-500 hover:text-white transition duration-200">
                     Logout

@@ -63,7 +63,7 @@ class CartController extends Controller
         $ppn = $cartTotalPrice * 0.0;
         $grandTotal = $cartTotalPrice + $ppn;
 
-        $customers = Customer::orderBy('name')->get();
+        $customers = Customer::where('store_id', session('selected_store'))->orderBy('name')->get();
 
         return view('handai-pos.checkout.checkout-pos', compact(
             'cartDetails',
@@ -430,8 +430,8 @@ class CartController extends Controller
         } elseif ($customerType === 'new' && $request->customer_name) {
             $customer = Customer::create([
                 'name' => $request->customer_name,
+                'nickname' => $request->new_nickname ?? '',
                 'contact_number' => $request->new_contact ?? '',
-                'address' => $request->new_address ?? '',
                 'store_id' => session('selected_store'),
             ]);
             $customerId = $customer->id;

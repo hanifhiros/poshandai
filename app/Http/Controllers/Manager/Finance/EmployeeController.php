@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Store;
 use App\Models\Employee;
+use Illuminate\Support\Str;
+
 class EmployeeController extends Controller
 {
     public function index(Request $request)
@@ -41,16 +43,19 @@ public function create()
             'salary' => 'required|numeric|min:0',
         ]);
 
+        $tempPassword = Str::random(10);
+
         Employee::create(array_merge(
             $request->only('name', 'email', 'contact_number', 'position', 'salary'),
             [
                 'store_id' => session('selected_store'),
-                'password' => bcrypt('password123'),
+                'password' => bcrypt($tempPassword),
             ]
         ));
-        
 
-        return redirect()->route('manager.finance.employees.index')->with('success', 'Employee added successfully.');
+        return redirect()->route('manager.finance.employees.index')
+            ->with('success', 'Karyawan berhasil ditambahkan.')
+            ->with('temp_password', $tempPassword);
     }
 
 }

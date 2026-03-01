@@ -7,6 +7,9 @@
 @endsection
 
 @section('page-style')
+<style>
+    [x-cloak] { display: none !important; }
+</style>
 @endsection
 
 @section('content')
@@ -65,7 +68,6 @@
                     this.step = 2;
                 }
             }" @payment-success.window="
-    console.log('event ke-trigger 🔥', $event.detail);
     orderId = $event.detail.orderId;
     grossAmount = $event.detail.grossAmount;
     step = 3;
@@ -122,7 +124,7 @@
                 <form id="wizard-checkout-form">
                     @csrf                
                     <!-- CART Step -->
-                    <div x-show="step === 1">
+                    <div x-show="step === 1" x-cloak x-transition>
                         <div class="flex flex-col xl:flex-row gap-4">
                             <!-- Left Section -->
                             <div class="flex-1 space-y-4">
@@ -133,7 +135,7 @@
                                     </h5>
                                 </div>
                                 <!-- Table Container -->
-                                <div class="w-full border border-gray-200 rounded" x-data>
+                                <div class="w-full overflow-x-auto border border-gray-200 rounded" x-data>
                                     <table class="table-auto w-full text-xs sm:text-sm md:text-base text-left">
                                         <thead class="bg-gray-100 text-gray-700 font-semibold">
                                             <tr class="text-[0.75rem] sm:text-sm">
@@ -556,7 +558,7 @@
                             <!-- /Right Section -->
                         </div>
                     </div>
-                    <div x-show="step === 2">
+                    <div x-show="step === 2" x-cloak x-transition>
                         <h2 class="text-xl font-bold mb-4">Konfirmasi Pembayaran</h2>
                     
                         <p><strong>Nama Customer:</strong> <span x-text="customerName || '-'"></span></p>
@@ -587,7 +589,7 @@
                         <button @click="submitOrder($event)" class="btn btn-primary mt-4">Konfirmasi dan Bayar</button>
                     </div>
                     </div>
-                    <div x-show="step === 3">
+                    <div x-show="step === 3" x-cloak x-transition>
                         <h2 class="text-xl font-bold mb-4">Pesanan Berhasil!</h2>
                         
                         <p><strong>Order ID:</strong> <span x-text="orderId"></span></p>
@@ -853,8 +855,6 @@
 
             }).then(response => response.json()).then(data => {
                 if (data.success) {
-                    console.log('Response data:', data);
-
                     qtyInput.value = data.quantity;
 
                     const itemTotalElem = document.getElementById('item-total-' + productId + '-' + variantId);

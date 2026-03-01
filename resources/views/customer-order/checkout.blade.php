@@ -7,6 +7,9 @@
 @endsection
 
 @section('page-style')
+<style>
+    [x-cloak] { display: none !important; }
+</style>
 @endsection
 
 @section('content')
@@ -67,7 +70,6 @@
                     this.step = 2;
                 }
             }" @payment-success.window="
-    console.log('event ke-trigger 🔥', $event.detail);
     orderId = $event.detail.orderId;
     grossAmount = $event.detail.grossAmount;
     step = 3;
@@ -136,7 +138,7 @@
                                     </h5>
                                 </div>
                                 <!-- Table Container -->
-                                <div class="w-full border border-gray-200 rounded" x-data>
+                                <div class="w-full overflow-x-auto border border-gray-200 rounded" x-data>
                                     <table class="table-auto w-full text-xs sm:text-sm md:text-base text-left">
                                         <thead class="bg-gray-100 text-gray-700 font-semibold">
                                             <tr class="text-[0.75rem] sm:text-sm">
@@ -594,8 +596,6 @@
 
             }).then(response => response.json()).then(data => {
                 if (data.success) {
-                    console.log('Response data:', data);
-
                     qtyInput.value = data.quantity;
 
                     const itemTotalElem = document.getElementById('item-total-' + productId + '-' + variantId);

@@ -80,28 +80,20 @@ class StockBatchController extends Controller
         // Post-query status filter (SQLite doesn't support complex cross-table WHERE well)
         // We keep pagination intact – status filter is soft.
 
-        // Summary stats
-        $allBatchesForStats = StockBatch::with('stock')
-            ->where('store_id', $selectedStoreId)
-            ->get();
+        // Summary stats — use aggregate query instead of loading all batches into memory
+        $statsRaw = StockBatch::join('stock', 'stock_batches.stock_id', '=', 'stock.id')
+            ->where('stock_batches.store_id', $selectedStoreId)
+            ->selectRaw("
+                COUNT(*) as total,
+                SUM(CASE WHEN stock.expired_duration IS NOT NULL AND date(stock_batches.buy_date, '+' || stock.expired_duration || ' days') < date('now') THEN 1 ELSE 0 END) as expired,
+                SUM(CASE WHEN stock.expired_duration IS NOT NULL AND date(stock_batches.buy_date, '+' || stock.expired_duration || ' days') >= date('now') AND date(stock_batches.buy_date, '+' || stock.expired_duration || ' days') <= date('now', '+7 days') THEN 1 ELSE 0 END) as near_expired
+            ")
+            ->first();
 
-        $totalBatches  = $allBatchesForStats->count();
-        $activeBatches = 0;
-        $expiredBatches = 0;
-        $nearExpiredBatches = 0;
-
-        foreach ($allBatchesForStats as $b) {
-            $dur = $b->stock?->expired_duration ?? ($b->expired_duration ?? null);
-            if ($dur && $b->buy_date) {
-                $exp = Carbon::parse($b->buy_date)->addDays($dur);
-                $dl  = $today->diffInDays($exp, false);
-                if ($dl < 0) $expiredBatches++;
-                elseif ($dl <= 7) $nearExpiredBatches++;
-                else $activeBatches++;
-            } else {
-                $activeBatches++;
-            }
-        }
+        $totalBatches = (int) ($statsRaw->total ?? 0);
+        $expiredBatches = (int) ($statsRaw->expired ?? 0);
+        $nearExpiredBatches = (int) ($statsRaw->near_expired ?? 0);
+        $activeBatches = $totalBatches - $expiredBatches - $nearExpiredBatches;
 
         $stocks = Stock::where('store_id', $selectedStoreId)->orderBy('name')->get();
 

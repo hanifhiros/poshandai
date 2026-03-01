@@ -58,24 +58,24 @@ class DashboardController extends Controller
                 ->orderBy('tanggal')
                 ->get();
             
-            $penjualanMingguan = Order::select(DB::raw('WEEK(created_at) as minggu_ke'), DB::raw('SUM(gross_amount) as total_penjualan'))
+            $penjualanMingguan = Order::select(DB::raw("strftime('%W', created_at) as minggu_ke"), DB::raw('SUM(gross_amount) as total_penjualan'))
                 ->where('reseller_id', $resellerId)
                 ->whereIn('store_id', $storeIds)
-                ->groupBy(DB::raw('WEEK(created_at)'))
+                ->groupBy(DB::raw("strftime('%W', created_at)"))
                 ->orderBy('minggu_ke')
                 ->get();
             
-            $penjualanBulanan = Order::select(DB::raw('DATE_FORMAT(created_at, "%Y-%m") as bulan'), DB::raw('SUM(gross_amount) as total_penjualan'))
+            $penjualanBulanan = Order::select(DB::raw("strftime('%Y-%m', created_at) as bulan"), DB::raw('SUM(gross_amount) as total_penjualan'))
                 ->where('reseller_id', $resellerId)
                 ->whereIn('store_id', $storeIds)
-                ->groupBy(DB::raw('DATE_FORMAT(created_at, "%Y-%m")'))
+                ->groupBy(DB::raw("strftime('%Y-%m', created_at)"))
                 ->orderBy('bulan')
                 ->get();
             
-            $penjualanTahunan = Order::select(DB::raw('YEAR(created_at) as tahun'), DB::raw('SUM(gross_amount) as total_penjualan'))
+            $penjualanTahunan = Order::select(DB::raw("strftime('%Y', created_at) as tahun"), DB::raw('SUM(gross_amount) as total_penjualan'))
                 ->where('reseller_id', $resellerId)
                 ->whereIn('store_id', $storeIds)
-                ->groupBy(DB::raw('YEAR(created_at)'))
+                ->groupBy(DB::raw("strftime('%Y', created_at)"))
                 ->orderBy('tahun')
                 ->get();
                 $selected_store = $selectedStoreId === 'all' ? null : Store::find($selectedStoreId);

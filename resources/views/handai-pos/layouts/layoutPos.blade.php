@@ -83,6 +83,11 @@
             50% { transform: scale(1.08); }
         }
         .cart-pulse { animation: cartPulse 0.3s ease-in-out; }
+
+        /* Mobile safe area for bottom nav */
+        .safe-area-bottom {
+            padding-bottom: env(safe-area-inset-bottom, 0);
+        }
     </style>
 </head>
 
@@ -99,10 +104,34 @@
             @yield('header')
 
             {{-- Page Content --}}
-            <div class="flex-1 flex overflow-hidden">
+            <div class="flex-1 flex overflow-hidden pb-14 md:pb-0">
                 @yield('content')
             </div>
         </div>
+
+        {{-- Mobile Bottom Navigation - visible only on small screens --}}
+        <nav class="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-white border-t border-slate-200 flex items-center justify-around h-14 px-2 safe-area-bottom">
+            <a href="{{ route('pos.dashboard') }}"
+               class="flex flex-col items-center justify-center gap-0.5 flex-1 py-1 {{ request()->routeIs('pos.dashboard') ? 'text-[#0C9044]' : 'text-slate-400' }}">
+                <i class="ti ti-device-desktop text-xl"></i>
+                <span class="text-[10px] font-medium">POS</span>
+            </a>
+            <a href="{{ route('pos.checkout') }}"
+               class="flex flex-col items-center justify-center gap-0.5 flex-1 py-1 {{ request()->routeIs('pos.checkout') ? 'text-[#0C9044]' : 'text-slate-400' }}">
+                <i class="ti ti-shopping-cart text-xl"></i>
+                <span class="text-[10px] font-medium">Keranjang</span>
+            </a>
+            <a href="{{ route('pos.history') }}"
+               class="flex flex-col items-center justify-center gap-0.5 flex-1 py-1 {{ request()->routeIs('pos.history') ? 'text-[#0C9044]' : 'text-slate-400' }}">
+                <i class="ti ti-history text-xl"></i>
+                <span class="text-[10px] font-medium">Riwayat</span>
+            </a>
+            <button onclick="document.documentElement.getAttribute('data-theme') === 'posdark' ? (localStorage.setItem('pos_dark_mode','false'), document.documentElement.setAttribute('data-theme','light')) : (localStorage.setItem('pos_dark_mode','true'), document.documentElement.setAttribute('data-theme','posdark'))"
+                    class="flex flex-col items-center justify-center gap-0.5 flex-1 py-1 text-slate-400 cursor-pointer">
+                <i class="ti ti-sun-moon text-xl"></i>
+                <span class="text-[10px] font-medium">Tema</span>
+            </button>
+        </nav>
     </div>
 
     {{-- Toast Container --}}

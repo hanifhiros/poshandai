@@ -6,19 +6,24 @@ use Illuminate\Database\Eloquent\Model;
 
 class StockCategory extends Model
 {
-    protected $table = 'stock_category'; // Nama tabel di database
-    protected $fillable = ['stock_category_name']; // Kolom yang bisa diisi (fillable)
+    protected $table = 'stock_category';
+
+    protected $fillable = ['stock_category_name'];
 
     public $timestamps = false;
 
-    // Accessor supaya bisa akses stock_category_name lewat 'name'
+    // Named constants for category IDs used across the app
+    public const RAW_MATERIAL = 1;
+    public const WIP = 3;
+    public const FINISHED_GOODS = 4;
+
     public function getNameAttribute()
     {
         return $this->stock_category_name;
     }
-    public function batches()
-{
-    return $this->hasMany(StockBatch::class);
-}
 
+    public function batches()
+    {
+        return $this->hasMany(StockBatch::class);
+    }
 }

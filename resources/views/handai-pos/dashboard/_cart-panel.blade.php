@@ -1,31 +1,33 @@
 {{-- Cart Panel (shared between desktop sidebar and mobile drawer) --}}
 
 {{-- Cart Header --}}
-<div class="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between shrink-0">
-    <div class="flex items-center gap-2">
-        <div class="relative">
-            <i class="ti ti-shopping-cart text-xl text-slate-600"></i>
-            <span x-show="cartItems.length > 0"
-                  class="absolute -top-1.5 -right-2 w-4 h-4 rounded-full bg-[#0C9044] text-white text-[10px] font-bold flex items-center justify-center badge-bounce"
-                  x-text="cartTotalQty">
-            </span>
+<div class="px-5 py-4 border-b border-slate-100 shrink-0">
+    <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+            <div class="relative">
+                <i class="ti ti-shopping-cart text-xl text-slate-600"></i>
+                <span x-show="cartItems.length > 0"
+                      class="absolute -top-1.5 -right-2 w-4 h-4 rounded-full bg-[#0C9044] text-white text-[10px] font-bold flex items-center justify-center badge-bounce"
+                      x-text="cartTotalQty">
+                </span>
+            </div>
+            <h3 class="text-sm font-bold text-slate-800" x-text="t('cart')"></h3>
         </div>
-        <h3 class="text-sm font-bold text-slate-800" x-text="t('cart')"></h3>
-    </div>
-    <div class="flex items-center gap-2">
-        {{-- Hold/Park button --}}
-        <button @click="showHoldModal = true; mobileCartOpen = false"
-                class="text-xs text-amber-500 hover:text-amber-600 font-medium transition cursor-pointer flex items-center gap-1"
-                title="Hold / Simpan Sementara (F3)">
-            <i class="ti ti-bookmark text-sm"></i>
-            <span class="hidden sm:inline">Hold</span>
-            <span x-show="holdOrders.length > 0" class="w-4 h-4 rounded-full bg-amber-100 text-amber-600 text-[9px] font-bold flex items-center justify-center" x-text="holdOrders.length"></span>
-        </button>
-        <button x-show="cartItems.length > 0"
-                @click="confirmClearCart()"
-                class="text-xs text-red-400 hover:text-red-600 font-medium transition cursor-pointer flex items-center gap-1">
-            <i class="ti ti-trash text-sm"></i> <span x-text="t('delete_all')"></span>
-        </button>
+        <div class="flex items-center gap-3">
+            {{-- Hold/Park button --}}
+            <button @click="showHoldModal = true; mobileCartOpen = false"
+                    class="text-xs text-amber-500 hover:text-amber-600 font-medium transition cursor-pointer flex items-center gap-1 px-2 py-1.5 rounded-lg hover:bg-amber-50"
+                    title="Hold / Simpan Sementara (F3)">
+                <i class="ti ti-bookmark text-sm"></i>
+                <span class="hidden sm:inline">Hold</span>
+                <span x-show="holdOrders.length > 0" class="w-4 h-4 rounded-full bg-amber-100 text-amber-600 text-[9px] font-bold flex items-center justify-center" x-text="holdOrders.length"></span>
+            </button>
+            <button x-show="cartItems.length > 0"
+                    @click="confirmClearCart()"
+                    class="text-xs text-red-400 hover:text-red-600 font-medium transition cursor-pointer flex items-center gap-1 px-2 py-1.5 rounded-lg hover:bg-red-50">
+                <i class="ti ti-trash text-sm"></i> <span x-text="t('delete_all')"></span>
+            </button>
+        </div>
     </div>
 </div>
 
@@ -45,7 +47,7 @@
 </div>
 
 {{-- Cart Items --}}
-<div class="flex-1 overflow-y-auto pos-scroll px-4 py-3 relative" x-ref="cartList">
+<div class="flex-1 overflow-y-auto pos-scroll px-4 py-4 relative" x-ref="cartList">
     {{-- Empty cart --}}
     <div x-show="cartItems.length === 0" class="flex flex-col items-center justify-center h-full text-center py-10">
         <div class="w-16 h-16 rounded-full bg-slate-50 flex items-center justify-center mb-3">
@@ -56,9 +58,9 @@
     </div>
 
     {{-- Cart item list --}}
-    <div class="space-y-2">
+    <div class="space-y-3">
         <template x-for="(item, idx) in cartItems" :key="item.variant_id">
-            <div class="cart-item cart-slide-in rounded-xl border border-slate-100 p-3 group">
+            <div class="cart-item cart-slide-in rounded-xl border border-slate-100 p-3.5 group">
                 <div class="flex items-start gap-3">
                     {{-- Info --}}
                     <div class="flex-1 min-w-0">
@@ -118,7 +120,7 @@
 </div>
 
 {{-- Cart Summary & Checkout --}}
-<div class="border-t border-slate-200 bg-white px-5 py-4 shrink-0 space-y-3">
+<div class="border-t border-slate-200 bg-white px-5 py-5 shrink-0 space-y-3.5">
     {{-- Summary rows --}}
     <div class="space-y-2">
         <div class="flex items-center justify-between">

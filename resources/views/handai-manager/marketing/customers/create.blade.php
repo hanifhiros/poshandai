@@ -9,6 +9,16 @@
     <form action="{{ route('manager.marketing.customers.store') }}" method="POST">
         @csrf
 
+        @if($errors->any())
+            <div class="alert alert-error mb-4">
+                <ul class="list-disc list-inside text-sm">
+                    @foreach($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
         <div class="mb-4">
             <label class="block font-semibold">Nama</label>
             <input type="text" name="name" class="input input-primary w-full" required>

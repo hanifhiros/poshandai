@@ -132,7 +132,7 @@ class MobileStockController extends Controller
             return response()->json(['message' => 'store_id is required'], 400);
         }
 
-        $query = \App\Models\Order::with(['customer', 'invoices.product', 'invoices.variant']);
+        $query = Order::with(['customer', 'invoices.product', 'invoices.variant']);
 
         if ($status !== 'all') {
             $query->where('order_status', $status);
@@ -154,7 +154,7 @@ class MobileStockController extends Controller
             'status' => 'required|in:terkirim,dibatalkan',
         ]);
 
-        $order = \App\Models\Order::find($id);
+        $order = Order::find($id);
 
         if (!$order) {
             return response()->json(['status' => 'error', 'message' => 'Order tidak ditemukan'], 404);

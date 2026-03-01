@@ -3,6 +3,10 @@
 @section('title', 'Chart of Accounts — Handai Finance')
 
 @section('content')
+<style>
+    [x-cloak] { display: none !important; }
+</style>
+
 <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-6">
 
     {{-- Header --}}
@@ -39,6 +43,7 @@
                     </div>
 
                     {{-- Account Table --}}
+                    <div class="overflow-x-auto">
                     <table class="min-w-full text-sm">
                         <thead class="bg-gray-50 text-gray-500 uppercase text-xs">
                             <tr>
@@ -82,6 +87,7 @@
                             @endforeach
                         </tbody>
                     </table>
+                    </div>
                 </div>
             @endif
         @endforeach

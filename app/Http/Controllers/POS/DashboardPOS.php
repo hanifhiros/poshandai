@@ -53,7 +53,7 @@ class DashboardPOS extends Controller
         // Data toko dan kategori
         $selected_store_id = session('selected_store');
         $selected_store = $selected_store_id ? Store::find($selected_store_id) : null;
-        $categories = ProductCategory::all();
+        $categories = ProductCategory::orderBy('category_name', 'asc')->get();
         $categoryName = $request->get('category', 'All Products');
         $searchTerm = $request->get('search', '');
 
@@ -119,6 +119,7 @@ class DashboardPOS extends Controller
                 'price' => $finalPrice,
                 'normal_price' => $normalPrice,
                 'variants' => $variants,
+                'totalStock' => $variants->sum('quantity'),
             ];
         });
 

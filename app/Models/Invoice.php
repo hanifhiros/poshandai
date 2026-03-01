@@ -9,6 +9,12 @@ class Invoice extends Model
 {
     use HasFactory;
     protected $table = 'invoice';
+    protected $casts = [
+        'price'           => 'decimal:0',
+        'total_price'     => 'decimal:0',
+        'quantity_bought'  => 'integer',
+    ];
+
     protected $fillable = [
         'order_id',
         'product_id',
@@ -16,7 +22,7 @@ class Invoice extends Model
         'quantity_bought',
         'price',
         'total_price',
-        'product_name',         // ✅ Tambahan
+        'product_name',
         'variant_name',
     ];
 

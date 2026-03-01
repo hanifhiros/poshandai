@@ -5,6 +5,10 @@ use App\Http\Controllers\Manager\DashboardManager;
 use App\Http\Controllers\Manager\Inventory\RecipeController;
 use App\Http\Controllers\Manager\Inventory\StockBatchController;
 use App\Http\Controllers\Manager\Operational\OperationalController;
+use App\Http\Controllers\Manager\Operational\SupplierController;
+use App\Http\Controllers\Manager\Operational\WasteController;
+use App\Http\Controllers\Manager\Operational\StockMovementController;
+use App\Http\Controllers\Manager\Operational\StockOpnameController;
 use App\Http\Controllers\Reseller\ResellerController;
 use App\Http\Controllers\Manager\Finance\FinanceController;
 use App\Http\Controllers\Manager\Finance\rndRequestController;
@@ -41,12 +45,16 @@ Route::middleware(['web', 'auth', 'cekrole:Manager'])->group(function () {
         Route::post('stock/{stock}/batches', [StockBatchController::class, 'store'])->name('stock.batch.store');
 
         Route::get('/stock-batches', [StockBatchController::class, 'index'])->name('manager.inventory.stock-batches.index');
+        Route::get('/stock-batches/create', [InventoryController::class, 'createStock'])->name('manager.inventory.stock-batches.create');
         Route::delete('/stock-batches/{id}', [StockBatchController::class, 'destroy'])->name('manager.inventory.stock-batches.destroy');
 
         // Stock
         Route::get('/stock', [InventoryController::class, 'stock'])->name('manager.inventory.stock');
         Route::get('/stock/create', [InventoryController::class, 'createStock'])->name('manager.inventory.stock.create');
         Route::post('/stock', [InventoryController::class, 'storeStock'])->name('manager.inventory.stock.store');
+        Route::post('/stock/quick-create', [InventoryController::class, 'quickCreateStock'])->name('manager.inventory.stock.quick-create');
+        Route::get('/stock/{stock}/edit', [InventoryController::class, 'editStock'])->name('manager.inventory.stock.edit');
+        Route::put('/stock/{stock}', [InventoryController::class, 'updateStock'])->name('manager.inventory.stock.update');
 
         Route::get('/stock/{stock}/batch/create', [InventoryController::class, 'createStockBatch'])->name('manager.inventory.stock.batch.create');
         Route::post('/stock/{stock}/batch/store', [InventoryController::class, 'storeStockBatch'])->name('manager.inventory.stock.batch.store');
@@ -69,29 +77,52 @@ Route::middleware(['web', 'auth', 'cekrole:Manager'])->group(function () {
         Route::delete('/recipes/{variant}', [RecipeController::class, 'destroy'])
     ->name('manager.inventory.recipes.destroy');
 
-            
-
-            // Handle expired variant
-            Route::post('/products/variant/{id}/discard', [InventoryController::class, 'discardExpiredVariant'])->name('manager.products.variant.discard');
-            Route::post('/products/variant/{id}/ignore', [InventoryController::class, 'ignoreExpiredVariant'])->name('manager.products.variant.ignore');
+            // Handle expired variant (by variant ID)
+            Route::post('/products/variant/{id}/discard', [InventoryController::class, 'discardExpiredVariant'])->name('manager.products.variant.discard-variant');
+            Route::post('/products/variant/{id}/ignore', [InventoryController::class, 'ignoreExpiredVariant'])->name('manager.products.variant.ignore-variant');
 
         });
 
 
     Route::prefix('operational')->group(function () {
+        // ── Supplier Management ──
+        Route::get('/suppliers', [SupplierController::class, 'index'])->name('manager.operational.suppliers.index');
+        Route::get('/suppliers/create', [SupplierController::class, 'create'])->name('manager.operational.suppliers.create');
+        Route::post('/suppliers', [SupplierController::class, 'store'])->name('manager.operational.suppliers.store');
+        Route::get('/suppliers/{supplier}/edit', [SupplierController::class, 'edit'])->name('manager.operational.suppliers.edit');
+        Route::put('/suppliers/{supplier}', [SupplierController::class, 'update'])->name('manager.operational.suppliers.update');
+        Route::delete('/suppliers/{supplier}', [SupplierController::class, 'destroy'])->name('manager.operational.suppliers.destroy');
+
+        // ── Stock Movement Log ──
+        Route::get('/stock-movements', [StockMovementController::class, 'index'])->name('manager.operational.stock-movements.index');
+
+        // ── Stock Opname (Adjustment) ──
+        Route::get('/stock-opname', [StockOpnameController::class, 'index'])->name('manager.operational.stock-opname.index');
+        Route::get('/stock-opname/create', [StockOpnameController::class, 'create'])->name('manager.operational.stock-opname.create');
+        Route::post('/stock-opname', [StockOpnameController::class, 'store'])->name('manager.operational.stock-opname.store');
+
+        // ── Produksi ──
         Route::get('/produksi', [OperationalController::class, 'produksi'])->name('manager.operational.produksi');
         Route::get('/produksi/create', [OperationalController::class, 'createProduksi'])->name('manager.operational.produksi.create');
         Route::post('/produksi/store', [OperationalController::class, 'produksiStore'])->name('manager.operational.produksi.store');
+
+        // ── Research & Development ──
         Route::get('/rnd', [rndController::class, 'index'])->name('manager.operational.rnd');
         Route::get('/rnd/create', [rndController::class, 'create'])->name('manager.operational.rnd.create');
         Route::post('/rnd/store', [rndController::class, 'store'])->name('manager.operational.rnd.store');
         Route::post('/rnd/{id}/finish', [rndRequestController::class, 'markAsFinished'])->name('manager.rnd.finish');
-        Route::get('/orders', [OrderController::class, 'index'])->name('manager.operational.orders.index');
-        // di web_manager.php
-        Route::post('/orders/{id}/mark-shipped', [OrderController::class, 'markAsShipped'])->name('manager.operational.orders.markAsShipped');
-        Route::post('/orders/{id}/cancel', [OrderController::class, 'cancel'])->name('manager.operational.orders.cancel');
         Route::delete('/rnd/{id}/delete', [rndController::class, 'destroy'])->name('manager.rnd.delete');
 
+        // ── Waste / Basi ──
+        Route::get('/waste', [WasteController::class, 'index'])->name('manager.operational.waste.index');
+        Route::get('/waste/create', [WasteController::class, 'create'])->name('manager.operational.waste.create');
+        Route::post('/waste', [WasteController::class, 'store'])->name('manager.operational.waste.store');
+        Route::delete('/waste/{waste}', [WasteController::class, 'destroy'])->name('manager.operational.waste.destroy');
+
+        // ── Pesanan ──
+        Route::get('/orders', [OrderController::class, 'index'])->name('manager.operational.orders.index');
+        Route::post('/orders/{id}/mark-shipped', [OrderController::class, 'markAsShipped'])->name('manager.operational.orders.markAsShipped');
+        Route::post('/orders/{id}/cancel', [OrderController::class, 'cancel'])->name('manager.operational.orders.cancel');
     });
     Route::prefix('finance')->group(function () {
         // ══ Accounting Module ══

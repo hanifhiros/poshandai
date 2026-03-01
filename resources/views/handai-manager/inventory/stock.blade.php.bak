@@ -1,0 +1,1007 @@
+@extends('handai-manager.layouts.master')
+
+@section('title', 'Stok Gudang — Inventory')
+
+@section('content')
+<style>
+    [x-cloak] { display: none !important; }
+    .stk-table th { position: sticky; top: 0; z-index: 5; }
+    .stk-row { transition: background-color 0.15s ease; }
+    .stk-row:hover { background-color: rgba(241,245,249,0.7); }
+    .stk-row:hover .stk-actions { opacity: 1; }
+    .stk-actions { opacity: 0; transition: opacity 0.15s ease; }
+    @media (max-width: 767px) { .stk-actions { opacity: 1; } }
+    .stk-badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 9999px; font-size: 11px; font-weight: 600; line-height: 1.4; white-space: nowrap; }
+    .stk-input { width: 100%; height: 36px; padding: 0 12px; font-size: 13px; border: 1px solid #e2e8f0; border-radius: 10px; background: #f8fafc; outline: none; transition: all 0.15s; }
+    .stk-input:focus { background: #fff; border-color: #10b981; box-shadow: 0 0 0 3px rgba(16,185,129,0.08); }
+    .stat-card { background: #fff; border: 1px solid #f1f5f9; border-radius: 14px; padding: 16px 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.02); position: relative; overflow: hidden; }
+    .stat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+    .stat-card.emerald::before { background: #10b981; }
+    .stat-card.amber::before { background: #f59e0b; }
+    .stat-card.red::before { background: #ef4444; }
+    .stat-card.blue::before { background: #3b82f6; }
+    .stat-card.purple::before { background: #8b5cf6; }
+    .stat-card.slate::before { background: #64748b; }
+    .stat-card.orange::before { background: #f97316; }
+    .stat-card.cyan::before { background: #06b6d4; }
+    .sort-link { cursor: pointer; user-select: none; }
+    .sort-link:hover { color: #10b981; }
+    .tab-btn { padding: 10px 20px; font-size: 13px; font-weight: 600; border-radius: 10px 10px 0 0; border: 1px solid transparent; border-bottom: none; transition: all 0.15s; cursor: pointer; position: relative; }
+    .tab-btn.active { background: #fff; border-color: #e2e8f0; color: #10b981; }
+    .tab-btn.active::after { content: ''; position: absolute; bottom: -1px; left: 0; right: 0; height: 2px; background: #fff; }
+    .tab-btn:not(.active) { color: #94a3b8; background: #f8fafc; }
+    .tab-btn:not(.active):hover { color: #64748b; background: #f1f5f9; }
+    .freshness-fresh { background: #ecfdf5; color: #059669; }
+    .freshness-warning { background: #fffbeb; color: #d97706; }
+    .freshness-expired { background: #fef2f2; color: #dc2626; }
+</style>
+
+<div class="py-5 px-4 sm:px-6 lg:px-8 max-w-[1440px] mx-auto"
+     x-data="{
+        showFilter: {{ request()->hasAny(['search','category','status','almost_expired_threshold']) ? 'true' : 'false' }},
+        deleteId: null, deleteName: '', showDeleteModal: false,
+        showExpiredModal: false, expiredBatches: [],
+        expiredData: @js($stocks->pluck('almost_expired_batches', 'id')),
+        openExpired(id) {
+            this.expiredBatches = this.expiredData[id] || [];
+            this.showExpiredModal = true;
+        }
+     }">
+
+    {{-- ── FLASH MESSAGES ── --}}
+    @if(session('success'))
+    <div class="mb-4 p-3.5 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl text-[13px] flex items-center gap-2.5">
+        <svg class="w-4.5 h-4.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+        {{ session('success') }}
+    </div>
+    @endif
+    @if(session('error'))
+    <div class="mb-4 p-3.5 bg-red-50 border border-red-200 text-red-700 rounded-xl text-[13px] flex items-center gap-2.5">
+        <svg class="w-4.5 h-4.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        {{ session('error') }}
+    </div>
+    @endif
+
+    {{-- ── HEADER ── --}}
+    <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-6">
+        <div>
+            <h1 class="text-xl font-bold text-gray-800 leading-tight">Stok Gudang</h1>
+            <p class="text-[13px] text-gray-400 mt-0.5">Pusat kontrol inventory — bahan baku & produk jadi</p>
+        </div>
+        <div class="flex items-center gap-2">
+            <button type="button" @click="showFilter = !showFilter"
+                    class="h-9 inline-flex items-center gap-1.5 px-3.5 text-[13px] font-medium border rounded-lg transition cursor-pointer"
+                    :class="showFilter ? 'bg-gray-100 border-gray-300 text-gray-700' : 'bg-white border-gray-200 text-gray-500 hover:border-gray-300 hover:text-gray-600'">
+                <svg class="w-[15px] h-[15px]" fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
+                Filter
+                @if(request()->hasAny(['search','category','status','almost_expired_threshold']))
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                @endif
+            </button>
+            @if($tab === 'bahan')
+            <a href="{{ route('manager.inventory.stock.create') }}"
+               class="h-9 inline-flex items-center gap-1.5 px-4 text-[13px] font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg transition shadow-sm">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                Tambah Stok
+            </a>
+            @endif
+        </div>
+    </div>
+
+    {{-- ══════════════════════════════════════════
+         COMBINED INVENTORY VALUE CARD
+         ══════════════════════════════════════════ --}}
+    <div class="bg-gradient-to-r from-emerald-600 to-teal-600 rounded-xl p-5 mb-6 text-white shadow-sm">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+                <p class="text-[11px] font-semibold text-emerald-100 uppercase tracking-wider">Total Nilai Inventory</p>
+                <p class="text-2xl sm:text-3xl font-bold mt-1 tabular-nums tracking-tight">Rp{{ number_format($combinedStats->total ?? 0, 0, ',', '.') }}</p>
+            </div>
+            <div class="flex items-center gap-6 text-[13px]">
+                <div class="text-center">
+                    <p class="text-emerald-200 text-[10px] uppercase tracking-wider font-semibold">Bahan Baku</p>
+                    <p class="font-bold text-lg tabular-nums mt-0.5">Rp{{ number_format($combinedStats->raw_value ?? 0, 0, ',', '.') }}</p>
+                </div>
+                <div class="w-px h-10 bg-emerald-400/30"></div>
+                <div class="text-center">
+                    <p class="text-emerald-200 text-[10px] uppercase tracking-wider font-semibold">Produk Jadi</p>
+                    <p class="font-bold text-lg tabular-nums mt-0.5">Rp{{ number_format($combinedStats->fg_value ?? 0, 0, ',', '.') }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- ══════════════════════════════════════════
+         TAB SWITCHER
+         ══════════════════════════════════════════ --}}
+    <div class="flex items-end gap-0.5 mb-0">
+        <a href="{{ route('manager.inventory.stock', ['tab' => 'bahan']) }}"
+           class="tab-btn {{ $tab === 'bahan' ? 'active' : '' }}">
+            <svg class="w-4 h-4 inline mr-1.5 -mt-0.5" fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+            Bahan Baku
+            <span class="ml-1.5 text-[10px] font-bold px-1.5 py-0.5 rounded-full {{ $tab === 'bahan' ? 'bg-emerald-100 text-emerald-600' : 'bg-gray-200 text-gray-500' }}">{{ $stockStats->total ?? 0 }}</span>
+        </a>
+        <a href="{{ route('manager.inventory.stock', ['tab' => 'produk']) }}"
+           class="tab-btn {{ $tab === 'produk' ? 'active' : '' }}">
+            <svg class="w-4 h-4 inline mr-1.5 -mt-0.5" fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
+            Produk Jadi
+            <span class="ml-1.5 text-[10px] font-bold px-1.5 py-0.5 rounded-full {{ $tab === 'produk' ? 'bg-emerald-100 text-emerald-600' : 'bg-gray-200 text-gray-500' }}">{{ $fgStats->total ?? 0 }}</span>
+        </a>
+    </div>
+
+    {{-- Tab content wrapper --}}
+    <div class="border border-gray-200 border-t-0 rounded-b-xl bg-white/50 p-4 sm:p-6">
+
+    @if($tab === 'bahan')
+    {{-- ══════════════════════════════════════════════════════════════
+         ██ TAB: BAHAN BAKU
+         ══════════════════════════════════════════════════════════════ --}}
+
+    {{-- STAT CARDS --}}
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
+        <div class="stat-card slate">
+            <p class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Total Item</p>
+            <p class="text-2xl font-bold text-gray-800 mt-1 tabular-nums">{{ number_format($stockStats->total ?? 0) }}</p>
+        </div>
+        <div class="stat-card emerald">
+            <p class="text-[10px] font-semibold text-emerald-500 uppercase tracking-wider">Ready</p>
+            <p class="text-2xl font-bold text-emerald-600 mt-1 tabular-nums">{{ number_format($stockStats->ready ?? 0) }}</p>
+        </div>
+        <div class="stat-card amber">
+            <p class="text-[10px] font-semibold text-amber-500 uppercase tracking-wider">Low Stock</p>
+            <p class="text-2xl font-bold text-amber-600 mt-1 tabular-nums">{{ number_format($stockStats->low_stock ?? 0) }}</p>
+        </div>
+        <div class="stat-card red">
+            <p class="text-[10px] font-semibold text-red-400 uppercase tracking-wider">Habis</p>
+            <p class="text-2xl font-bold text-red-500 mt-1 tabular-nums">{{ number_format($stockStats->out_of_stock ?? 0) }}</p>
+        </div>
+        <div class="stat-card blue">
+            <p class="text-[10px] font-semibold text-blue-500 uppercase tracking-wider">Perlu Reorder</p>
+            <p class="text-2xl font-bold text-blue-600 mt-1 tabular-nums">{{ number_format($stockStats->reorder ?? 0) }}</p>
+        </div>
+        <div class="stat-card purple">
+            <p class="text-[10px] font-semibold text-purple-500 uppercase tracking-wider">Nilai Inventory</p>
+            <p class="text-lg font-bold text-purple-700 mt-1 tabular-nums leading-tight">Rp{{ number_format($stockStats->total_value ?? 0, 0, ',', '.') }}</p>
+        </div>
+    </div>
+
+    {{-- FILTER PANEL --}}
+    <div x-show="showFilter" x-collapse x-cloak class="mb-5">
+        <form method="GET" action="{{ route('manager.inventory.stock') }}"
+              class="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
+            <input type="hidden" name="tab" value="bahan">
+            <div class="flex flex-wrap items-end gap-3">
+                <div class="flex-1 min-w-[180px]">
+                    <label class="block text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Cari</label>
+                    <div class="relative">
+                        <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                        <input type="text" name="search" value="{{ $tab === 'bahan' ? request('search') : '' }}" placeholder="Cari nama bahan..."
+                               class="stk-input !pl-9" />
+                    </div>
+                </div>
+                <div class="min-w-[140px]">
+                    <label class="block text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Kategori</label>
+                    <select name="category" class="stk-input appearance-none cursor-pointer">
+                        <option value="">Semua</option>
+                        @foreach ($stockCategories as $cat)
+                        <option value="{{ $cat->id }}" {{ request('category') == $cat->id && $tab === 'bahan' ? 'selected' : '' }}>{{ $cat->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="min-w-[150px]">
+                    <label class="block text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Status</label>
+                    <select name="status" class="stk-input appearance-none cursor-pointer">
+                        <option value="">Semua Aktif</option>
+                        <option value="ready" {{ request('status')==='ready' && $tab==='bahan' ?'selected':'' }}>Ready</option>
+                        <option value="low_stock" {{ request('status')==='low_stock' && $tab==='bahan' ?'selected':'' }}>Low Stock</option>
+                        <option value="out_of_stock" {{ request('status')==='out_of_stock' && $tab==='bahan' ?'selected':'' }}>Habis</option>
+                        <option value="reorder" {{ request('status')==='reorder' && $tab==='bahan' ?'selected':'' }}>Perlu Reorder</option>
+                        <option value="inactive" {{ request('status')==='inactive' && $tab==='bahan' ?'selected':'' }}>Nonaktif</option>
+                    </select>
+                </div>
+                <div class="min-w-[110px]">
+                    <label class="block text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Near Exp (hari)</label>
+                    <input type="number" name="almost_expired_threshold" min="1" max="365"
+                           value="{{ request('almost_expired_threshold', 3) }}" class="stk-input" />
+                </div>
+                <div class="flex items-center gap-2">
+                    <button type="submit" class="h-9 px-4 text-[13px] font-medium text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg transition cursor-pointer">Terapkan</button>
+                    <a href="{{ route('manager.inventory.stock', ['tab' => 'bahan']) }}" class="h-9 px-3 text-[13px] font-medium text-gray-400 hover:text-gray-600 bg-white border border-gray-200 hover:border-gray-300 rounded-lg transition inline-flex items-center">Reset</a>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    {{-- MAIN TABLE ── RAW MATERIALS --}}
+    <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+        <div class="px-5 py-2.5 border-b border-gray-50 flex items-center justify-between">
+            <p class="text-[12px] text-gray-400">
+                <span class="font-medium text-gray-500">{{ $stocks->firstItem() ?? 0 }}–{{ $stocks->lastItem() ?? 0 }}</span> dari {{ $stocks->total() }} item
+                @if($stockStats->inactive > 0)
+                <span class="text-gray-300 mx-1">·</span>
+                <span class="text-gray-400">{{ $stockStats->inactive }} nonaktif</span>
+                @endif
+            </p>
+            @if(request()->hasAny(['search','category','status','almost_expired_threshold']))
+            <a href="{{ route('manager.inventory.stock', ['tab' => 'bahan']) }}" class="text-[11px] text-emerald-600 hover:text-emerald-700 font-medium inline-flex items-center gap-1">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                Hapus filter
+            </a>
+            @endif
+        </div>
+
+        @php
+            $currentSort = request('sort', 'name');
+            $currentDir  = request('dir', 'asc');
+            $sortUrl = function($field) use ($tab) {
+                $current = request('sort', 'name');
+                $dir = ($current === $field && request('dir', 'asc') === 'asc') ? 'desc' : 'asc';
+                return request()->fullUrlWithQuery(['sort' => $field, 'dir' => $dir, 'tab' => $tab]);
+            };
+            $sortIcon = function($field) {
+                $current = request('sort', 'name');
+                $dir = request('dir', 'asc');
+                if ($current !== $field) return '';
+                return $dir === 'asc' ? '↑' : '↓';
+            };
+        @endphp
+
+        {{-- Desktop table --}}
+        <div class="hidden md:block overflow-x-auto">
+            <table class="w-full text-[13px] stk-table">
+                <thead>
+                    <tr class="bg-gray-50/80 border-b border-gray-100">
+                        <th class="text-left py-2.5 px-5 text-[10px] font-semibold text-gray-400 uppercase tracking-wider">
+                            <a href="{{ $sortUrl('name') }}" class="sort-link">Nama Bahan {!! $sortIcon('name') !!}</a>
+                        </th>
+                        <th class="text-left py-2.5 px-3 text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Kategori</th>
+                        <th class="text-right py-2.5 px-3 text-[10px] font-semibold text-gray-400 uppercase tracking-wider">
+                            <a href="{{ $sortUrl('price_per_unit') }}" class="sort-link">HPP/Unit {!! $sortIcon('price_per_unit') !!}</a>
+                        </th>
+                        <th class="text-right py-2.5 px-3 text-[10px] font-semibold text-gray-400 uppercase tracking-wider">
+                            <a href="{{ $sortUrl('unit_qty') }}" class="sort-link">Stok {!! $sortIcon('unit_qty') !!}</a>
+                        </th>
+                        <th class="text-right py-2.5 px-3 text-[10px] font-semibold text-gray-400 uppercase tracking-wider hidden xl:table-cell">Min / Reorder</th>
+                        <th class="text-center py-2.5 px-3 text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Status</th>
+                        <th class="text-right py-2.5 px-3 text-[10px] font-semibold text-gray-400 uppercase tracking-wider hidden xl:table-cell">Nilai</th>
+                        <th class="text-right py-2.5 px-3 text-[10px] font-semibold text-gray-400 uppercase tracking-wider hidden 2xl:table-cell">Pakai 30hr</th>
+                        <th class="text-right py-2.5 px-3 text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Near Exp</th>
+                        <th class="text-center py-2.5 px-3 text-[10px] font-semibold text-gray-400 uppercase tracking-wider w-[80px]"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($stocks as $idx => $stock)
+                    @php
+                        $status = $stock->calculated_status ?? ($stock->status ?? 'Ready');
+                        $isOutOfStock = $status === 'Out of Stock';
+                        $isLow = $status === 'Low Stock';
+                        $stripe = $idx % 2 === 0 ? '' : 'bg-gray-50/40';
+                        $rowBg = $isOutOfStock ? 'bg-red-50/30' : ($isLow ? 'bg-amber-50/20' : $stripe);
+                        $inactive = !($stock->is_active ?? true);
+                    @endphp
+                    <tr class="stk-row {{ $rowBg }} border-b border-gray-50 last:border-b-0 {{ $inactive ? 'opacity-50' : '' }}">
+                        <td class="py-2.5 px-5">
+                            <div class="flex items-center gap-2">
+                                <div class="min-w-0">
+                                    <p class="font-semibold text-gray-800 leading-snug truncate">{{ $stock->name }}</p>
+                                    <p class="text-[11px] text-gray-400 mt-0.5 leading-none flex items-center gap-1.5">
+                                        <span>{{ $stock->unit->symbol ?? '-' }}</span>
+                                        @if($stock->defaultSupplier)
+                                        <span class="text-gray-200">·</span>
+                                        <span class="truncate max-w-[120px]" title="{{ $stock->defaultSupplier->name }}">{{ $stock->defaultSupplier->name }}</span>
+                                        @endif
+                                        @if($inactive)
+                                        <span class="stk-badge bg-gray-100 text-gray-400 !text-[9px] !py-0 !px-1.5">Nonaktif</span>
+                                        @endif
+                                    </p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="py-2.5 px-3 text-gray-500 text-[12px]">{{ $stock->category->name ?? '—' }}</td>
+                        <td class="py-2.5 px-3 text-right tabular-nums font-semibold text-gray-700">
+                            Rp{{ number_format($stock->price_per_unit ?? 0, 0, ',', '.') }}
+                            <span class="text-gray-300 text-[10px] font-normal">/{{ $stock->unit->symbol ?? '' }}</span>
+                        </td>
+                        <td class="py-2.5 px-3 text-right">
+                            <span class="font-bold text-gray-800 tabular-nums {{ $isOutOfStock ? 'text-red-600' : ($isLow ? 'text-amber-600' : '') }}">
+                                {{ number_format($stock->unit_qty, $stock->unit_qty == intval($stock->unit_qty) ? 0 : 1) }}
+                            </span>
+                            <span class="text-gray-400 text-[10px] ml-0.5">{{ $stock->unit->symbol ?? '' }}</span>
+                        </td>
+                        <td class="py-2.5 px-3 text-right tabular-nums text-[12px] hidden xl:table-cell">
+                            @if(($stock->min_stock ?? 0) > 0 || ($stock->reorder_point ?? 0) > 0)
+                                <span class="text-gray-500">{{ number_format($stock->min_stock ?? 0, 0) }}</span>
+                                <span class="text-gray-300 mx-0.5">/</span>
+                                <span class="{{ $stock->needs_reorder ? 'text-blue-600 font-semibold' : 'text-gray-500' }}">{{ number_format($stock->reorder_point ?? 0, 0) }}</span>
+                            @else
+                                <span class="text-gray-200">—</span>
+                            @endif
+                        </td>
+                        <td class="py-2.5 px-3 text-center">
+                            @if($isOutOfStock)
+                            <span class="stk-badge bg-red-50 text-red-600"><span class="w-1.5 h-1.5 rounded-full bg-red-400"></span>Habis</span>
+                            @elseif($isLow)
+                            <span class="stk-badge bg-amber-50 text-amber-600"><span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>Low</span>
+                            @elseif($stock->needs_reorder)
+                            <span class="stk-badge bg-blue-50 text-blue-600"><span class="w-1.5 h-1.5 rounded-full bg-blue-400"></span>Reorder</span>
+                            @else
+                            <span class="stk-badge bg-emerald-50 text-emerald-600"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>Ready</span>
+                            @endif
+                        </td>
+                        <td class="py-2.5 px-3 text-right tabular-nums text-[12px] text-gray-600 hidden xl:table-cell">
+                            Rp{{ number_format($stock->inventory_value ?? 0, 0, ',', '.') }}
+                        </td>
+                        <td class="py-2.5 px-3 text-right tabular-nums text-[12px] hidden 2xl:table-cell">
+                            @if(($stock->usage_30d ?? 0) > 0)
+                                <span class="text-gray-700 font-medium">{{ number_format($stock->usage_30d, 0) }}</span>
+                                <span class="text-gray-300 text-[10px]">{{ $stock->unit->symbol ?? '' }}</span>
+                                @if(($stock->turnover_rate ?? 0) > 0)
+                                <span class="block text-[10px] {{ $stock->turnover_rate < 0.5 ? 'text-red-400' : ($stock->turnover_rate > 2 ? 'text-emerald-500' : 'text-gray-400') }}">
+                                    turnover {{ $stock->turnover_rate }}x
+                                </span>
+                                @endif
+                            @else
+                                <span class="text-gray-200">—</span>
+                            @endif
+                        </td>
+                        <td class="py-2.5 px-3 text-right">
+                            @if($stock->almost_expired > 0)
+                            <button @click="openExpired({{ $stock->id }})"
+                                    class="text-amber-600 font-semibold hover:text-amber-700 tabular-nums cursor-pointer text-[12px]">
+                                {{ number_format($stock->almost_expired, $stock->almost_expired == intval($stock->almost_expired) ? 0 : 1) }}
+                                <span class="block text-[10px] text-amber-400 font-normal leading-none">≤{{ $stock->days_left }}hr lagi</span>
+                            </button>
+                            @else
+                            <span class="text-gray-200">—</span>
+                            @endif
+                        </td>
+                        <td class="py-2.5 px-3">
+                            <div class="stk-actions flex items-center justify-center gap-0.5">
+                                <a href="{{ route('manager.inventory.stock.edit', $stock->id) }}"
+                                   class="w-7 h-7 rounded-md inline-flex items-center justify-center text-gray-400 hover:text-blue-500 hover:bg-blue-50 transition" title="Edit">
+                                    <svg class="w-[14px] h-[14px]" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z"/></svg>
+                                </a>
+                                <a href="{{ route('manager.inventory.stock.batch.create', $stock->id) }}"
+                                   class="w-7 h-7 rounded-md inline-flex items-center justify-center text-gray-400 hover:text-emerald-500 hover:bg-emerald-50 transition" title="Tambah Batch">
+                                    <svg class="w-[14px] h-[14px]" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                                </a>
+                                <button @click="deleteId = {{ $stock->id }}; deleteName = '{{ addslashes($stock->name) }}'; showDeleteModal = true"
+                                        class="w-7 h-7 rounded-md inline-flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 transition cursor-pointer" title="Hapus">
+                                    <svg class="w-[14px] h-[14px]" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="10" class="py-20 text-center">
+                            <svg class="w-10 h-10 mx-auto mb-3 text-gray-200" fill="none" stroke="currentColor" stroke-width="1.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                            <p class="text-sm text-gray-400 font-medium">Belum ada data stok</p>
+                            <p class="text-xs text-gray-300 mt-0.5">Tambahkan bahan baku untuk memulai.</p>
+                        </td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+
+        {{-- Mobile cards — raw materials --}}
+        <div class="md:hidden divide-y divide-gray-50">
+            @forelse($stocks as $stock)
+            @php
+                $status = $stock->calculated_status ?? ($stock->status ?? 'Ready');
+                $isOutOfStock = $status === 'Out of Stock';
+                $isLow = $status === 'Low Stock';
+                $accent = $isOutOfStock ? 'border-l-red-400' : ($isLow ? 'border-l-amber-400' : ($stock->needs_reorder ? 'border-l-blue-400' : 'border-l-emerald-400'));
+            @endphp
+            <div class="p-4 border-l-[3px] {{ $accent }} {{ $isOutOfStock ? 'bg-red-50/20' : '' }}">
+                <div class="flex items-start justify-between gap-2 mb-2">
+                    <div class="min-w-0 flex-1">
+                        <p class="font-semibold text-gray-800 text-[13px] leading-snug truncate">{{ $stock->name }}</p>
+                        <p class="text-[11px] text-gray-400 truncate">{{ $stock->category->name ?? '—' }}
+                            @if($stock->defaultSupplier)· {{ $stock->defaultSupplier->name }}@endif
+                        </p>
+                    </div>
+                    @if($isOutOfStock)
+                    <span class="stk-badge bg-red-50 text-red-600 shrink-0"><span class="w-1.5 h-1.5 rounded-full bg-red-400"></span>Habis</span>
+                    @elseif($isLow)
+                    <span class="stk-badge bg-amber-50 text-amber-600 shrink-0"><span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>Low</span>
+                    @elseif($stock->needs_reorder)
+                    <span class="stk-badge bg-blue-50 text-blue-600 shrink-0"><span class="w-1.5 h-1.5 rounded-full bg-blue-400"></span>Reorder</span>
+                    @else
+                    <span class="stk-badge bg-emerald-50 text-emerald-600 shrink-0"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>Ready</span>
+                    @endif
+                </div>
+                <div class="grid grid-cols-2 gap-x-4 gap-y-1.5 text-[12px]">
+                    <div><span class="text-gray-400">Stok:</span> <span class="font-semibold {{ $isOutOfStock ? 'text-red-600' : ($isLow ? 'text-amber-600' : 'text-gray-700') }}">{{ number_format($stock->unit_qty, $stock->unit_qty == intval($stock->unit_qty) ? 0 : 1) }} {{ $stock->unit->symbol ?? '' }}</span></div>
+                    <div><span class="text-gray-400">HPP:</span> <span class="font-semibold text-gray-700">Rp{{ number_format($stock->price_per_unit ?? 0, 0, ',', '.') }}</span></div>
+                    <div><span class="text-gray-400">Nilai:</span> <span class="text-gray-600">Rp{{ number_format($stock->inventory_value ?? 0, 0, ',', '.') }}</span></div>
+                    <div>
+                        @if(($stock->min_stock ?? 0) > 0)
+                        <span class="text-gray-400">Min:</span> <span class="text-gray-600">{{ number_format($stock->min_stock, 0) }}</span>
+                        @else
+                        <span class="text-gray-400">Pakai 30hr:</span> <span class="text-gray-600">{{ number_format($stock->usage_30d ?? 0, 0) }}</span>
+                        @endif
+                    </div>
+                    @if($stock->almost_expired > 0)
+                    <div class="col-span-2">
+                        <span class="text-gray-400">Near Exp:</span>
+                        <button @click="openExpired({{ $stock->id }})" class="text-amber-600 font-semibold hover:text-amber-700 cursor-pointer">{{ number_format($stock->almost_expired, 0) }} (≤{{ $stock->days_left }}hr)</button>
+                    </div>
+                    @endif
+                </div>
+                <div class="flex items-center justify-end gap-3 mt-3 pt-2.5 border-t border-gray-100">
+                    <a href="{{ route('manager.inventory.stock.edit', $stock->id) }}" class="text-[11px] text-blue-500 hover:text-blue-600 font-medium inline-flex items-center gap-1">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z"/></svg>
+                        Edit
+                    </a>
+                    <a href="{{ route('manager.inventory.stock.batch.create', $stock->id) }}" class="text-[11px] text-emerald-500 hover:text-emerald-600 font-medium inline-flex items-center gap-1">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                        Batch
+                    </a>
+                    <button @click="deleteId = {{ $stock->id }}; deleteName = '{{ addslashes($stock->name) }}'; showDeleteModal = true"
+                            class="text-[11px] text-red-400 hover:text-red-600 font-medium inline-flex items-center gap-1 cursor-pointer">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                        Hapus
+                    </button>
+                </div>
+            </div>
+            @empty
+            <div class="py-16 text-center">
+                <p class="text-sm text-gray-400">Belum ada data stok.</p>
+            </div>
+            @endforelse
+        </div>
+
+        {{-- Pagination — raw materials --}}
+        @if($stocks->hasPages())
+        <div class="px-5 py-3 border-t border-gray-50 flex items-center justify-between">
+            <p class="text-[11px] text-gray-400 hidden sm:block">Hal. {{ $stocks->currentPage() }} / {{ $stocks->lastPage() }}</p>
+            <div class="flex items-center gap-1 mx-auto sm:mx-0">
+                @if($stocks->onFirstPage())
+                <span class="w-8 h-8 rounded-lg inline-flex items-center justify-center text-gray-300">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+                </span>
+                @else
+                <a href="{{ $stocks->previousPageUrl() }}" class="w-8 h-8 rounded-lg inline-flex items-center justify-center text-gray-500 hover:bg-gray-100 transition">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+                </a>
+                @endif
+                @foreach($stocks->getUrlRange(max(1, $stocks->currentPage()-2), min($stocks->lastPage(), $stocks->currentPage()+2)) as $page => $url)
+                    @if($page == $stocks->currentPage())
+                    <span class="w-8 h-8 rounded-lg inline-flex items-center justify-center text-[12px] font-semibold bg-emerald-600 text-white">{{ $page }}</span>
+                    @else
+                    <a href="{{ $url }}" class="w-8 h-8 rounded-lg inline-flex items-center justify-center text-[12px] font-medium text-gray-500 hover:bg-gray-100 transition">{{ $page }}</a>
+                    @endif
+                @endforeach
+                @if($stocks->hasMorePages())
+                <a href="{{ $stocks->nextPageUrl() }}" class="w-8 h-8 rounded-lg inline-flex items-center justify-center text-gray-500 hover:bg-gray-100 transition">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                </a>
+                @else
+                <span class="w-8 h-8 rounded-lg inline-flex items-center justify-center text-gray-300">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                </span>
+                @endif
+            </div>
+        </div>
+        @endif
+    </div>
+
+    {{-- R&D SECTION --}}
+    @if($approvedProjects->isNotEmpty())
+    <div class="mt-8">
+        <div class="flex items-center gap-2 mb-4">
+            <div class="w-1 h-5 bg-blue-500 rounded-full"></div>
+            <h2 class="text-[15px] font-bold text-gray-800">Permintaan R&D yang Telah Disetujui</h2>
+        </div>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            @foreach ($approvedProjects as $project)
+            <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+                <div class="flex items-start justify-between mb-3">
+                    <div>
+                        <h3 class="text-[14px] font-bold text-gray-800">{{ $project->id }}</h3>
+                        <p class="text-[12px] text-gray-400 mt-0.5">{{ $project->deskripsi }}</p>
+                    </div>
+                    <span class="stk-badge bg-blue-50 text-blue-600"><span class="w-1.5 h-1.5 rounded-full bg-blue-400"></span>Approved</span>
+                </div>
+                <div class="overflow-x-auto mb-4 -mx-1">
+                    <table class="w-full text-[12px]">
+                        <thead>
+                            <tr class="border-b border-gray-100">
+                                <th class="text-left py-1.5 px-1 text-[10px] font-semibold text-gray-400 uppercase">Bahan</th>
+                                <th class="text-right py-1.5 px-1 text-[10px] font-semibold text-gray-400 uppercase">Jumlah</th>
+                                <th class="text-left py-1.5 px-1 text-[10px] font-semibold text-gray-400 uppercase">Satuan</th>
+                                <th class="text-right py-1.5 px-1 text-[10px] font-semibold text-gray-400 uppercase">Biaya</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($project->stockUsages as $usage)
+                            <tr class="border-b border-gray-50">
+                                <td class="py-1.5 px-1 text-gray-700">{{ $usage->stock->name ?? $usage->manual_name }}</td>
+                                <td class="py-1.5 px-1 text-right tabular-nums text-gray-600">{{ $usage->quantity_used }}</td>
+                                <td class="py-1.5 px-1 text-gray-500">{{ $usage->unit->symbol ?? '-' }}</td>
+                                <td class="py-1.5 px-1 text-right tabular-nums text-gray-600">{{ $usage->cost }}</td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+                <a href="{{ route('manager.inventory.stock.batch.createFromRnd', $project->id) }}"
+                   class="h-8 inline-flex items-center gap-1.5 px-4 text-[12px] font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                    Isi Stok dari R&D Ini
+                </a>
+            </div>
+            @endforeach
+        </div>
+    </div>
+    @endif
+
+    {{-- EXPIRED & STORED SECTION --}}
+    @if($stocks->where('stored_expired', '>', 0)->count())
+    <div class="mt-8">
+        <div class="flex items-center gap-2 mb-4">
+            <div class="w-1 h-5 bg-red-500 rounded-full"></div>
+            <h2 class="text-[15px] font-bold text-red-700">Stok Expired & Masih Disimpan</h2>
+        </div>
+        <div class="bg-white rounded-xl border border-red-100 shadow-sm overflow-hidden">
+            <div class="hidden md:block overflow-x-auto">
+                <table class="w-full text-[13px]">
+                    <thead>
+                        <tr class="bg-red-50/60 border-b border-red-100">
+                            <th class="text-left py-2.5 px-5 text-[10px] font-semibold text-red-400 uppercase tracking-wider">Nama Stok</th>
+                            <th class="text-right py-2.5 px-4 text-[10px] font-semibold text-red-400 uppercase tracking-wider">Jml Expired</th>
+                            <th class="text-right py-2.5 px-4 text-[10px] font-semibold text-red-400 uppercase tracking-wider">Qty Disimpan</th>
+                            <th class="text-left py-2.5 px-4 text-[10px] font-semibold text-red-400 uppercase tracking-wider">Unit</th>
+                            <th class="text-center py-2.5 px-4 text-[10px] font-semibold text-red-400 uppercase tracking-wider">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($stocks->where('stored_expired', '>', 0) as $stock)
+                        <tr class="border-b border-red-50 bg-red-50/20">
+                            <td class="py-3 px-5 font-medium text-gray-800">{{ $stock->name }}</td>
+                            <td class="py-3 px-4 text-right tabular-nums text-red-600 font-semibold">{{ number_format($stock->expired, 0) }}</td>
+                            <td class="py-3 px-4 text-right tabular-nums text-red-600 font-semibold">{{ number_format($stock->stored_expired, 0) }}</td>
+                            <td class="py-3 px-4 text-gray-500">{{ $stock->unit->symbol ?? '-' }}</td>
+                            <td class="py-3 px-4 text-center">
+                                <form method="POST" action="{{ route('manager.inventory.stock.reduceExpiredStored', $stock->id) }}">
+                                    @csrf
+                                    <button type="submit" onclick="return confirm('Kurangi stok expired yang masih disimpan?')"
+                                            class="h-7 px-3 text-[11px] font-medium text-white bg-red-500 hover:bg-red-600 rounded-lg transition cursor-pointer">
+                                        Kurangi {{ number_format($stock->stored_expired, 0) }}
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+            <div class="md:hidden divide-y divide-red-50">
+                @foreach ($stocks->where('stored_expired', '>', 0) as $stock)
+                <div class="p-4 border-l-[3px] border-l-red-400 bg-red-50/20">
+                    <p class="font-semibold text-gray-800 text-[13px]">{{ $stock->name }}</p>
+                    <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-[12px] mt-2">
+                        <div><span class="text-gray-400">Expired:</span> <span class="font-semibold text-red-600">{{ number_format($stock->expired, 0) }}</span></div>
+                        <div><span class="text-gray-400">Disimpan:</span> <span class="font-semibold text-red-600">{{ number_format($stock->stored_expired, 0) }} {{ $stock->unit->symbol ?? '' }}</span></div>
+                    </div>
+                    <div class="mt-3 pt-2.5 border-t border-red-100">
+                        <form method="POST" action="{{ route('manager.inventory.stock.reduceExpiredStored', $stock->id) }}">
+                            @csrf
+                            <button type="submit" onclick="return confirm('Kurangi stok expired?')"
+                                    class="h-7 px-3 text-[11px] font-medium text-white bg-red-500 hover:bg-red-600 rounded-lg transition cursor-pointer">
+                                Kurangi {{ number_format($stock->stored_expired, 0) }}
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                @endforeach
+            </div>
+        </div>
+    </div>
+    @endif
+
+    @else
+    {{-- ══════════════════════════════════════════════════════════════
+         ██ TAB: PRODUK JADI (Finished Goods)
+         ══════════════════════════════════════════════════════════════ --}}
+
+    {{-- STAT CARDS — FINISHED GOODS --}}
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3 mb-6">
+        <div class="stat-card slate">
+            <p class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Total Varian</p>
+            <p class="text-2xl font-bold text-gray-800 mt-1 tabular-nums">{{ number_format($fgStats->total ?? 0) }}</p>
+        </div>
+        <div class="stat-card emerald">
+            <p class="text-[10px] font-semibold text-emerald-500 uppercase tracking-wider">Ready</p>
+            <p class="text-2xl font-bold text-emerald-600 mt-1 tabular-nums">{{ number_format($fgStats->ready ?? 0) }}</p>
+        </div>
+        <div class="stat-card amber">
+            <p class="text-[10px] font-semibold text-amber-500 uppercase tracking-wider">Low Stock</p>
+            <p class="text-2xl font-bold text-amber-600 mt-1 tabular-nums">{{ number_format($fgStats->low_stock ?? 0) }}</p>
+        </div>
+        <div class="stat-card red">
+            <p class="text-[10px] font-semibold text-red-400 uppercase tracking-wider">Habis</p>
+            <p class="text-2xl font-bold text-red-500 mt-1 tabular-nums">{{ number_format($fgStats->out_of_stock ?? 0) }}</p>
+        </div>
+        <div class="stat-card orange">
+            <p class="text-[10px] font-semibold text-orange-500 uppercase tracking-wider">Hampir Exp</p>
+            <p class="text-2xl font-bold text-orange-600 mt-1 tabular-nums">{{ number_format($fgStats->almost_expired ?? 0) }}</p>
+        </div>
+        <div class="stat-card red">
+            <p class="text-[10px] font-semibold text-red-500 uppercase tracking-wider">Expired</p>
+            <p class="text-2xl font-bold text-red-600 mt-1 tabular-nums">{{ number_format($fgStats->expired ?? 0) }}</p>
+        </div>
+        <div class="stat-card purple">
+            <p class="text-[10px] font-semibold text-purple-500 uppercase tracking-wider">Nilai FG</p>
+            <p class="text-lg font-bold text-purple-700 mt-1 tabular-nums leading-tight">Rp{{ number_format($fgStats->total_value ?? 0, 0, ',', '.') }}</p>
+        </div>
+    </div>
+
+    {{-- FILTER PANEL — FG --}}
+    <div x-show="showFilter" x-collapse x-cloak class="mb-5">
+        <form method="GET" action="{{ route('manager.inventory.stock') }}"
+              class="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
+            <input type="hidden" name="tab" value="produk">
+            <div class="flex flex-wrap items-end gap-3">
+                <div class="flex-1 min-w-[180px]">
+                    <label class="block text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Cari Produk</label>
+                    <div class="relative">
+                        <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                        <input type="text" name="search" value="{{ $tab === 'produk' ? request('search') : '' }}" placeholder="Cari nama produk..."
+                               class="stk-input !pl-9" />
+                    </div>
+                </div>
+                <div class="min-w-[140px]">
+                    <label class="block text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Kategori</label>
+                    <select name="category" class="stk-input appearance-none cursor-pointer">
+                        <option value="">Semua</option>
+                        @foreach ($productCategories as $cat)
+                        <option value="{{ $cat->id }}" {{ request('category') == $cat->id && $tab === 'produk' ? 'selected' : '' }}>{{ $cat->category_name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="min-w-[160px]">
+                    <label class="block text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Status</label>
+                    <select name="status" class="stk-input appearance-none cursor-pointer">
+                        <option value="">Semua</option>
+                        <option value="ready" {{ request('status')==='ready' && $tab==='produk' ?'selected':'' }}>Ready</option>
+                        <option value="low_stock" {{ request('status')==='low_stock' && $tab==='produk' ?'selected':'' }}>Low Stock</option>
+                        <option value="out_of_stock" {{ request('status')==='out_of_stock' && $tab==='produk' ?'selected':'' }}>Habis</option>
+                        <option value="fresh" {{ request('status')==='fresh' && $tab==='produk' ?'selected':'' }}>Fresh</option>
+                        <option value="almost_expired" {{ request('status')==='almost_expired' && $tab==='produk' ?'selected':'' }}>Hampir Expired</option>
+                        <option value="expired" {{ request('status')==='expired' && $tab==='produk' ?'selected':'' }}>Expired</option>
+                    </select>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button type="submit" class="h-9 px-4 text-[13px] font-medium text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg transition cursor-pointer">Terapkan</button>
+                    <a href="{{ route('manager.inventory.stock', ['tab' => 'produk']) }}" class="h-9 px-3 text-[13px] font-medium text-gray-400 hover:text-gray-600 bg-white border border-gray-200 hover:border-gray-300 rounded-lg transition inline-flex items-center">Reset</a>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    {{-- MAIN TABLE — FINISHED GOODS --}}
+    <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+        <div class="px-5 py-2.5 border-b border-gray-50 flex items-center justify-between">
+            <p class="text-[12px] text-gray-400">
+                <span class="font-medium text-gray-500">{{ $finishedGoods->firstItem() ?? 0 }}–{{ $finishedGoods->lastItem() ?? 0 }}</span> dari {{ $finishedGoods->total() }} produk
+            </p>
+            @if(request()->hasAny(['search','category','status']))
+            <a href="{{ route('manager.inventory.stock', ['tab' => 'produk']) }}" class="text-[11px] text-emerald-600 hover:text-emerald-700 font-medium inline-flex items-center gap-1">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                Hapus filter
+            </a>
+            @endif
+        </div>
+
+        @php
+            $fgSortUrl = function($field) {
+                $current = request('sort', 'name');
+                $dir = ($current === $field && request('dir', 'asc') === 'asc') ? 'desc' : 'asc';
+                return request()->fullUrlWithQuery(['sort' => $field, 'dir' => $dir, 'tab' => 'produk']);
+            };
+            $fgSortIcon = function($field) {
+                $current = request('sort', 'name');
+                $dir = request('dir', 'asc');
+                if ($current !== $field) return '';
+                return $dir === 'asc' ? '↑' : '↓';
+            };
+        @endphp
+
+        {{-- Desktop table — FG --}}
+        <div class="hidden md:block overflow-x-auto">
+            <table class="w-full text-[13px] stk-table">
+                <thead>
+                    <tr class="bg-gray-50/80 border-b border-gray-100">
+                        <th class="text-left py-2.5 px-5 text-[10px] font-semibold text-gray-400 uppercase tracking-wider">
+                            <a href="{{ $fgSortUrl('name') }}" class="sort-link">Produk {!! $fgSortIcon('name') !!}</a>
+                        </th>
+                        <th class="text-left py-2.5 px-3 text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Kategori</th>
+                        <th class="text-right py-2.5 px-3 text-[10px] font-semibold text-gray-400 uppercase tracking-wider">
+                            <a href="{{ $fgSortUrl('price') }}" class="sort-link">Harga Jual {!! $fgSortIcon('price') !!}</a>
+                        </th>
+                        <th class="text-right py-2.5 px-3 text-[10px] font-semibold text-gray-400 uppercase tracking-wider">
+                            <a href="{{ $fgSortUrl('hpp') }}" class="sort-link">HPP {!! $fgSortIcon('hpp') !!}</a>
+                        </th>
+                        <th class="text-right py-2.5 px-3 text-[10px] font-semibold text-gray-400 uppercase tracking-wider hidden xl:table-cell">Margin</th>
+                        <th class="text-right py-2.5 px-3 text-[10px] font-semibold text-gray-400 uppercase tracking-wider">
+                            <a href="{{ $fgSortUrl('quantity') }}" class="sort-link">Stok {!! $fgSortIcon('quantity') !!}</a>
+                        </th>
+                        <th class="text-center py-2.5 px-3 text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Status</th>
+                        <th class="text-center py-2.5 px-3 text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Freshness</th>
+                        <th class="text-right py-2.5 px-3 text-[10px] font-semibold text-gray-400 uppercase tracking-wider hidden xl:table-cell">Nilai</th>
+                        <th class="text-right py-2.5 px-3 text-[10px] font-semibold text-gray-400 uppercase tracking-wider hidden 2xl:table-cell">Terjual 30hr</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($finishedGoods as $idx => $fg)
+                    @php
+                        $fgStatus = $fg->computed_fg_status;
+                        $isFgOut = $fgStatus === 'Habis';
+                        $isFgLow = $fgStatus === 'Low Stock';
+                        $freshness = $fg->computed_freshness;
+                        $stripe = $idx % 2 === 0 ? '' : 'bg-gray-50/40';
+                        $rowBg = $isFgOut ? 'bg-red-50/30' : ($freshness === 'Expired' ? 'bg-red-50/20' : ($isFgLow ? 'bg-amber-50/20' : $stripe));
+                    @endphp
+                    <tr class="stk-row {{ $rowBg }} border-b border-gray-50 last:border-b-0">
+                        {{-- Product name + variant --}}
+                        <td class="py-2.5 px-5">
+                            <div class="min-w-0">
+                                <p class="font-semibold text-gray-800 leading-snug truncate">{{ $fg->product->name ?? $fg->product_name ?? '-' }}</p>
+                                <p class="text-[11px] text-gray-400 mt-0.5 leading-none truncate">
+                                    {{ $fg->variantSummary() }}
+                                </p>
+                            </div>
+                        </td>
+                        {{-- Category --}}
+                        <td class="py-2.5 px-3 text-gray-500 text-[12px]">{{ $fg->product->category->category_name ?? '—' }}</td>
+                        {{-- Selling price --}}
+                        <td class="py-2.5 px-3 text-right tabular-nums font-semibold text-gray-700">
+                            Rp{{ number_format($fg->price ?? 0, 0, ',', '.') }}
+                        </td>
+                        {{-- HPP --}}
+                        <td class="py-2.5 px-3 text-right tabular-nums text-gray-600">
+                            Rp{{ number_format($fg->hpp ?? 0, 0, ',', '.') }}
+                        </td>
+                        {{-- Margin --}}
+                        <td class="py-2.5 px-3 text-right tabular-nums text-[12px] hidden xl:table-cell">
+                            @if($fg->computed_margin > 0)
+                                <span class="{{ $fg->computed_margin >= 30 ? 'text-emerald-600 font-semibold' : ($fg->computed_margin >= 15 ? 'text-gray-600' : 'text-red-500 font-semibold') }}">
+                                    {{ $fg->computed_margin }}%
+                                </span>
+                            @else
+                                <span class="text-gray-200">—</span>
+                            @endif
+                        </td>
+                        {{-- Quantity --}}
+                        <td class="py-2.5 px-3 text-right">
+                            <span class="font-bold tabular-nums {{ $isFgOut ? 'text-red-600' : ($isFgLow ? 'text-amber-600' : 'text-gray-800') }}">
+                                {{ number_format($fg->quantity) }}
+                            </span>
+                            @if($fg->min_stock > 0)
+                            <span class="block text-[10px] text-gray-400">min: {{ $fg->min_stock }}</span>
+                            @endif
+                        </td>
+                        {{-- Stock status --}}
+                        <td class="py-2.5 px-3 text-center">
+                            @if($isFgOut)
+                            <span class="stk-badge bg-red-50 text-red-600"><span class="w-1.5 h-1.5 rounded-full bg-red-400"></span>Habis</span>
+                            @elseif($isFgLow)
+                            <span class="stk-badge bg-amber-50 text-amber-600"><span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>Low</span>
+                            @else
+                            <span class="stk-badge bg-emerald-50 text-emerald-600"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>Ready</span>
+                            @endif
+                        </td>
+                        {{-- Freshness --}}
+                        <td class="py-2.5 px-3 text-center">
+                            @if($freshness === 'Fresh')
+                            <span class="stk-badge freshness-fresh"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>Fresh</span>
+                            @if($fg->computed_days_left !== null)
+                            <span class="block text-[10px] text-emerald-500 mt-0.5">{{ $fg->computed_days_left }}hr lagi</span>
+                            @endif
+                            @elseif($freshness === 'Hampir Expired')
+                            <span class="stk-badge freshness-warning"><span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>Hampir Exp</span>
+                            @if($fg->computed_days_left !== null)
+                            <span class="block text-[10px] text-amber-500 font-semibold mt-0.5">{{ $fg->computed_days_left }}hr lagi</span>
+                            @endif
+                            @elseif($freshness === 'Expired')
+                            <span class="stk-badge freshness-expired"><span class="w-1.5 h-1.5 rounded-full bg-red-400"></span>Expired</span>
+                            @else
+                            <span class="text-gray-200 text-[11px]">—</span>
+                            @endif
+                        </td>
+                        {{-- Inventory Value --}}
+                        <td class="py-2.5 px-3 text-right tabular-nums text-[12px] text-gray-600 hidden xl:table-cell">
+                            Rp{{ number_format($fg->computed_inv_value ?? 0, 0, ',', '.') }}
+                        </td>
+                        {{-- Sales 30d + turnover --}}
+                        <td class="py-2.5 px-3 text-right tabular-nums text-[12px] hidden 2xl:table-cell">
+                            @if(($fg->sales_30d ?? 0) > 0)
+                                <span class="text-gray-700 font-medium">{{ number_format($fg->sales_30d, 0) }}</span>
+                                <span class="text-gray-300 text-[10px]">pcs</span>
+                                @if(($fg->fg_turnover ?? 0) > 0)
+                                <span class="block text-[10px] {{ $fg->fg_turnover < 0.5 ? 'text-red-400' : ($fg->fg_turnover > 2 ? 'text-emerald-500' : 'text-gray-400') }}">
+                                    turnover {{ $fg->fg_turnover }}x
+                                </span>
+                                @endif
+                            @else
+                                <span class="text-gray-200">—</span>
+                            @endif
+                        </td>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="10" class="py-20 text-center">
+                            <svg class="w-10 h-10 mx-auto mb-3 text-gray-200" fill="none" stroke="currentColor" stroke-width="1.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
+                            <p class="text-sm text-gray-400 font-medium">Belum ada produk jadi</p>
+                            <p class="text-xs text-gray-300 mt-0.5">Produk akan muncul setelah proses produksi.</p>
+                        </td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+
+        {{-- Mobile cards — FG --}}
+        <div class="md:hidden divide-y divide-gray-50">
+            @forelse($finishedGoods as $fg)
+            @php
+                $fgStatus = $fg->computed_fg_status;
+                $isFgOut = $fgStatus === 'Habis';
+                $isFgLow = $fgStatus === 'Low Stock';
+                $freshness = $fg->computed_freshness;
+                $accent = $freshness === 'Expired' ? 'border-l-red-400' : ($freshness === 'Hampir Expired' ? 'border-l-orange-400' : ($isFgOut ? 'border-l-red-400' : ($isFgLow ? 'border-l-amber-400' : 'border-l-emerald-400')));
+            @endphp
+            <div class="p-4 border-l-[3px] {{ $accent }} {{ $isFgOut ? 'bg-red-50/20' : ($freshness === 'Expired' ? 'bg-red-50/15' : '') }}">
+                <div class="flex items-start justify-between gap-2 mb-2">
+                    <div class="min-w-0 flex-1">
+                        <p class="font-semibold text-gray-800 text-[13px] leading-snug truncate">{{ $fg->product->name ?? $fg->product_name ?? '-' }}</p>
+                        <p class="text-[11px] text-gray-400 truncate">{{ $fg->variantSummary() }} · {{ $fg->product->category->category_name ?? '—' }}</p>
+                    </div>
+                    <div class="flex flex-col items-end gap-1 shrink-0">
+                        @if($isFgOut)
+                        <span class="stk-badge bg-red-50 text-red-600"><span class="w-1.5 h-1.5 rounded-full bg-red-400"></span>Habis</span>
+                        @elseif($isFgLow)
+                        <span class="stk-badge bg-amber-50 text-amber-600"><span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>Low</span>
+                        @else
+                        <span class="stk-badge bg-emerald-50 text-emerald-600"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>Ready</span>
+                        @endif
+                        @if($freshness === 'Expired')
+                        <span class="stk-badge freshness-expired text-[9px]">Expired</span>
+                        @elseif($freshness === 'Hampir Expired')
+                        <span class="stk-badge freshness-warning text-[9px]">{{ $fg->computed_days_left }}hr</span>
+                        @elseif($freshness === 'Fresh' && $fg->computed_days_left !== null)
+                        <span class="stk-badge freshness-fresh text-[9px]">{{ $fg->computed_days_left }}hr</span>
+                        @endif
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-x-4 gap-y-1.5 text-[12px]">
+                    <div><span class="text-gray-400">Stok:</span> <span class="font-semibold {{ $isFgOut ? 'text-red-600' : ($isFgLow ? 'text-amber-600' : 'text-gray-700') }}">{{ number_format($fg->quantity) }}</span></div>
+                    <div><span class="text-gray-400">Harga:</span> <span class="font-semibold text-gray-700">Rp{{ number_format($fg->price ?? 0, 0, ',', '.') }}</span></div>
+                    <div><span class="text-gray-400">HPP:</span> <span class="text-gray-600">Rp{{ number_format($fg->hpp ?? 0, 0, ',', '.') }}</span></div>
+                    <div><span class="text-gray-400">Margin:</span> <span class="{{ $fg->computed_margin >= 30 ? 'text-emerald-600 font-semibold' : ($fg->computed_margin >= 15 ? 'text-gray-600' : 'text-red-500') }}">{{ $fg->computed_margin }}%</span></div>
+                    <div><span class="text-gray-400">Nilai:</span> <span class="text-gray-600">Rp{{ number_format($fg->computed_inv_value ?? 0, 0, ',', '.') }}</span></div>
+                    @if(($fg->sales_30d ?? 0) > 0)
+                    <div><span class="text-gray-400">Jual 30hr:</span> <span class="text-gray-600">{{ number_format($fg->sales_30d, 0) }} pcs</span></div>
+                    @endif
+                </div>
+            </div>
+            @empty
+            <div class="py-16 text-center">
+                <p class="text-sm text-gray-400">Belum ada produk jadi.</p>
+            </div>
+            @endforelse
+        </div>
+
+        {{-- Pagination — FG --}}
+        @if($finishedGoods->hasPages())
+        <div class="px-5 py-3 border-t border-gray-50 flex items-center justify-between">
+            <p class="text-[11px] text-gray-400 hidden sm:block">Hal. {{ $finishedGoods->currentPage() }} / {{ $finishedGoods->lastPage() }}</p>
+            <div class="flex items-center gap-1 mx-auto sm:mx-0">
+                @if($finishedGoods->onFirstPage())
+                <span class="w-8 h-8 rounded-lg inline-flex items-center justify-center text-gray-300">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+                </span>
+                @else
+                <a href="{{ $finishedGoods->previousPageUrl() }}" class="w-8 h-8 rounded-lg inline-flex items-center justify-center text-gray-500 hover:bg-gray-100 transition">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+                </a>
+                @endif
+                @foreach($finishedGoods->getUrlRange(max(1, $finishedGoods->currentPage()-2), min($finishedGoods->lastPage(), $finishedGoods->currentPage()+2)) as $page => $url)
+                    @if($page == $finishedGoods->currentPage())
+                    <span class="w-8 h-8 rounded-lg inline-flex items-center justify-center text-[12px] font-semibold bg-emerald-600 text-white">{{ $page }}</span>
+                    @else
+                    <a href="{{ $url }}" class="w-8 h-8 rounded-lg inline-flex items-center justify-center text-[12px] font-medium text-gray-500 hover:bg-gray-100 transition">{{ $page }}</a>
+                    @endif
+                @endforeach
+                @if($finishedGoods->hasMorePages())
+                <a href="{{ $finishedGoods->nextPageUrl() }}" class="w-8 h-8 rounded-lg inline-flex items-center justify-center text-gray-500 hover:bg-gray-100 transition">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                </a>
+                @else
+                <span class="w-8 h-8 rounded-lg inline-flex items-center justify-center text-gray-300">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                </span>
+                @endif
+            </div>
+        </div>
+        @endif
+    </div>
+
+    @endif {{-- end tab switch --}}
+
+    </div> {{-- end tab content wrapper --}}
+
+    {{-- ══════════════════════════════════════════
+         DELETE MODAL (raw materials)
+         ══════════════════════════════════════════ --}}
+    <div x-show="showDeleteModal" x-cloak
+         x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+         class="fixed inset-0 z-50 flex items-center justify-center bg-black/25 backdrop-blur-[2px]"
+         @click.self="showDeleteModal = false" @keydown.escape.window="showDeleteModal = false">
+        <div x-show="showDeleteModal"
+             x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+             x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
+             class="bg-white rounded-2xl shadow-xl w-full max-w-[360px] mx-4 p-6 text-center">
+            <div class="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-4">
+                <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            </div>
+            <h3 class="text-[15px] font-bold text-gray-800 mb-1">Hapus Stok?</h3>
+            <p class="text-[13px] text-gray-400 mb-5 leading-relaxed">Stok <span class="font-semibold text-gray-600" x-text="deleteName"></span> akan dihapus permanen beserta semua batch.</p>
+            <div class="flex gap-3">
+                <button @click="showDeleteModal = false" class="flex-1 h-10 rounded-lg border border-gray-200 text-[13px] font-medium text-gray-500 hover:bg-gray-50 transition cursor-pointer">Batal</button>
+                <form :action="'/manager/inventory/stock/' + deleteId" method="POST" class="flex-1">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="w-full h-10 rounded-lg bg-red-500 hover:bg-red-600 text-white text-[13px] font-semibold transition cursor-pointer">Ya, Hapus</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    {{-- ══════════════════════════════════════════
+         EXPIRED BATCH DETAIL MODAL
+         ══════════════════════════════════════════ --}}
+    <div x-show="showExpiredModal" x-cloak
+         x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+         class="fixed inset-0 z-50 flex items-center justify-center bg-black/25 backdrop-blur-[2px]"
+         @click.self="showExpiredModal = false" @keydown.escape.window="showExpiredModal = false">
+        <div x-show="showExpiredModal"
+             x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+             x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
+             class="bg-white rounded-2xl shadow-xl w-full max-w-[400px] mx-4 p-6 relative">
+            <button @click="showExpiredModal = false" class="absolute top-3 right-3 w-7 h-7 rounded-md inline-flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition cursor-pointer">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+            <div class="flex items-center gap-2 mb-4">
+                <div class="w-8 h-8 rounded-full bg-amber-50 flex items-center justify-center">
+                    <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                </div>
+                <h3 class="text-[15px] font-bold text-gray-800">Detail Hampir Expired</h3>
+            </div>
+            <template x-if="expiredBatches.length === 0">
+                <p class="text-[13px] text-gray-400 py-4 text-center">Tidak ada batch yang hampir expired.</p>
+            </template>
+            <div class="space-y-2 max-h-[300px] overflow-y-auto">
+                <template x-for="(batch, idx) in expiredBatches" :key="idx">
+                    <div class="p-3 bg-amber-50/50 border border-amber-100 rounded-lg">
+                        <div class="flex items-center justify-between text-[12px]">
+                            <span class="text-gray-500">Batch ID</span>
+                            <span class="font-semibold text-gray-700" x-text="'#' + batch.id"></span>
+                        </div>
+                        <div class="flex items-center justify-between text-[12px] mt-1">
+                            <span class="text-gray-500">Kuantitas</span>
+                            <span class="font-semibold text-amber-600" x-text="batch.qty + ' ' + (batch.unit || '')"></span>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </div>
+    </div>
+
+</div>
+@endsection

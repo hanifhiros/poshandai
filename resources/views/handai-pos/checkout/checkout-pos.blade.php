@@ -350,9 +350,9 @@
                             <div x-show="customerType === 'new'" x-transition class="space-y-2">
                                 <input type="text" x-model="newCustomer.name" placeholder="Nama lengkap *"
                                     class="w-full border rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-green-200 outline-none">
-                                <input type="text" x-model="newCustomer.contact" placeholder="Nomor telepon *"
+                                <input type="text" x-model="newCustomer.nickname" placeholder="Nama panggilan"
                                     class="w-full border rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-green-200 outline-none">
-                                <input type="text" x-model="newCustomer.address" placeholder="Alamat (opsional)"
+                                <input type="text" x-model="newCustomer.contact" placeholder="Nomor telepon *"
                                     class="w-full border rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-green-200 outline-none">
                             </div>
                         </div>
@@ -652,7 +652,7 @@ document.addEventListener('alpine:init', () => {
         customerType: 'none',
         selectedCustomerId: '',
         manualCustomerName: '',
-        newCustomer: { name: '', contact: '', address: '' },
+        newCustomer: { name: '', nickname: '', contact: '' },
 
         // Payment
         paymentMethod: 'tunai',
@@ -786,7 +786,7 @@ document.addEventListener('alpine:init', () => {
                 customer_id: customerId,
                 customer_type: this.customerType,
                 new_contact: this.newCustomer.contact,
-                new_address: this.newCustomer.address,
+                new_nickname: this.newCustomer.nickname,
                 payment_method: this.paymentMethod,
                 non_tunai_type: this.nonTunaiType,
                 cash_received: this.cashReceived,

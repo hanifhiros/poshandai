@@ -4,8 +4,9 @@ namespace App\Http\Controllers\Public;
 
 use App\Http\Controllers\Controller;
 use App\Models\Customer;
-use App\Models\Reseller;
 use App\Models\CustomerStore;
+use App\Models\Reseller;
+use App\Models\Store;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
@@ -119,20 +120,23 @@ class CustomerAuthController extends Controller
     public function guestLogin(Request $request)
     {
         $store_id = $request->query('store_id');
-        // if (!$store_id) {
-        //     return redirect()->route('customerOrder.loginForm')->withErrors('Store ID dibutuhkan.');
-        // }
 
-        $customer = Customer::where('contact_number', '081219296859')
-            ->where('store_id', '12')
-            ->first();
+        // ── Create an anonymous guest customer per session ──
+        $guestName = 'Tamu #' . strtoupper(\Illuminate\Support\Str::random(6));
+        $customer = Customer::create([
+            'name' => $guestName,
+            'contact_number' => 'guest_' . time() . '_' . rand(1000, 9999),
+            'store_id' => $store_id ?? session('selected_store'),
+            'has_ordered' => 0,
+        ]);
 
         session([
             'customer_id' => $customer->id,
             'customer_name' => $customer->name,
-            'selected_store' => $request->store_id,
+            'selected_store' => $store_id ?? session('selected_store'),
             'is_guest' => true
         ]);
+
         $reseller_code = $request->input('reseller_code');
         if ($reseller_code) {
             session(['reseller_code' => $reseller_code]);
@@ -144,8 +148,6 @@ class CustomerAuthController extends Controller
         if (!$store_id) {
             return redirect()->route('customerOrder.selectStore', ['reseller' => $reseller_code]);
         }
-        // dd("hi");
-
 
         return redirect()->route('customerOrder.form', ['store_id' => $store_id]);
     }
@@ -177,7 +179,7 @@ class CustomerAuthController extends Controller
             ]);
 
             // Ambil store & buat customer
-            $store = \App\Models\Store::findOrFail($request->store_id);
+            $store = Store::findOrFail($request->store_id);
 
             $customer = Customer::create([
                 'name' => $request->name,

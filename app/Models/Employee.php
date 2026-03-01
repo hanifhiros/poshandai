@@ -19,8 +19,17 @@ class Employee extends Authenticatable
 
     protected $hidden = ['password'];
 
+    protected $casts = [
+        'salary' => 'decimal:0',
+    ];
+
     // Jika employee digunakan untuk login, aktifkan ini:
     // protected $guard = 'employee';
+
+    public function store()
+    {
+        return $this->belongsTo(Store::class);
+    }
 
     public function productionHistories()
     {

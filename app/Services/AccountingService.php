@@ -6,6 +6,7 @@ use App\Models\ChartOfAccount;
 use App\Models\Journal;
 use App\Models\JournalEntry;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -118,6 +119,9 @@ class AccountingService
                 'memo'       => $line['memo'],
             ]);
         }
+
+        // Invalidate finance dashboard cache for this store
+        Cache::forget("finance_dashboard_{$storeId}");
 
         return $journal;
     }
@@ -295,8 +299,8 @@ class AccountingService
         float $totalCost,
         int $productionId,
         string $productName
-    ): Journal {
-        if ($totalCost <= 0) return new Journal(); // no-op for zero cost
+    ): ?Journal {
+        if ($totalCost <= 0) return null; // no-op for zero cost
 
         return self::createJournal(
             $storeId,
@@ -389,8 +393,8 @@ class AccountingService
         float $expiredValue,
         int $stockId,
         string $stockName
-    ): Journal {
-        if ($expiredValue <= 0) return new Journal();
+    ): ?Journal {
+        if ($expiredValue <= 0) return null;
 
         return self::createJournal(
             $storeId,
@@ -416,6 +420,48 @@ class AccountingService
     }
 
     // ══════════════════════════════════════════════════
+    //  E2. WASTE (separate from expired)
+    //  Dr Biaya Waste       xxx
+    //      Cr Inventory     xxx (raw or FG depending on item_type)
+    // ══════════════════════════════════════════════════
+
+    public static function journalWaste(
+        int $storeId,
+        float $wasteValue,
+        string $itemName,
+        string $itemType = 'stock',
+        ?int $wasteLogId = null
+    ): ?Journal {
+        if ($wasteValue <= 0) return null;
+
+        $inventorySubType = $itemType === 'product'
+            ? ChartOfAccount::SUB_INVENTORY_FG
+            : ChartOfAccount::SUB_INVENTORY_RAW;
+
+        return self::createJournal(
+            $storeId,
+            "Waste: {$itemName}",
+            Journal::SOURCE_WASTE,
+            [
+                [
+                    'account_sub_type' => ChartOfAccount::SUB_ADJUSTMENT,
+                    'debit'  => $wasteValue,
+                    'credit' => 0,
+                    'memo'   => "Biaya waste/basi: {$itemName}",
+                ],
+                [
+                    'account_sub_type' => $inventorySubType,
+                    'debit'  => 0,
+                    'credit' => $wasteValue,
+                    'memo'   => "Penghapusan inventory waste",
+                ],
+            ],
+            'waste_log',
+            $wasteLogId
+        );
+    }
+
+    // ══════════════════════════════════════════════════
     //  F. STOCK ADJUSTMENT
     //  Dr/Cr Inventory Bahan   xxx
     //  Cr/Dr Biaya Penyesuaian xxx
@@ -427,8 +473,8 @@ class AccountingService
         bool $isPositive,
         string $reason,
         ?int $stockId = null
-    ): Journal {
-        if ($value <= 0) return new Journal();
+    ): ?Journal {
+        if ($value <= 0) return null;
 
         $entries = $isPositive
             ? [
@@ -457,10 +503,52 @@ class AccountingService
     private static function ensureCOA(int $storeId): void
     {
         if (!ChartOfAccount::where('store_id', $storeId)->exists()) {
-            $seeder = new \Database\Seeders\ChartOfAccountSeeder();
-            // We call the private method reflectively, or just inline the seed
-            // For simplicity, we re-use the seeder logic:
-            app()->call([$seeder, 'run']);
+            self::seedCOAForStore($storeId);
+            ChartOfAccount::clearResolveCache();
+        }
+    }
+
+    /**
+     * Inline COA seeding for a specific store (production-safe, no seeder dependency).
+     */
+    private static function seedCOAForStore(int $storeId): void
+    {
+        $accounts = [
+            ['code' => '1-0000', 'name' => 'Aset',                     'type' => 'asset',     'sub_type' => null,              'parent' => null],
+            ['code' => '1-1001', 'name' => 'Kas',                      'type' => 'asset',     'sub_type' => 'kas',             'parent' => '1-0000'],
+            ['code' => '1-1002', 'name' => 'Bank',                     'type' => 'asset',     'sub_type' => 'bank',            'parent' => '1-0000'],
+            ['code' => '1-1003', 'name' => 'Piutang Usaha',            'type' => 'asset',     'sub_type' => 'piutang',         'parent' => '1-0000'],
+            ['code' => '1-2001', 'name' => 'Inventory Bahan Baku',     'type' => 'asset',     'sub_type' => 'inventory_raw',   'parent' => '1-0000'],
+            ['code' => '1-2002', 'name' => 'Inventory Produk Jadi',    'type' => 'asset',     'sub_type' => 'inventory_fg',    'parent' => '1-0000'],
+            ['code' => '2-0000', 'name' => 'Kewajiban',                'type' => 'liability', 'sub_type' => null,              'parent' => null],
+            ['code' => '2-1001', 'name' => 'Hutang Usaha',             'type' => 'liability', 'sub_type' => 'hutang',          'parent' => '2-0000'],
+            ['code' => '3-0000', 'name' => 'Ekuitas',                  'type' => 'equity',    'sub_type' => null,              'parent' => null],
+            ['code' => '3-1001', 'name' => 'Modal',                    'type' => 'equity',    'sub_type' => 'modal',           'parent' => '3-0000'],
+            ['code' => '3-2001', 'name' => 'Laba Ditahan',             'type' => 'equity',    'sub_type' => 'retained_earnings','parent' => '3-0000'],
+            ['code' => '4-0000', 'name' => 'Pendapatan',               'type' => 'revenue',   'sub_type' => null,              'parent' => null],
+            ['code' => '4-1001', 'name' => 'Penjualan',                'type' => 'revenue',   'sub_type' => 'penjualan',       'parent' => '4-0000'],
+            ['code' => '5-0000', 'name' => 'Harga Pokok Penjualan',    'type' => 'cogs',      'sub_type' => null,              'parent' => null],
+            ['code' => '5-1001', 'name' => 'HPP',                      'type' => 'cogs',      'sub_type' => 'hpp',             'parent' => '5-0000'],
+            ['code' => '6-0000', 'name' => 'Biaya Operasional',        'type' => 'expense',   'sub_type' => null,              'parent' => null],
+            ['code' => '6-1001', 'name' => 'Gaji & Upah',              'type' => 'expense',   'sub_type' => 'gaji',            'parent' => '6-0000'],
+            ['code' => '6-1002', 'name' => 'Biaya Operasional Lain',   'type' => 'expense',   'sub_type' => 'operasional',     'parent' => '6-0000'],
+            ['code' => '6-1003', 'name' => 'Biaya Penyesuaian Stok',   'type' => 'expense',   'sub_type' => 'adjustment',      'parent' => '6-0000'],
+        ];
+
+        $createdMap = [];
+        foreach ($accounts as $acc) {
+            $parentId = ($acc['parent'] && isset($createdMap[$acc['parent']])) ? $createdMap[$acc['parent']] : null;
+            $created = ChartOfAccount::create([
+                'store_id'    => $storeId,
+                'code'        => $acc['code'],
+                'name'        => $acc['name'],
+                'type'        => $acc['type'],
+                'sub_type'    => $acc['sub_type'],
+                'parent_id'   => $parentId,
+                'is_system'   => true,
+                'is_active'   => true,
+            ]);
+            $createdMap[$acc['code']] = $created->id;
         }
     }
 
@@ -470,6 +558,7 @@ class AccountingService
 
     /**
      * Get total balance for a list of account types within a period.
+     * Optimized: single aggregate SQL query instead of N+1 per account.
      */
     public static function sumByType(
         int $storeId,
@@ -479,22 +568,80 @@ class AccountingService
     ): float {
         $types = (array) $types;
 
-        $accounts = ChartOfAccount::where('store_id', $storeId)
-            ->whereIn('type', $types)
-            ->where('is_active', true)
-            ->whereNotNull('sub_type') // only leaf accounts
-            ->get();
+        $query = DB::table('journal_entries')
+            ->join('journals', 'journal_entries.journal_id', '=', 'journals.id')
+            ->join('chart_of_accounts', 'journal_entries.account_id', '=', 'chart_of_accounts.id')
+            ->where('chart_of_accounts.store_id', $storeId)
+            ->whereIn('chart_of_accounts.type', $types)
+            ->where('chart_of_accounts.is_active', true)
+            ->whereNotNull('chart_of_accounts.sub_type');
 
-        $total = 0;
-        foreach ($accounts as $account) {
-            $total += $account->getBalance($startDate, $endDate);
+        if ($startDate) {
+            $query->whereRaw('DATE(journals.journal_date) >= ?', [$startDate]);
+        }
+        if ($endDate) {
+            $query->whereRaw('DATE(journals.journal_date) <= ?', [$endDate]);
         }
 
+        $result = $query->selectRaw('COALESCE(SUM(journal_entries.debit), 0) as total_debit, COALESCE(SUM(journal_entries.credit), 0) as total_credit')
+            ->first();
+
+        $totalDebit  = (float) ($result->total_debit ?? 0);
+        $totalCredit = (float) ($result->total_credit ?? 0);
+
+        // Debit-normal types: asset, expense, cogs → balance = debit - credit
+        // Credit-normal types: liability, equity, revenue → balance = credit - debit
+        $debitNormal = array_intersect($types, ['asset', 'expense', 'cogs']);
+        $creditNormal = array_intersect($types, ['liability', 'equity', 'revenue']);
+
+        // If all types are the same "normality", return directly
+        if (!empty($debitNormal) && empty($creditNormal)) {
+            return $totalDebit - $totalCredit;
+        }
+        if (!empty($creditNormal) && empty($debitNormal)) {
+            return $totalCredit - $totalDebit;
+        }
+
+        // Mixed types — fall back to per-type aggregation (rare case)
+        $total = 0;
+        foreach (['asset', 'expense', 'cogs'] as $t) {
+            if (in_array($t, $types)) {
+                $r = DB::table('journal_entries')
+                    ->join('journals', 'journal_entries.journal_id', '=', 'journals.id')
+                    ->join('chart_of_accounts', 'journal_entries.account_id', '=', 'chart_of_accounts.id')
+                    ->where('chart_of_accounts.store_id', $storeId)
+                    ->where('chart_of_accounts.type', $t)
+                    ->where('chart_of_accounts.is_active', true)
+                    ->whereNotNull('chart_of_accounts.sub_type')
+                    ->when($startDate, fn($q) => $q->whereRaw('DATE(journals.journal_date) >= ?', [$startDate]))
+                    ->when($endDate, fn($q) => $q->whereRaw('DATE(journals.journal_date) <= ?', [$endDate]))
+                    ->selectRaw('COALESCE(SUM(journal_entries.debit),0) - COALESCE(SUM(journal_entries.credit),0) as bal')
+                    ->value('bal');
+                $total += (float) $r;
+            }
+        }
+        foreach (['liability', 'equity', 'revenue'] as $t) {
+            if (in_array($t, $types)) {
+                $r = DB::table('journal_entries')
+                    ->join('journals', 'journal_entries.journal_id', '=', 'journals.id')
+                    ->join('chart_of_accounts', 'journal_entries.account_id', '=', 'chart_of_accounts.id')
+                    ->where('chart_of_accounts.store_id', $storeId)
+                    ->where('chart_of_accounts.type', $t)
+                    ->where('chart_of_accounts.is_active', true)
+                    ->whereNotNull('chart_of_accounts.sub_type')
+                    ->when($startDate, fn($q) => $q->whereRaw('DATE(journals.journal_date) >= ?', [$startDate]))
+                    ->when($endDate, fn($q) => $q->whereRaw('DATE(journals.journal_date) <= ?', [$endDate]))
+                    ->selectRaw('COALESCE(SUM(journal_entries.credit),0) - COALESCE(SUM(journal_entries.debit),0) as bal')
+                    ->value('bal');
+                $total += (float) $r;
+            }
+        }
         return $total;
     }
 
     /**
      * Get breakdown per account for a given type.
+     * Optimized: single query with GROUP BY instead of N+1.
      */
     public static function breakdownByType(
         int $storeId,
@@ -509,9 +656,32 @@ class AccountingService
             ->orderBy('code')
             ->get();
 
+        if ($accounts->isEmpty()) return [];
+
+        $query = DB::table('journal_entries')
+            ->join('journals', 'journal_entries.journal_id', '=', 'journals.id')
+            ->whereIn('journal_entries.account_id', $accounts->pluck('id'))
+            ->groupBy('journal_entries.account_id')
+            ->selectRaw('journal_entries.account_id, COALESCE(SUM(journal_entries.debit),0) as total_debit, COALESCE(SUM(journal_entries.credit),0) as total_credit');
+
+        if ($startDate) {
+            $query->whereRaw('DATE(journals.journal_date) >= ?', [$startDate]);
+        }
+        if ($endDate) {
+            $query->whereRaw('DATE(journals.journal_date) <= ?', [$endDate]);
+        }
+
+        $balances = $query->get()->keyBy('account_id');
+
+        $isDebitNormal = in_array($type, ['asset', 'expense', 'cogs']);
+
         $result = [];
         foreach ($accounts as $account) {
-            $balance = $account->getBalance($startDate, $endDate);
+            $row = $balances->get($account->id);
+            $debit  = (float) ($row->total_debit ?? 0);
+            $credit = (float) ($row->total_credit ?? 0);
+            $balance = $isDebitNormal ? ($debit - $credit) : ($credit - $debit);
+
             $result[] = [
                 'code'    => $account->code,
                 'name'    => $account->name,

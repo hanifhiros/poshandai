@@ -17,12 +17,24 @@ class Stock extends Model
         'price_per_unit',
         'unit_qty',
         'unit_id',
-        
+        'min_stock',
+        'reorder_point',
         'expired_duration',
         'stock_category_id',
         'store_id',
+        'default_supplier_id',
+        'is_active',
     ];
     // The attributes that should be cast to native types
+    protected $casts = [
+        'price_per_unit'   => 'decimal:2',
+        'unit_qty'         => 'decimal:3',
+        'min_stock'        => 'decimal:3',
+        'reorder_point'    => 'decimal:3',
+        'expired_duration' => 'integer',
+        'is_active'        => 'boolean',
+    ];
+
         // The table associated with the model
         protected $table = 'stock';
 
@@ -45,54 +57,44 @@ class Stock extends Model
     }
 
     public function stockCategory()
-{
-    return $this->belongsTo(\App\Models\StockCategory::class, 'stock_category_id');
-}
+    {
+        return $this->belongsTo(\App\Models\StockCategory::class, 'stock_category_id');
+    }
 
     /**
      * Alias for stockCategory() - kept for backward compatibility.
      */
-     public function category()
+    public function category()
     {
         return $this->stockCategory();
     }
-    public function getAlmostExpiredAttribute()
-{
 
-    return $this->attributes['almost_expired'];
-}
+    public function defaultSupplier()
+    {
+        return $this->belongsTo(\App\Models\Supplier::class, 'default_supplier_id');
+    }
+
+    public function movements()
+    {
+        return $this->hasMany(\App\Models\StockMovement::class, 'stock_id');
+    }
+    public function getAlmostExpiredAttribute()
+    {
+        return $this->attributes['almost_expired'] ?? 0;
+    }
 
     public function getPricePerUnitAttribute()
     {
-        $today = Carbon::today();
-        $startDate = $today->copy()->subDays($this->expired_duration ?? 0);
-        return $this->attributes['price_per_unit'];
-        }
+        return $this->attributes['price_per_unit'] ?? 0;
+    }
+    /**
+     * Recalculate stock quantity and price from valid batches.
+     * Delegates to the static updateStockValues method.
+     */
     public function recalculateStockSummary()
     {
-        $today = now();
-        $startDate = $today->copy()->subDays($this->expired_duration ?? 0);
-
-        $validBatches = $this->batches()
-            ->whereDate('buy_date', '>=', $startDate)
-            ->whereDate('buy_date', '<=', $today)
-            ->get();
-
-        $totalCost = 0;
-        $totalQty = 0;
-
-        foreach ($validBatches as $batch) {
-            $conversionRate = ConversionHelper::getConversionRate($batch->unit_id, $this->unit_id);
-            if ($conversionRate === null) continue;
-
-            $qtyInStockUnit = $batch->unit_qty * $conversionRate;
-            $totalQty += $qtyInStockUnit;
-            $totalCost += $batch->cost;
-        }
-
-        $this->unit_qty = $totalQty;
-        $this->price_per_unit = $totalQty > 0 ? round($totalCost / $totalQty, 2) : 0;
-        $this->save();
+        static::updateStockValues($this->id);
+        $this->refresh();
     }
    // app/Models/Stock.php
 
@@ -139,42 +141,49 @@ public function availableUnits()
 
         $stock->save();
     }
+    /**
+     * @deprecated Use updateStockValues() instead.
+     */
     public static function updatePricePerUnit($stockId)
     {
-            $stock = Stock::find($stockId);
-            if (!$stock) return;
-        
-            $today = now();
-            $startDate = $today->copy()->subDays($stock->expired_duration ?? 0);
-        
-            $validBatches = $stock->batches()
-                ->whereDate('buy_date', '>=', $startDate)
-                ->whereDate('buy_date', '<=', $today)
-                ->get();
-        
-            $totalCost = 0;
-            $totalQty = 0;
-        
-            foreach ($validBatches as $batch) {
-                $conversionRate = ConversionHelper::getConversionRate($batch->unit_id, $stock->unit_id);
-                if ($conversionRate === null) continue;
-        
-                $qtyInStockUnit = $batch->unit_qty * $conversionRate;
-                $totalQty += $qtyInStockUnit;
-                $totalCost += $batch->cost;
-            }
-        
-            $stock->price_per_unit = $totalQty > 0 ? round($totalCost / $totalQty, 2) : 0;
-            $stock->save();
-        }
+        static::updateStockValues($stockId);
+    }
     public function getStatusAttribute()
-        {
-            if ($this->unit_qty === 0) {
-                return 'Out of Stock';
-            } elseif ($this->unit_qty < 10) {
-                return 'Low Stock';
-            } else {
-                return 'Ready';
-            }
+    {
+        $minStock = (float) ($this->min_stock ?? 0);
+        if ($this->unit_qty <= 0) {
+            return 'Out of Stock';
+        } elseif ($minStock > 0 && $this->unit_qty <= $minStock) {
+            return 'Low Stock';
+        } elseif ($minStock <= 0 && $this->unit_qty < 10) {
+            return 'Low Stock';
+        } else {
+            return 'Ready';
         }
+    }
+
+    /**
+     * Check if stock needs reorder.
+     */
+    public function getNeedsReorderAttribute(): bool
+    {
+        $reorder = (float) ($this->reorder_point ?? 0);
+        return $reorder > 0 && $this->unit_qty <= $reorder;
+    }
+
+    /**
+     * Inventory value = qty × HPP.
+     */
+    public function getInventoryValueAttribute(): float
+    {
+        return round((float) $this->unit_qty * (float) $this->price_per_unit, 2);
+    }
+
+    /**
+     * Scope: only active items.
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
+    }
 }

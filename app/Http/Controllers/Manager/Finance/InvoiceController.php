@@ -24,8 +24,12 @@ class InvoiceController extends Controller
 
     public function destroy($id)
     {
-        Invoice::where('order_id', $id)->delete();
-        Order::where('id', $id)->delete();
+        $order = Order::where('id', $id)
+            ->where('store_id', session('selected_store'))
+            ->firstOrFail();
+
+        Invoice::where('order_id', $order->id)->delete();
+        $order->delete();
 
         return redirect()->route('manager.finance.invoices.index')->with('success', 'Invoice berhasil dihapus.');
     }
@@ -100,7 +104,6 @@ class InvoiceController extends Controller
                     'quantity_bought' => $item->quantity_bought,
                 ];
             });
-            // dd($order);
 
         return view('handai-manager.finance.invoice.show', compact('order', 'items', 'selected_store'));
     }

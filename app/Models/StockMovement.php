@@ -38,6 +38,7 @@ class StockMovement extends Model
     const SALE_RETURN    = 'SALE_RETURN';
     const ADJUSTMENT     = 'ADJUSTMENT';
     const EXPIRED_OUT    = 'EXPIRED_OUT';
+    const WASTE_OUT      = 'WASTE_OUT';
     const RND_OUT        = 'RND_OUT';
 
     // ── Relationships ────────────────────────────────

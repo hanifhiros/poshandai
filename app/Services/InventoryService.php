@@ -41,7 +41,7 @@ class InventoryService
      * Record a purchase-in movement after a StockBatch is created and stock is recalculated.
      */
     public static function recordPurchaseIn(
-        int $storeId,
+        ?int $storeId,
         Stock $stock,
         StockBatch $batch,
         float $convertedQtyInStockUnit
@@ -397,7 +397,8 @@ class InventoryService
         ?int $productVariantId,
         float $quantityChange,
         ?int $unitId,
-        string $reason
+        string $reason,
+        float $costPerUnit = 0
     ): StockMovement {
         return StockMovement::create([
             'store_id'           => $storeId,
@@ -406,11 +407,69 @@ class InventoryService
             'movement_type'      => StockMovement::ADJUSTMENT,
             'quantity'           => $quantityChange,
             'unit_id'            => $unitId,
-            'cost_per_unit'      => null,
-            'total_cost'         => null,
-            'reference_type'     => null,
+            'cost_per_unit'      => $costPerUnit,
+            'total_cost'         => abs($quantityChange) * $costPerUnit,
+            'reference_type'     => 'stock_adjustment',
             'reference_id'       => null,
             'notes'              => "Adjustment: {$reason}",
+            'created_by'         => Auth::id(),
+        ]);
+    }
+
+    // ══════════════════════════════════════════════════════════
+    //  7. WASTE FLOW
+    //  Called when stock or product is wasted/expired
+    // ══════════════════════════════════════════════════════════
+
+    /**
+     * Record waste out for raw material stock.
+     */
+    public static function recordWasteStock(
+        int $storeId,
+        Stock $stock,
+        float $quantityInStockUnit,
+        int $wasteLogId,
+        string $reason = ''
+    ): StockMovement {
+        return StockMovement::create([
+            'store_id'           => $storeId,
+            'stock_id'           => $stock->id,
+            'product_variant_id' => null,
+            'movement_type'      => StockMovement::WASTE_OUT,
+            'quantity'           => -abs($quantityInStockUnit),
+            'unit_id'            => $stock->unit_id,
+            'cost_per_unit'      => $stock->price_per_unit,
+            'total_cost'         => $quantityInStockUnit * $stock->price_per_unit,
+            'reference_type'     => 'waste_log',
+            'reference_id'       => $wasteLogId,
+            'notes'              => "Waste: {$stock->name}" . ($reason ? " ({$reason})" : ''),
+            'created_by'         => Auth::id(),
+        ]);
+    }
+
+    /**
+     * Record waste out for finished product variant.
+     */
+    public static function recordWasteProduct(
+        int $storeId,
+        ProductVariants $variant,
+        float $quantity,
+        int $wasteLogId,
+        string $reason = ''
+    ): StockMovement {
+        $productName = $variant->product?->name ?? 'Product';
+        return StockMovement::create([
+            'store_id'           => $storeId,
+            'stock_id'           => null,
+            'product_variant_id' => $variant->id,
+            'movement_type'      => StockMovement::WASTE_OUT,
+            'quantity'           => -abs($quantity),
+            'unit_id'            => null,
+            'cost_per_unit'      => $variant->hpp ?? 0,
+            'total_cost'         => $quantity * ($variant->hpp ?? 0),
+            'reference_type'     => 'waste_log',
+            'reference_id'       => $wasteLogId,
+            'notes'              => "Waste: {$productName}" . ($reason ? " ({$reason})" : ''),
             'created_by'         => Auth::id(),
         ]);
     }
