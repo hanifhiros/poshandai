@@ -230,7 +230,7 @@
     class="flex items-center justify-between w-full px-4 py-2 rounded-md transition-colors text-sm font-medium
     {{ request()->is('manager/marketing/*') ? 'bg-green-600/10 text-green-800' : 'text-slate-600 hover:bg-slate-100' }}">
   <div class="flex items-center gap-2">
-    <i class="ti ti-package"></i>
+    <i class="ti ti-chart-pie"></i>
     <span x-show="open">Marketing</span>
   </div>
   <i class="ti ti-chevron-down transition-transform"
@@ -239,17 +239,56 @@
 
 
   <!-- Submenu -->
-  <div x-show="dropdowns.marketing" x-transition class="pl-12 mt-1 space-y-1 text-sm text-slate-600">
-      <a href="{{route('manager.marketing.customers.index')}}"
-        class="block text-sm px-4 py-1 rounded hover:text-green-600 
-        {{ request()->is('manager/marketing/customers') ? 'text-green-600 font-semibold' : '' }}">
-        Customer Database
-      </a>
+  <div x-show="dropdowns.marketing" x-transition class="pl-10 mt-1 space-y-0.5 text-sm text-slate-600">
 
-      <a href="{{route('manager.marketing.resellers.index')}}"
-      class="block text-sm px-4 py-1 rounded hover:text-green-600 
-      {{ request()->is('manager/marketing/resellers') ? 'text-green-600 font-semibold' : '' }}">
-      Resellers
+    {{-- ═══ DASHBOARD & ANALYTICS ═══ --}}
+    <p class="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 pt-2 pb-1 px-4" x-show="open">
+      <i class="ti ti-chart-bar text-xs"></i> Analytics
+    </p>
+
+    <a href="{{ route('manager.marketing.dashboard') }}"
+      class="flex items-center gap-2 px-4 py-1.5 rounded hover:bg-green-50/50 transition {{ request()->is('manager/marketing/dashboard') ? 'bg-green-50/50 text-green-700 font-semibold' : '' }}">
+      <i class="ti ti-dashboard text-base"></i> <span>Dashboard</span>
+    </a>
+
+    <a href="{{ route('manager.marketing.customer-analytics') }}"
+      class="flex items-center gap-2 px-4 py-1.5 rounded hover:bg-green-50/50 transition {{ request()->is('manager/marketing/customer-analytics') ? 'bg-green-50/50 text-green-700 font-semibold' : '' }}">
+      <i class="ti ti-users text-base"></i> <span>Customer Analytics</span>
+    </a>
+
+    <a href="{{ route('manager.marketing.retention') }}"
+      class="flex items-center gap-2 px-4 py-1.5 rounded hover:bg-green-50/50 transition {{ request()->is('manager/marketing/retention') ? 'bg-green-50/50 text-green-700 font-semibold' : '' }}">
+      <i class="ti ti-repeat text-base"></i> <span>Retention & Loyalty</span>
+    </a>
+
+    <a href="{{ route('manager.marketing.product-performance') }}"
+      class="flex items-center gap-2 px-4 py-1.5 rounded hover:bg-green-50/50 transition {{ request()->is('manager/marketing/product-performance') ? 'bg-green-50/50 text-green-700 font-semibold' : '' }}">
+      <i class="ti ti-shopping-bag text-base"></i> <span>Product Performance</span>
+    </a>
+
+    <a href="{{ route('manager.marketing.revenue-analytics') }}"
+      class="flex items-center gap-2 px-4 py-1.5 rounded hover:bg-green-50/50 transition {{ request()->is('manager/marketing/revenue-analytics') ? 'bg-green-50/50 text-green-700 font-semibold' : '' }}">
+      <i class="ti ti-coin text-base"></i> <span>Revenue Analytics</span>
+    </a>
+
+    <a href="{{ route('manager.marketing.campaign-analysis') }}"
+      class="flex items-center gap-2 px-4 py-1.5 rounded hover:bg-green-50/50 transition {{ request()->is('manager/marketing/campaign-analysis') ? 'bg-green-50/50 text-green-700 font-semibold' : '' }}">
+      <i class="ti ti-target text-base"></i> <span>Campaign & Promo</span>
+    </a>
+
+    {{-- ═══ DATABASE ═══ --}}
+    <p class="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 pt-3 pb-1 px-4" x-show="open">
+      <i class="ti ti-database text-xs"></i> Database
+    </p>
+
+    <a href="{{ route('manager.marketing.customers.index') }}"
+      class="flex items-center gap-2 px-4 py-1.5 rounded hover:bg-green-50/50 transition {{ request()->is('manager/marketing/customers') ? 'bg-green-50/50 text-green-700 font-semibold' : '' }}">
+      <i class="ti ti-address-book text-base"></i> <span>Customer Database</span>
+    </a>
+
+    <a href="{{ route('manager.marketing.resellers.index') }}"
+      class="flex items-center gap-2 px-4 py-1.5 rounded hover:bg-green-50/50 transition {{ request()->is('manager/marketing/resellers') ? 'bg-green-50/50 text-green-700 font-semibold' : '' }}">
+      <i class="ti ti-building-store text-base"></i> <span>Resellers</span>
     </a>
 
   </div>
