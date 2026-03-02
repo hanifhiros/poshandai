@@ -58,6 +58,7 @@ Route::post('/reseller/register', [\App\Http\Controllers\Public\ResellerRegister
 
 //PENGALIHAN Route
 Route::prefix('pos')->middleware(['web', 'auth'])->namespace('App\Http\Controllers\POS')->group(__DIR__ . '/web_pos.php');
-Route::prefix('manager')->middleware(['web', 'auth'])->namespace('App\Http\Controllers\Manager')->group(__DIR__ . '/web_manager.php');
+// manager routes use fully-qualified controller classes, no namespace prefix
+Route::prefix('manager')->middleware(['web', 'auth'])->group(__DIR__ . '/web_manager.php');
 Route::prefix('kasir')->middleware(['web', 'auth'])->namespace('App\Http\Controllers\Kasir')->group(__DIR__ . '/web_kasir.php');
 

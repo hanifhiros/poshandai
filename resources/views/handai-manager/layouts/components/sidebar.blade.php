@@ -246,50 +246,66 @@
       <i class="ti ti-chart-bar text-xs"></i> Analytics
     </p>
 
+    @if(Route::has('manager.marketing.dashboard'))
     <a href="{{ route('manager.marketing.dashboard') }}"
       class="flex items-center gap-2 px-4 py-1.5 rounded hover:bg-green-50/50 transition {{ request()->is('manager/marketing/dashboard') ? 'bg-green-50/50 text-green-700 font-semibold' : '' }}">
       <i class="ti ti-dashboard text-base"></i> <span>Dashboard</span>
     </a>
+    @endif
 
+    @if(Route::has('manager.marketing.customer-analytics'))
     <a href="{{ route('manager.marketing.customer-analytics') }}"
       class="flex items-center gap-2 px-4 py-1.5 rounded hover:bg-green-50/50 transition {{ request()->is('manager/marketing/customer-analytics') ? 'bg-green-50/50 text-green-700 font-semibold' : '' }}">
       <i class="ti ti-users text-base"></i> <span>Customer Analytics</span>
     </a>
+    @endif
 
+    @if(Route::has('manager.marketing.retention'))
     <a href="{{ route('manager.marketing.retention') }}"
       class="flex items-center gap-2 px-4 py-1.5 rounded hover:bg-green-50/50 transition {{ request()->is('manager/marketing/retention') ? 'bg-green-50/50 text-green-700 font-semibold' : '' }}">
       <i class="ti ti-repeat text-base"></i> <span>Retention & Loyalty</span>
     </a>
+    @endif
 
+    @if(Route::has('manager.marketing.product-performance'))
     <a href="{{ route('manager.marketing.product-performance') }}"
       class="flex items-center gap-2 px-4 py-1.5 rounded hover:bg-green-50/50 transition {{ request()->is('manager/marketing/product-performance') ? 'bg-green-50/50 text-green-700 font-semibold' : '' }}">
       <i class="ti ti-shopping-bag text-base"></i> <span>Product Performance</span>
     </a>
+    @endif
 
+    @if(Route::has('manager.marketing.revenue-analytics'))
     <a href="{{ route('manager.marketing.revenue-analytics') }}"
       class="flex items-center gap-2 px-4 py-1.5 rounded hover:bg-green-50/50 transition {{ request()->is('manager/marketing/revenue-analytics') ? 'bg-green-50/50 text-green-700 font-semibold' : '' }}">
       <i class="ti ti-coin text-base"></i> <span>Revenue Analytics</span>
     </a>
+    @endif
 
+    @if(Route::has('manager.marketing.campaign-analysis'))
     <a href="{{ route('manager.marketing.campaign-analysis') }}"
       class="flex items-center gap-2 px-4 py-1.5 rounded hover:bg-green-50/50 transition {{ request()->is('manager/marketing/campaign-analysis') ? 'bg-green-50/50 text-green-700 font-semibold' : '' }}">
       <i class="ti ti-target text-base"></i> <span>Campaign & Promo</span>
     </a>
+    @endif
 
     {{-- ═══ DATABASE ═══ --}}
     <p class="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 pt-3 pb-1 px-4" x-show="open">
       <i class="ti ti-database text-xs"></i> Database
     </p>
 
+    @if(Route::has('manager.marketing.customers.index'))
     <a href="{{ route('manager.marketing.customers.index') }}"
       class="flex items-center gap-2 px-4 py-1.5 rounded hover:bg-green-50/50 transition {{ request()->is('manager/marketing/customers') ? 'bg-green-50/50 text-green-700 font-semibold' : '' }}">
       <i class="ti ti-address-book text-base"></i> <span>Customer Database</span>
     </a>
+    @endif
 
+    @if(Route::has('manager.marketing.resellers.index'))
     <a href="{{ route('manager.marketing.resellers.index') }}"
       class="flex items-center gap-2 px-4 py-1.5 rounded hover:bg-green-50/50 transition {{ request()->is('manager/marketing/resellers') ? 'bg-green-50/50 text-green-700 font-semibold' : '' }}">
       <i class="ti ti-building-store text-base"></i> <span>Resellers</span>
     </a>
+    @endif
 
   </div>
   

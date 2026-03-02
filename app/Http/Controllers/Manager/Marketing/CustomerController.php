@@ -50,24 +50,17 @@ public function edit(Customer $customer)
     $selected_store = $selected_store_id ? Store::find($selected_store_id) : null;
     return view('handai-manager.marketing.customers.edit', compact('customer','selected_store'));
 }
-public function update(Request $request, Customer $customer)
+public function update(\App\Http\Requests\UpdateCustomerRequest $request, Customer $customer)
 {
-    $request->validate([
-        'name' => 'required|string|max:255',
-        'contact_number' => 'required|string|max:20',
-        'email' => 'nullable|email',
-        'address' => 'nullable|string|max:255',
-        'gender' => 'nullable|in:Laki-laki,Perempuan',
-    ]);
+    $this->authorize('update', $customer);
 
     $customer->update(array_merge(
-        $request->only(['name', 'contact_number', 'email', 'address', 'gender']),
+        $request->validated(),
         [
             'store_id' => $customer->store_id ?? session('store_id'),
             'created_by' => $customer->created_by ?? session('global_id'),
         ]
     ));
-    
 
     return redirect()->route('manager.marketing.customers.index')->with('success', 'Customer updated successfully.');
 }
@@ -85,23 +78,18 @@ public function update(Request $request, Customer $customer)
         return view('handai-manager.marketing.customers.create',compact('selected_store'));
     }
 
-    public function store(Request $request)
+    public function store(\App\Http\Requests\StoreCustomerRequest $request)
 {
-    $request->validate([
-        'name' => 'required|string|max:255',
-        'contact_number' => 'required|string|max:20',
-        'email' => 'nullable|email',
-        'address' => 'nullable|string|max:255',
-    ]);
+    $this->authorize('create', Customer::class);
+
     $user = auth()->user();
-    Customer::create([
-        'name' => $request->name,
-        'contact_number' => $request->contact_number,
-        'email' => $request->email,
-        'address' => $request->address,
-        'store_id' => session('selected_store'),       // ambil dari toko aktif saat ini
-        'created_by' => session('global_id')? session('global_id') : $user->created_by,    // ambil dari user yang login (superadmin / manager)
-    ]);
+    Customer::create(array_merge(
+        $request->validated(),
+        [
+            'store_id' => session('selected_store'),
+            'created_by' => session('global_id') ?? $user->created_by,
+        ]
+    ));
 
     return redirect()->route('manager.marketing.customers.index')->with('success', 'Customer added successfully.');
 }

@@ -499,15 +499,65 @@
                     <h2 class="text-2xl font-bold text-gray-800 mb-1">Pesanan Berhasil!</h2>
                     <p class="text-gray-500 mb-6">Transaksi telah diproses</p>
 
-                    {{-- Order info cards --}}
-                    <div class="grid grid-cols-2 gap-4 mb-6 text-left">
-                        <div class="bg-gray-50 rounded-lg p-4">
-                            <p class="text-xs text-gray-400 mb-1">Nomor Order</p>
-                            <p class="font-bold text-lg text-green-700">#<span x-text="orderId"></span></p>
+                    {{-- Top info grid --}}
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6 text-left">
+                        <div class="bg-gray-50 rounded-lg p-4 flex items-start gap-2">
+                            <i class="ti ti-file-invoice text-green-600 text-xl"></i>
+                            <div>
+                                <p class="text-xs text-gray-400">Invoice</p>
+                                <p class="font-bold text-lg text-green-700">#<span x-text="orderId"></span></p>
+                            </div>
                         </div>
-                        <div class="bg-gray-50 rounded-lg p-4">
-                            <p class="text-xs text-gray-400 mb-1">Total Pembayaran</p>
-                            <p class="font-bold text-lg" x-text="'Rp' + Number(grossAmount).toLocaleString('id-ID')"></p>
+                        <div class="bg-gray-50 rounded-lg p-4 flex items-start gap-2">
+                            <i class="ti ti-user text-green-600 text-xl"></i>
+                            <div>
+                                <p class="text-xs text-gray-400">Customer</p>
+                                <p class="font-bold text-lg" x-text="customerDisplayName"></p>
+                            </div>
+                        </div>
+                        <div class="bg-gray-50 rounded-lg p-4 flex items-start gap-2">
+                            <i class="ti ti-calendar text-green-600 text-xl"></i>
+                            <div>
+                                <p class="text-xs text-gray-400">Tanggal</p>
+                                <p class="font-bold text-lg" x-text="formattedDate"></p>
+                            </div>
+                        </div>
+                        <div class="bg-gray-50 rounded-lg p-4 flex items-start gap-2">
+                            <i class="ti ti-clock text-green-600 text-xl"></i>
+                            <div>
+                                <p class="text-xs text-gray-400">Waktu</p>
+                                <p class="font-bold text-lg" x-text="formattedTime"></p>
+                            </div>
+                        </div>
+                        <div class="bg-gray-50 rounded-lg p-4 flex items-start gap-2">
+                            <i class="ti ti-user-check text-green-600 text-xl"></i>
+                            <div>
+                                <p class="text-xs text-gray-400">Dilayani oleh</p>
+                                <p class="font-bold text-lg" x-text="cashierName"></p>
+                            </div>
+                        </div>
+                        <div class="bg-gray-50 rounded-lg p-4 flex items-start gap-2">
+                            <i class="ti ti-wallet text-green-600 text-xl"></i>
+                            <div>
+                                <p class="text-xs text-gray-400">Metode Bayar</p>
+                                <p class="font-bold text-lg" x-text="paymentMethodLabel"></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Totals breakdown --}}
+                    <div class="bg-gray-50 rounded-lg p-4 mb-6 text-left max-w-md mx-auto">
+                        <div class="flex justify-between">
+                            <span>Total</span>
+                            <span class="font-bold" x-text="'Rp' + Number(grossAmount).toLocaleString('id-ID')"></span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Dibayar</span>
+                            <span class="font-bold" x-text="'Rp' + Number(cashReceived || grandTotal).toLocaleString('id-ID')"></span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Kembalian</span>
+                            <span class="font-bold text-green-700" x-text="'Rp' + changeAmount.toLocaleString('id-ID')"></span>
                         </div>
                     </div>
 
@@ -536,7 +586,11 @@
                             class="btn btn-outline btn-success gap-2 px-6">
                             <i class="ti ti-printer"></i> Cetak Struk
                         </a>
-                        <a href="{{ route('pos.startorder') }}"
+                        <a :href="'/pos/invoice/print/' + orderId" target="_blank"
+                            class="btn btn-outline gap-2 px-6">
+                            <i class="ti ti-eye"></i> Lihat Detail
+                        </a>
+                        <a href="{{ route('pos.dashboard') }}"
                             class="btn bg-green-600 hover:bg-green-700 text-white gap-2 px-6">
                             <i class="ti ti-plus"></i> Order Baru
                         </a>
@@ -663,6 +717,9 @@ document.addEventListener('alpine:init', () => {
         orderId: '',
         grossAmount: 0,
         orderItems: [],
+        customerDisplayName: '',
+        cashierName: '{{ auth()->user()->name ?? "Kasir Tidak Diketahui" }}',
+        transactionDate: null, // ISO string
 
         // Confirmation modal
         showConfirmModal: false,
@@ -692,6 +749,24 @@ document.addEventListener('alpine:init', () => {
                 return this.cashReceived >= this.grandTotal;
             }
             return true; // non-tunai always ok
+        },
+        get formattedDate() {
+            if (!this.transactionDate) return '';
+            const d = new Date(this.transactionDate);
+            return d.toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
+        },
+        get formattedTime() {
+            if (!this.transactionDate) return '';
+            const d = new Date(this.transactionDate);
+            return d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+        },
+        get paymentMethodLabel() {
+            const map = {
+                tunai: 'Tunai',
+                non_tunai: 'Non tunai',
+                campuran: 'Campuran',
+            };
+            return map[this.paymentMethod] || this.paymentMethod;
         },
 
         // ---- Lifecycle ----
@@ -825,6 +900,10 @@ document.addEventListener('alpine:init', () => {
                     this.orderId = data.order_id;
                     this.grossAmount = data.gross_amount;
                     this.orderItems = [...this.cartItems];
+                    this.customerDisplayName = data.customer_name || 'Customer Umum';
+                    this.transactionDate = data.created_at || new Date().toISOString();
+                    // cashierName already pre-populated from blade
+                    this.paymentMethod = data.payment_method || this.paymentMethod;
                     this.showConfirmModal = false;
                     this.step = 3;
                 } else {
@@ -855,6 +934,9 @@ document.addEventListener('alpine:init', () => {
                         this.orderId = data.order_id;
                         this.grossAmount = data.gross_amount;
                         this.orderItems = [...this.cartItems];
+                        this.customerDisplayName = data.customer_name || 'Customer Umum';
+                        this.transactionDate = data.created_at || new Date().toISOString();
+                        this.cashierName = data.cashier_name || this.cashierName;
                         this.step = 3;
                         fetch('{{ route("cart.clear") }}', { method: 'POST', headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' } });
                     },

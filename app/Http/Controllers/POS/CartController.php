@@ -339,6 +339,7 @@ class CartController extends Controller
                 'order_status' => 'terkirim',
                 'description' => 'Order via self kiosk',
                 'gross_amount' => $grossAmount,
+                'seller_id' => auth()->id(),
             ]);
 
             $orderId = 'ORD-' . $order->id . '-' . time();
@@ -365,10 +366,15 @@ class CartController extends Controller
             return $order;
         });
 
+        $order->load(['customer']);
+
         return response()->json([
             'snap_token' => $order->snap_token,
             'order_id' => $order->order_id,
-            'gross_amount' => $order->gross_amount
+            'gross_amount' => $order->gross_amount,
+            'created_at' => optional($order->created_at)->toIso8601String(),
+            'cashier_name' => optional(auth()->user())->name,
+            'customer_name' => $order->customer->name ?? null,
         ]);
     }
 
@@ -475,6 +481,7 @@ class CartController extends Controller
                 'gross_amount' => $grossAmount,
                 'payment_type' => $request->payment_method,
                 'store_id' => session('selected_store'),
+                'seller_id' => auth()->id(), // record kasir/user who handled this
                 'pajak' => $pajak,
                 'ongkos_kirim' => $ongkosKirim,
                 'kemasan' => $kemasan,
@@ -534,10 +541,25 @@ class CartController extends Controller
 
             session()->forget(['cart', 'promo_code', 'promo_discount']);
 
+            // reload relations to ensure we have fresh data
+            $order->load(['customer']);
+
+            // decide what customer name to send back
+            $displayName = 'Customer Umum';
+            if ($customerId && $order->customer) {
+                $displayName = $order->customer->name;
+            } elseif ($request->customer_name) {
+                $displayName = $request->customer_name;
+            }
+
             return response()->json([
                 'success' => true,
                 'order_id' => $order->id,
                 'gross_amount' => $grossAmount,
+                'created_at' => optional($order->created_at)->toIso8601String(),
+                'customer_name' => $displayName,
+                'cashier_name' => optional(auth()->user())->name,
+                'payment_method' => $order->payment_type,
             ]);
         } catch (\Exception $e) {
             DB::rollBack();

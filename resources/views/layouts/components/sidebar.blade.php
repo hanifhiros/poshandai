@@ -32,7 +32,7 @@
 
     <!-- ISI SIDEBAR -->
     <div class="flex-1 overflow-y-auto space-y-1 p-3">
-      <button type="button" @click="selected = 'Dashboard'" :class="selected === 'Dashboard' ? 'bg-green-600/10 text-green-800' : 'text-slate-500 hover:bg-slate-100'"
+      <button type="button" @click="selected = 'Dashboard'" :class="selected === 'Dashboard' ? 'bg-green-100 text-green-800 border-l-4 border-green-600' : 'text-slate-500 hover:bg-slate-100'"
         class="relative flex h-10 w-full items-center rounded-md transition-colors">
         <div class="grid h-full w-16 place-content-center ">
           <!-- Ganti icon berdasarkan state 'selected' -->

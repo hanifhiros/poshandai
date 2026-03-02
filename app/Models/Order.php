@@ -9,6 +9,30 @@ class Order extends Model
 {
     use HasFactory;
 
+    /**
+     * Scope to restrict to a given store id.
+     */
+    public function scopeForStore($query, int $storeId)
+    {
+        return $query->where('store_id', $storeId);
+    }
+
+    /**
+     * Scope between two dates (inclusive).
+     */
+    public function scopeBetween($query, $start, $end)
+    {
+        return $query->whereBetween('created_at', [$start, $end]);
+    }
+
+    /**
+     * Example completed orders scope (assuming status field).
+     */
+    public function scopeCompleted($query)
+    {
+        return $query->where('order_status', '!=', 'cancelled');
+    }
+
     protected $table = 'orders';
 
     protected $casts = [
@@ -78,6 +102,11 @@ public function invoices() {
     public function store()
     {
         return $this->belongsTo(Store::class);
+    }
+
+    public function seller()
+    {
+        return $this->belongsTo(\App\Models\User::class, 'seller_id');
     }
 
     public function reseller()

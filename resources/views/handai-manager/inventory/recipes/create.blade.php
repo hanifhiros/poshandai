@@ -89,10 +89,16 @@
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 mb-4">
             <div class="flex items-center justify-between mb-4">
                 <h2 class="text-[13px] font-semibold text-gray-700">Daftar Bahan</h2>
-                <button type="button" id="add-ingredient" class="h-7 px-3 inline-flex items-center gap-1 text-[11px] font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-md transition">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
-                    Tambah Bahan
-                </button>
+                <div class="flex gap-2">
+                    <button type="button" id="add-ingredient" class="h-7 px-3 inline-flex items-center gap-1 text-[11px] font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-md transition">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+                        Tambah Bahan
+                    </button>
+                    <button type="button" id="open-new-stock" class="h-7 px-3 inline-flex items-center gap-1 text-[11px] font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-md transition">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+                        Bahan Baru
+                    </button>
+                </div>
             </div>
 
             {{-- Column Headers --}}
@@ -112,7 +118,7 @@
                         @endforeach
                     </select>
                     <input type="number" name="ingredients[0][quantity]" placeholder="0" class="rcp-input text-center" step="0.01" required>
-                    <select class="unit-dropdown rcp-select" name="ingredients[0][unit_id]">
+                    <select class="unit-dropdown rcp-select" name="ingredients[0][unit_id]" required>
                         <option value="">-- Satuan --</option>
                         @foreach ($units as $unit)
                             <option value="{{ $unit->id }}" data-unit-type="{{ $unit->unit_type }}">{{ $unit->symbol }} ({{ $unit->name }})</option>
@@ -125,7 +131,43 @@
             </div>
         </div>
 
-        {{-- Submit --}}
+        {{-- new stock modal --}}
+    <div id="new-stock-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-30 hidden">
+        <div class="bg-white rounded-lg p-6 w-full max-w-md">
+            <h3 class="text-lg font-semibold mb-4">Tambah Bahan Baru</h3>
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-sm font-medium mb-1">Nama Bahan</label>
+                    <input type="text" id="new-stock-name" class="w-full border rounded p-2" />
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">Satuan</label>
+                    <select id="new-stock-unit" class="w-full border rounded p-2">
+                        <option value="">-- Pilih Satuan --</option>
+                        @foreach ($units as $unit)
+                            <option value="{{ $unit->id }}" data-unit-type="{{ $unit->unit_type }}">{{ $unit->symbol }} ({{ $unit->name }})</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">Kategori</label>
+                    <select id="new-stock-category" class="w-full border rounded p-2">
+                        <option value="">-- Pilih Kategori --</option>
+                        @foreach(\App\Models\StockCategory::orderBy('name')->get() as $cat)
+                            <option value="{{ $cat->id }}">{{ $cat->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+            <div class="mt-6 flex justify-end gap-2">
+                <button type="button" id="cancel-new-stock" class="px-4 py-2 bg-gray-200 rounded">Batal</button>
+                <button type="button" id="save-new-stock" class="px-4 py-2 bg-blue-600 text-white rounded">Simpan</button>
+            </div>
+            <p id="new-stock-error" class="text-sm text-red-600 mt-2"></p>
+        </div>
+    </div>
+
+    {{-- Submit --}}
         <div class="flex justify-end">
             <button type="submit" class="h-9 px-5 inline-flex items-center gap-1.5 text-[13px] font-medium text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg transition shadow-sm">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
@@ -140,6 +182,9 @@
 <script>
     const variantOptions = @json($sizePricesByProduct);
 
+    // keep a local copy of stock items for quick-add
+    let stocksData = @json($stocks->map(fn($s)=>['id'=>$s->id,'name'=>$s->name,'unit_type'=>$s->unit->unit_type ?? '']));
+
     document.getElementById('product_id').addEventListener('change', function () {
         const productId = this.value;
         const variantSelect = document.getElementById('product_variant_id');
@@ -147,8 +192,27 @@
 
         if (variantOptions[productId]) {
             variantOptions[productId].forEach(function (variant) {
-                variantSelect.innerHTML += `<option value="${variant.id}">${variant.size}</option>`;
+                variantSelect.innerHTML += `<option value="${variant.id}" data-size="${variant.size}">${variant.size}</option>`;
             });
+        }
+    });
+
+    // scale quantities when variant size changes
+    let prevVariantSize = null;
+    document.getElementById('product_variant_id').addEventListener('change', function () {
+        const text = this.selectedOptions[0]?.getAttribute('data-size') || '';
+        const match = text.match(/(\d+\.?\d*)/);
+        const newSize = match ? parseFloat(match[1]) : null;
+        if (newSize) {
+            if (prevVariantSize) {
+                const factor = newSize / prevVariantSize;
+                document.querySelectorAll('input[name$="[quantity]"]').forEach(inp => {
+                    const base = parseFloat(inp.dataset.base || inp.value || 0);
+                    inp.dataset.base = base;
+                    inp.value = (base * factor).toFixed(2);
+                });
+            }
+            prevVariantSize = newSize;
         }
     });
 
@@ -161,12 +225,10 @@
         row.innerHTML = `
     <select class="stock-dropdown rcp-select" name="ingredients[${ingredientIndex}][stock_id]" data-index="${ingredientIndex}" required>
         <option value="">-- Pilih Bahan --</option>
-        @foreach ($stocks as $stock)
-            <option value="{{ $stock->id }}" data-unit-type="{{ $stock->unit->unit_type ?? '' }}">{{ $stock->name }}</option>
-        @endforeach
+        ${stocksData.map(s=>`<option value="${s.id}" data-unit-type="${s.unit_type}">${s.name}</option>`).join('')}
     </select>
-    <input type="number" name="ingredients[${ingredientIndex}][quantity]" placeholder="0" class="rcp-input text-center" step="0.01" required>
-    <select class="unit-dropdown rcp-select" name="ingredients[${ingredientIndex}][unit_id]">
+    <input type="number" name="ingredients[${ingredientIndex}][quantity]" placeholder="0" class="rcp-input text-center" step="0.01" data-base="0" required>
+    <select class="unit-dropdown rcp-select" name="ingredients[${ingredientIndex}][unit_id]" required>
         <option value="">-- Satuan --</option>
         @foreach ($units as $unit)
             <option value="{{ $unit->id }}" data-unit-type="{{ $unit->unit_type }}">{{ $unit->symbol }} ({{ $unit->name }})</option>
@@ -206,6 +268,87 @@
             if (unitSelect && unitType) {
                 filterUnitsByType(unitSelect, unitType);
             }
+        }
+    });
+
+    // ---------- quick create stock modal ----------
+
+    // client-side check before submitting to avoid missing unit errors
+    document.querySelector('form').addEventListener('submit', function(e) {
+        let valid = true;
+        document.querySelectorAll('.ingredient-row').forEach(row => {
+            const unit = row.querySelector('.unit-dropdown');
+            if (unit && !unit.value) {
+                valid = false;
+                unit.classList.add('border-red-500');
+            }
+        });
+        if (!valid) {
+            e.preventDefault();
+            alert('Semua bahan harus memiliki satuan. Silakan lengkapi.');
+        }
+    });
+    const newStockModal = document.getElementById('new-stock-modal');
+    document.getElementById('open-new-stock').addEventListener('click', () => {
+        newStockModal.classList.remove('hidden');
+    });
+    document.getElementById('cancel-new-stock').addEventListener('click', () => {
+        newStockModal.classList.add('hidden');
+        document.getElementById('new-stock-error').textContent = '';
+    });
+
+    let lastStockDropdown = null;
+    document.addEventListener('focusin', function(e){
+        if (e.target.matches('.stock-dropdown')) {
+            lastStockDropdown = e.target;
+        }
+    });
+
+    document.getElementById('save-new-stock').addEventListener('click', async () => {
+        const name = document.getElementById('new-stock-name').value.trim();
+        const unitId = document.getElementById('new-stock-unit').value;
+        const categoryId = document.getElementById('new-stock-category').value;
+        const errorEl = document.getElementById('new-stock-error');
+        errorEl.textContent = '';
+        if (!name) { errorEl.textContent = 'Nama bahan harus diisi.'; return; }
+        if (!unitId) { errorEl.textContent = 'Satuan harus dipilih.'; return; }
+        if (!categoryId) { errorEl.textContent = 'Kategori harus dipilih.'; return; }
+        try {
+            const resp = await fetch('{{ route("manager.inventory.stock.quick-create") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json',
+                },
+                body: JSON.stringify({ name, unit_id: unitId, stock_category_id: categoryId })
+            });
+            const data = await resp.json();
+            if (!resp.ok) {
+                errorEl.textContent = data.message || 'Gagal menyimpan.';
+                return;
+            }
+            if (data.success && data.stock) {
+                const stock = data.stock;
+                stocksData.push({ id: stock.id, name: stock.name, unit_type: stock.unit_type || '' });
+                document.querySelectorAll('.stock-dropdown').forEach(sel => {
+                    const opt = document.createElement('option');
+                    opt.value = stock.id;
+                    opt.textContent = stock.name;
+                    opt.setAttribute('data-unit-type', stock.unit_type || '');
+                    sel.appendChild(opt);
+                });
+                if (lastStockDropdown) {
+                    lastStockDropdown.value = stock.id;
+                    lastStockDropdown.dispatchEvent(new Event('change'));
+                }
+                newStockModal.classList.add('hidden');
+                document.getElementById('new-stock-name').value = '';
+                document.getElementById('new-stock-unit').value = '';
+                document.getElementById('new-stock-category').value = '';
+            }
+        } catch (err) {
+            errorEl.textContent = 'Error: ' + err.message;
         }
     });
 </script>

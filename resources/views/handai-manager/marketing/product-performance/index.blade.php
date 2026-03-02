@@ -229,7 +229,7 @@
                 <div class="flex items-center gap-3 p-2 rounded-lg hover:bg-slate-50 transition-colors">
                     <span class="pp-rank" style="background:{{ $rs['bg'] }};color:{{ $rs['color'] }};">{{ $i + 1 }}</span>
                     <span class="flex-1 text-sm font-medium truncate" style="color:var(--text-primary, #0f172a);">{{ $item->name ?? '-' }}</span>
-                    <span class="pp-badge pp-badge-green">{{ number_format($item->margin_pct ?? 0, 1, ',', '.') }}%</span>
+                    <span class="pp-badge pp-badge-green">{{ number_format($item->gross_margin ?? 0, 1, ',', '.') }}%</span>
                 </div>
                 @empty
                 <p class="text-center text-slate-400 py-6 text-sm">Belum ada data</p>
@@ -245,7 +245,7 @@
                 <div class="flex items-center gap-3 p-2 rounded-lg hover:bg-red-50/50 transition-colors">
                     <span class="pp-rank" style="background:#fef2f2;color:#dc2626;">{{ $i + 1 }}</span>
                     <span class="flex-1 text-sm font-medium truncate" style="color:var(--text-primary, #0f172a);">{{ $item->name ?? '-' }}</span>
-                    <span class="pp-badge pp-badge-red">{{ number_format($item->margin_pct ?? 0, 1, ',', '.') }}%</span>
+                    <span class="pp-badge pp-badge-red">{{ number_format($item->gross_margin ?? 0, 1, ',', '.') }}%</span>
                 </div>
                 @empty
                 <p class="text-center text-slate-400 py-6 text-sm">Belum ada data</p>
@@ -262,7 +262,7 @@
                 <div class="flex items-center gap-3 p-2 rounded-lg hover:bg-slate-50 transition-colors">
                     <span class="pp-rank" style="background:{{ $rs['bg'] }};color:{{ $rs['color'] }};">{{ $i + 1 }}</span>
                     <span class="flex-1 text-sm font-medium truncate" style="color:var(--text-primary, #0f172a);">{{ $item->name ?? '-' }}</span>
-                    <span class="text-xs font-semibold" style="color:#7c3aed;">{{ number_format($item->repeat_buyers ?? 0, 0, ',', '.') }} buyers</span>
+                    <span class="text-xs font-semibold" style="color:#7c3aed;">{{ number_format($item->repeat_buyer_count ?? 0, 0, ',', '.') }} buyers</span>
                 </div>
                 @empty
                 <p class="text-center text-slate-400 py-6 text-sm">Belum ada data</p>

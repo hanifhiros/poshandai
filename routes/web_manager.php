@@ -159,24 +159,14 @@ Route::middleware(['web', 'auth', 'cekrole:Manager'])->group(function () {
         Route::get('/revenue-analytics', [MarketingDashboardController::class, 'revenueAnalytics'])->name('revenue-analytics');
         Route::get('/campaign-analysis', [MarketingDashboardController::class, 'campaignAnalysis'])->name('campaign-analysis');
 
-        Route::get('/customers', [CustomerController::class, 'index'])->name('customers.index');
-        Route::get('/customers/create', [CustomerController::class, 'create'])->name('customers.create');
-        Route::post('/customers', [CustomerController::class, 'store'])->name('customers.store');
-        
-        // Tambahkan ini:
-        Route::get('/customers/{customer}/edit', [CustomerController::class, 'edit'])->name('customers.edit');
-        Route::put('/customers/{customer}', [CustomerController::class, 'update'])->name('customers.update');
-        Route::delete('/customers/{customer}', [CustomerController::class, 'destroy'])->name('customers.destroy');
+        // customer management
+        // resource routes will be named customers.* and prefixed by manager.marketing.
+        Route::resource('customers', CustomerController::class)->except(['show']);
 
 
         // web.php
-        // RESLLER MANAGEMENT (Marketing > Resellers)
-        Route::get('/resellers', [ResellerController::class, 'index'])->name('resellers.index'); // daftar reseller
-        Route::get('/resellers/create', [ResellerController::class, 'create'])->name('resellers.create'); // form tambah baru
-        Route::post('/resellers', [ResellerController::class, 'store'])->name('resellers.store'); // simpan reseller baru
-        Route::get('/resellers/{reseller}/edit', [ResellerController::class, 'edit'])->name('resellers.edit'); // edit
-        Route::put('/resellers/{reseller}', [ResellerController::class, 'update'])->name('resellers.update'); // update
-        Route::delete('/resellers/{reseller}', [ResellerController::class, 'destroy'])->name('resellers.destroy'); // hapus
+        // reseller management
+        Route::resource('resellers', ResellerController::class)->except(['show']);
 
         // Jika ingin reseller yang sudah ada ditambahkan ke store saat ini
         // Route::get('/resellers/attach', [ResellerController::class, 'attachForm'])->name('resellers.attach.form'); // halaman pilih reseller yang sudah ada

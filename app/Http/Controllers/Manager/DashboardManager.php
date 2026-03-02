@@ -340,15 +340,15 @@ class DashboardManager extends Controller
             $produkTerlarisSemua = $this->getTopSellingProducts($store_id);
 
             // ═══════════════════════════════════════════
-            // MARKETING DATA
+            // MARKETING DATA (using registered customers table)
             // ═══════════════════════════════════════════
-            $totalCustomers = CustomerStore::where('store_id', $store_id)->count();
-            $newCustomersMonth = CustomerStore::where('store_id', $store_id)
-                ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
-                ->count();
-            $lastMonthNewCustomers = CustomerStore::where('store_id', $store_id)
-                ->whereBetween('created_at', [$lastMonthStart, $lastMonthSameDay])
-                ->count();
+            // total number of customer records we have in the system
+            $totalCustomers = Customer::count();
+
+            // customers created this month / last-month-same-window
+            $newCustomersMonth = Customer::whereBetween('created_at', [$startOfMonth, $endOfMonth])->count();
+            $lastMonthNewCustomers = Customer::whereBetween('created_at', [$lastMonthStart, $lastMonthSameDay])->count();
+
             $newCustomerGrowth = $lastMonthNewCustomers > 0
                 ? round((($newCustomersMonth - $lastMonthNewCustomers) / $lastMonthNewCustomers) * 100, 1)
                 : ($newCustomersMonth > 0 ? 100 : 0);

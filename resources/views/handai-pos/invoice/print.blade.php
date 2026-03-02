@@ -41,21 +41,6 @@
                 @if($order->payment_type)
                     <p><strong>Pembayaran:</strong> {{ ucfirst($order->payment_type) }}</p>
                 @endif
-            </div>
-        </div>
-
-        <hr class="border-gray-300 mb-4">
-
-        {{-- Item Table --}}
-        <table class="w-full text-sm border border-collapse mb-6">
-            <thead class="bg-gray-100 text-gray-800 font-semibold">
-                <tr>
-                    <th class="border p-2 text-left">Produk</th>
-                    <th class="border p-2 text-center">Qty</th>
-                    <th class="border p-2 text-right">Harga</th>
-                    <th class="border p-2 text-right">Total</th>
-                </tr>
-            </thead>
             <tbody>
                 @foreach ($items as $item)
                     @php

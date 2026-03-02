@@ -10,7 +10,7 @@ class InvoiceController extends Controller
 {
     public function print($orderId)
     {
-        $order = Order::with('customer')->findOrFail($orderId);
+        $order = Order::with(['customer','seller'])->findOrFail($orderId);
 
         $items = Invoice::with(['product', 'variant'])
             ->where('order_id', $orderId)

@@ -28,7 +28,8 @@ class ResellerController extends Controller
         $search = $request->input('search');
     
         $resellersQuery = Reseller::whereHas('stores', function ($q) use ($storeId) {
-            $q->where('store_id', $storeId);
+            // qualify the pivot column to avoid ambiguity with store.store_id
+            $q->where('reseller_store.store_id', $storeId);
         })
         ->with(['resellerStores' => function ($q) use ($storeId) {
             $q->where('store_id', $storeId);
@@ -53,7 +54,7 @@ class ResellerController extends Controller
     
         // Untuk dropdown form "Tambah Reseller ke Toko"
         $allResellers = Reseller::whereHas('stores', function ($q) use ($storeId) {
-            $q->where('store_id', $storeId);
+            $q->where('reseller_store.store_id', $storeId);
         })->get();
         return view('handai-manager.marketing.resellers.index', compact(
             'resellers',
@@ -66,12 +67,16 @@ class ResellerController extends Controller
 
     public function create()
 {
-    $stores = auth()->user()->accessibleStores();; // hanya toko yang dimiliki user manager
-    $allResellers = Reseller::whereDoesntHave('stores', function ($q) use ($selected_store_id) {
-        $q->where('store_id', $selected_store_id);
-    })->get(); // hanya reseller yang belum terdaftar di store ini
+    $stores = auth()->user()->accessibleStores(); // hanya toko yang dimiliki user manager
+
     $selected_store_id = session('selected_store');
-     // 💡 pakai method tadi
+
+    $allResellers = Reseller::whereDoesntHave('stores', function ($q) use ($selected_store_id) {
+        // qualify pivot column to avoid ambiguity
+        $q->where('reseller_store.store_id', $selected_store_id);
+    })->get(); // hanya reseller yang belum terdaftar di store ini
+
+    // 💡 pakai method tadi
     $selected_store = $selected_store_id ? Store::find($selected_store_id) : null;
     return view('handai-manager.marketing.resellers.create', compact('stores', 'allResellers','selected_store'));
 }

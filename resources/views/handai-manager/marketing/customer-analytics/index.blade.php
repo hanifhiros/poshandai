@@ -285,10 +285,10 @@
                     <tbody>
                         @forelse(($customerList ?? collect()) as $i => $c)
                         @php
-                            $cId = $c->id ?? ($c['id'] ?? null);
+                            $cId = $c->id;
                             $isVip = in_array($cId, $highValueIds);
-                            $segment = strtolower($c->segment ?? $c['segment'] ?? '');
-                            $segmentLabel = $c->segment ?? $c['segment'] ?? '-';
+                            $segment = strtolower($c->segment ?? '');
+                            $segmentLabel = $c->segment ?? '-';
                             $segmentClass = match(true) {
                                 str_contains($segment, 'loyal') => 'ca-badge-loyal',
                                 str_contains($segment, 'regular') => 'ca-badge-regular',
@@ -303,17 +303,17 @@
                         <tr>
                             <td class="text-slate-400">{{ $rowNumber }}</td>
                             <td class="font-medium">
-                                {{ $c->name ?? $c['name'] ?? '-' }}
+                                {{ $c->name ?? '-' }}
                                 @if($isVip)
                                     <span class="ca-badge-vip ml-1"><i class="ti ti-star-filled text-xs"></i>VIP</span>
                                 @endif
                             </td>
-                            <td class="text-slate-500">{{ $c->email ?? $c['email'] ?? '-' }}</td>
-                            <td class="text-right font-semibold">{{ number_format($c->total_orders ?? $c['total_orders'] ?? 0, 0, ',', '.') }}</td>
-                            <td class="text-right font-semibold" style="color:#0C9044;">Rp {{ number_format($c->total_spent ?? $c['total_spent'] ?? 0, 0, ',', '.') }}</td>
+                            <td class="text-slate-500">{{ $c->email ?? '-' }}</td>
+                            <td class="text-right font-semibold">{{ number_format($c->total_orders ?? 0, 0, ',', '.') }}</td>
+                            <td class="text-right font-semibold" style="color:#0C9044;">Rp {{ number_format($c->total_spent ?? 0, 0, ',', '.') }}</td>
                             <td class="text-slate-500">
-                                @if($c->last_order_date ?? $c['last_order_date'] ?? null)
-                                    {{ \Carbon\Carbon::parse($c->last_order_date ?? $c['last_order_date'])->format('d M Y') }}
+                                @if(!empty($c->last_order_date))
+                                    {{ \Carbon\Carbon::parse($c->last_order_date)->format('d M Y') }}
                                 @else
                                     -
                                 @endif
@@ -450,8 +450,9 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // --- Frequency Segment Donut ---
-    const freqLabels = @json(($frequencySegments ?? collect())->pluck('segment_label'));
-    const freqData   = @json(($frequencySegments ?? collect())->pluck('count'));
+    {{-- frequencySegments is an associative array, convert to collection before extracting keys/values --}}
+    const freqLabels = @json(collect($frequencySegments ?? [])->keys());
+    const freqData   = @json(collect($frequencySegments ?? [])->values());
 
     if (freqLabels.length > 0) {
         const freqChart = new Chart(document.getElementById('chartFreqSegment'), {
@@ -489,8 +490,9 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // --- Spend Segment Donut ---
-    const spendLabels = @json(($spendSegments ?? collect())->pluck('segment_label'));
-    const spendData   = @json(($spendSegments ?? collect())->pluck('count'));
+    {{-- spendSegments also associative; use keys/values for labels and data --}}
+    const spendLabels = @json(collect($spendSegments ?? [])->keys());
+    const spendData   = @json(collect($spendSegments ?? [])->values());
 
     if (spendLabels.length > 0) {
         const spendChart = new Chart(document.getElementById('chartSpendSegment'), {

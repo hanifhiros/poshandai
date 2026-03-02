@@ -348,9 +348,9 @@
                                 {{ $i + 1 }}
                             </span>
                         </td>
-                        <td class="font-medium">{{ $p->name ?? $p['name'] ?? '-' }}</td>
+                        <td class="font-medium">{{ $p->name ?? '-' }}</td>
                         <td class="text-right" style="color:#0C9044;font-weight:600;">
-                            Rp {{ number_format($p->total_revenue ?? $p['total_revenue'] ?? 0, 0, ',', '.') }}
+                            Rp {{ number_format($p->total_revenue ?? 0, 0, ',', '.') }}
                         </td>
                     </tr>
                     @empty
@@ -380,9 +380,9 @@
                                 {{ $i + 1 }}
                             </span>
                         </td>
-                        <td class="font-medium">{{ $p->name ?? $p['name'] ?? '-' }}</td>
+                        <td class="font-medium">{{ $p->name ?? '-' }}</td>
                         <td class="text-right font-semibold" style="color:#16a34a;">
-                            {{ number_format($p->margin_pct ?? $p['margin_pct'] ?? 0, 1) }}%
+                            {{ number_format($p->margin_pct ?? 0, 1) }}%
                         </td>
                     </tr>
                     @empty
@@ -412,9 +412,9 @@
                                 {{ $i + 1 }}
                             </span>
                         </td>
-                        <td class="font-medium">{{ $p->name ?? $p['name'] ?? '-' }}</td>
+                        <td class="font-medium">{{ $p->name ?? '-' }}</td>
                         <td class="text-right font-semibold" style="color:#7c3aed;">
-                            {{ number_format($p->repeat_buyers ?? $p['repeat_buyers'] ?? 0, 0, ',', '.') }}
+                            {{ number_format($p->repeat_buyers ?? 0, 0, ',', '.') }}
                         </td>
                     </tr>
                     @empty

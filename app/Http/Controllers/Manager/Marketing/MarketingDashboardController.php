@@ -256,11 +256,16 @@ class MarketingDashboardController extends Controller
             // ── Top 5 products by revenue & margin ──
             $top5RevenueProducts = DB::table('invoice')
                 ->join('orders', 'invoice.order_id', '=', 'orders.id')
+                ->leftJoin('product', 'invoice.product_id', '=', 'product.id')
                 ->where('orders.store_id', $store_id)
                 ->whereBetween('orders.created_at', [$startDate, $endDate])
-                ->select('invoice.product_name', DB::raw('SUM(invoice.total_price) as revenue'), DB::raw('SUM(invoice.quantity_bought) as qty'))
-                ->groupBy('invoice.product_name')
-                ->orderByDesc('revenue')
+                // prefer invoice.product_name, fall back to master product name
+                ->select(DB::raw('COALESCE(invoice.product_name, product.name) as name'),
+                         DB::raw('SUM(invoice.total_price) as total_revenue'),
+                         DB::raw('SUM(invoice.quantity_bought) as qty'),
+                         DB::raw('SUM(invoice.total_price) as revenue'))
+                ->groupBy(DB::raw('COALESCE(invoice.product_name, product.name)'))
+                ->orderByDesc('total_revenue')
                 ->limit(5)
                 ->get();
 
@@ -270,9 +275,11 @@ class MarketingDashboardController extends Controller
                 ->where('orders.store_id', $store_id)
                 ->whereBetween('orders.created_at', [$startDate, $endDate])
                 ->where('invoice.price', '>', 0)
-                ->select('invoice.product_name', DB::raw('AVG((invoice.price - product.hpp) / invoice.price * 100) as margin'))
-                ->groupBy('invoice.product_name')
-                ->orderByDesc('margin')
+                // alias & fallback for name
+                ->select(DB::raw('COALESCE(invoice.product_name, product.name) as name'),
+                         DB::raw('AVG((invoice.price - product.hpp) / invoice.price * 100) as margin_pct'))
+                ->groupBy(DB::raw('COALESCE(invoice.product_name, product.name)'))
+                ->orderByDesc('margin_pct')
                 ->limit(5)
                 ->get();
 
@@ -308,14 +315,24 @@ class MarketingDashboardController extends Controller
             if ($repeatCustomerIds->isNotEmpty()) {
                 $topRepeatProducts = DB::table('invoice')
                     ->join('orders', 'invoice.order_id', '=', 'orders.id')
+                    ->leftJoin('product', 'invoice.product_id', '=', 'product.id')
                     ->where('orders.store_id', $store_id)
                     ->whereIn('orders.customer_id', $repeatCustomerIds)
                     ->whereBetween('orders.created_at', [$startDate, $endDate])
-                    ->select('invoice.product_name', DB::raw('COUNT(DISTINCT orders.customer_id) as repeat_buyers'), DB::raw('SUM(invoice.quantity_bought) as qty'))
-                    ->groupBy('invoice.product_name')
+                    // coalesce for name again
+                    ->select(DB::raw('COALESCE(invoice.product_name, product.name) as product_name'),
+                             DB::raw('COUNT(DISTINCT orders.customer_id) as repeat_buyers'),
+                             DB::raw('SUM(invoice.quantity_bought) as qty'))
+                    ->groupBy(DB::raw('COALESCE(invoice.product_name, product.name)'))
                     ->orderByDesc('repeat_buyers')
                     ->limit(5)
-                    ->get();
+                    ->get()
+                    ->map(function ($i) {
+                        return (object) [
+                            'name' => $i->product_name,
+                            'repeat_buyers' => $i->repeat_buyers,
+                        ];
+                    });
             }
 
             // ── Alerts ──
@@ -482,9 +499,24 @@ class MarketingDashboardController extends Controller
 
             $spendSegments = ['low' => 0, 'medium' => 0, 'high' => 0, 'premium' => 0];
             if ($spendData->count() > 0) {
-                $q1 = $spendData->percentile(25);
-                $q2 = $spendData->percentile(50);
-                $q3 = $spendData->percentile(75);
+                $sorted = $spendData->sort()->values();
+                $count = $sorted->count();
+                $quantile = function($p) use ($sorted, $count) {
+                    // linear interpolation
+                    $pos = ($count + 1) * $p / 100;
+                    if ($pos <= 1) {
+                        return $sorted->first();
+                    }
+                    if ($pos >= $count) {
+                        return $sorted->last();
+                    }
+                    $lower = $sorted[floor($pos) - 1];
+                    $upper = $sorted[floor($pos)];
+                    return $lower + ($upper - $lower) * ($pos - floor($pos));
+                };
+                $q1 = $quantile(25);
+                $q2 = $quantile(50);
+                $q3 = $quantile(75);
                 foreach ($spendData as $amount) {
                     if ($amount <= $q1) $spendSegments['low']++;
                     elseif ($amount <= $q2) $spendSegments['medium']++;
@@ -510,20 +542,46 @@ class MarketingDashboardController extends Controller
                 ->orderByDesc('total_spent')
                 ->get();
 
-            // Determine VIP threshold (top 20%)
-            $vipThreshold = $spendData->count() > 0 ? $spendData->percentile(80) : 0;
+            // Determine VIP threshold (top 20%) – still calculated for potential use but
+            // we no longer limit the sidebar strictly to VIPs.
+            $vipThreshold = 0;
+            if ($spendData->count() > 0) {
+                $sorted = $spendData->sort()->values();
+                $count = $sorted->count();
+                $quantile = function($p) use ($sorted, $count) {
+                    $pos = ($count + 1) * $p / 100;
+                    if ($pos <= 1) { return $sorted->first(); }
+                    if ($pos >= $count) { return $sorted->last(); }
+                    $lower = $sorted[floor($pos) - 1];
+                    $upper = $sorted[floor($pos)];
+                    return $lower + ($upper - $lower) * ($pos - floor($pos));
+                };
+                $vipThreshold = $quantile(80);
+            }
 
             $customerList = $customerList->map(function ($c) use ($vipThreshold) {
-                $c->is_vip = $c->total_spent >= $vipThreshold && $vipThreshold > 0;
-                if ($c->total_orders == 1) $c->segment = 'One-time';
-                elseif ($c->total_orders <= 3) $c->segment = 'Occasional';
-                elseif ($c->total_orders <= 5) $c->segment = 'Regular';
-                else $c->segment = 'Loyal';
-                return $c;
+                return (object) [
+                    'id' => $c->id,
+                    'name' => $c->name,
+                    'total_orders' => $c->total_orders,
+                    'total_spent' => $c->total_spent,
+                    'last_order_date' => $c->last_order,
+                    'is_vip' => ($c->total_spent >= $vipThreshold && $vipThreshold > 0),
+                    'segment' => match (true) {
+                        $c->total_orders == 1 => 'One-time',
+                        $c->total_orders <= 3 => 'Occasional',
+                        $c->total_orders <= 5 => 'Regular',
+                        default => 'Loyal',
+                    },
+                ];
             });
 
-            // ── High value customers (top 20% by revenue) ──
-            $highValueCustomers = $customerList->filter(fn($c) => $c->is_vip)->values();
+            // ── High value customers (top N by revenue) ──
+            // originally this returned only VIPs (top~20%) – change to the first 10 spenders.
+            $highValueCustomers = $customerList
+                ->sortByDesc('total_spent')
+                ->values()
+                ->take(10);
 
             return compact(
                 'totalCustomers', 'newCustomers', 'returningCustomers', 'repeatCustomers',
@@ -534,6 +592,16 @@ class MarketingDashboardController extends Controller
         });
 
         $period = $request->query('period', 'this_month');
+
+        // Ensure cached customerList entries still include expected property
+        if (isset($data['customerList'])) {
+            $data['customerList'] = collect($data['customerList'])->map(function ($c) {
+                if (!isset($c->last_order_date)) {
+                    $c->last_order_date = $c->last_order ?? null;
+                }
+                return $c;
+            });
+        }
 
         return view('handai-manager.marketing.customer-analytics.index', array_merge($data, compact(
             'startDate', 'endDate', 'period'
