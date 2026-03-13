@@ -10,9 +10,9 @@
     [x-cloak] { display: none !important; }
 
     :root {
-        --inv-bg: #f1f5f9;
-        --inv-card: #ffffff;
-        --inv-border: #e2e8f0;
+        --inv-bg: #f8fafc;
+        --inv-card: rgba(255,255,255,0.9);
+        --inv-border: rgba(148,163,184,0.35);
         --inv-muted: #94a3b8;
         --inv-text: #0f172a;
         --inv-secondary: #475569;
@@ -24,9 +24,9 @@
         --inv-danger: #ef4444;
         --inv-purple: #8b5cf6;
         --inv-info: #3b82f6;
-        --inv-radius: 16px;
-        --inv-shadow: 0 1px 3px 0 rgba(0,0,0,.04), 0 1px 2px -1px rgba(0,0,0,.04);
-        --inv-shadow-hover: 0 10px 25px -5px rgba(0,0,0,.06), 0 4px 10px -6px rgba(0,0,0,.04);
+        --inv-radius: 14px;
+        --inv-shadow: 0 6px 18px rgba(15,23,42,.06);
+        --inv-shadow-hover: 0 10px 28px rgba(15,23,42,.08);
     }
 
     .inv-card {
@@ -34,6 +34,7 @@
         border: 1px solid var(--inv-border);
         border-radius: var(--inv-radius);
         box-shadow: var(--inv-shadow);
+        backdrop-filter: blur(12px);
     }
 
     .inv-card-hover {
@@ -42,6 +43,7 @@
         border-radius: var(--inv-radius);
         box-shadow: var(--inv-shadow);
         transition: all .2s ease;
+        backdrop-filter: blur(12px);
     }
     .inv-card-hover:hover {
         box-shadow: var(--inv-shadow-hover);
@@ -84,14 +86,14 @@
 
     .inv-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 13px; }
     .inv-table thead th {
-        position: sticky; top: 0; z-index: 5; background: #f8fafc;
+        position: sticky; top: 0; z-index: 5; background: rgba(255,255,255,0.85);
         padding: 12px 14px; font-size: 11px; font-weight: 600;
         text-transform: uppercase; letter-spacing: .04em;
-        color: var(--inv-muted); border-bottom: 1px solid var(--inv-border); white-space: nowrap;
+        color: var(--inv-muted); border-bottom: 1px solid rgba(148,163,184,0.35); white-space: nowrap;
     }
-    .inv-table tbody td { padding: 14px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+    .inv-table tbody td { padding: 14px; border-bottom: 1px solid rgba(148,163,184,0.16); vertical-align: middle; }
     .inv-table tbody tr { transition: background .12s; }
-    .inv-table tbody tr:hover { background: var(--inv-accent-light); }
+    .inv-table tbody tr:hover { background: rgba(236,253,245,0.7); }
     .inv-table tbody tr:last-child td { border-bottom: none; }
     .inv-table tbody tr.row-danger { background: #fef2f2; }
     .inv-table tbody tr.row-danger:hover { background: #fee2e2; }
@@ -158,17 +160,18 @@
     .action-item:hover { background: #f8fafc; }
 
     .filter-chip {
-        display: inline-flex; align-items: center; gap: 5px;
-        padding: 5px 14px; border-radius: 20px; font-size: 12px; font-weight: 500;
+        display: inline-flex; align-items: center; gap: 6px;
+        padding: 6px 16px; border-radius: 999px; font-size: 12px; font-weight: 600;
         cursor: pointer; transition: all .15s;
-        border: 1px solid var(--inv-border); background: #fff; color: #6b7280;
+        border: 1px solid transparent; background: rgba(255,255,255,0.9); color: var(--inv-secondary);
         text-decoration: none;
+        box-shadow: 0 1px 3px rgba(15,23,42,0.05);
     }
-    .filter-chip:hover { border-color: #d1d5db; background: #f9fafb; }
-    .filter-chip.active { background: var(--inv-accent); color: #fff; border-color: var(--inv-accent); }
-    .filter-chip-warn.active { background: var(--inv-warn); border-color: var(--inv-warn); }
-    .filter-chip-danger.active { background: var(--inv-danger); border-color: var(--inv-danger); }
-    .filter-chip-success.active { background: var(--inv-success); border-color: var(--inv-success); }
+    .filter-chip:hover { background: rgba(255,255,255,1); }
+    .filter-chip.active { background: var(--inv-accent); color: #fff; border-color: rgba(12,144,68,0.35); box-shadow: 0 6px 18px rgba(12,144,68,0.18); }
+    .filter-chip-warn.active { background: var(--inv-warn); border-color: rgba(245,158,11,0.35); }
+    .filter-chip-danger.active { background: var(--inv-danger); border-color: rgba(239,68,68,0.35); }
+    .filter-chip-success.active { background: var(--inv-success); border-color: rgba(16,185,129,0.35); }
 
     .section-title {
         display: flex; align-items: center; gap: 10px; margin-bottom: 16px;

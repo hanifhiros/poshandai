@@ -110,26 +110,26 @@
     @endif
 
     {{-- Type Filter Toggle --}}
-    <div class="flex items-center mb-5">
-        <div class="inline-flex items-center bg-gray-100/80 p-1 rounded-xl gap-0.5">
+    <div class="flex justify-center mb-5">
+        <div class="inline-flex items-center bg-white/70 backdrop-blur-sm p-1 rounded-full shadow-sm border border-gray-100">
             <button
                 @click="recipeFilter = 'all'"
-                :class="recipeFilter === 'all' ? 'bg-white text-gray-800 shadow-sm ring-1 ring-gray-200/60' : 'text-gray-500 hover:text-gray-700'"
-                class="flex-1 inline-flex items-center justify-center gap-1.5 px-5 py-2 text-sm font-medium rounded-lg transition-all duration-150">
+                :class="recipeFilter === 'all' ? 'bg-emerald-600 text-white shadow-sm' : 'text-gray-500 hover:text-gray-700'"
+                class="flex-1 inline-flex items-center justify-center gap-1.5 px-5 py-2 text-sm font-semibold rounded-full transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-white">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z"/></svg>
                 Semua
             </button>
             <button
                 @click="recipeFilter = 'prod'"
-                :class="recipeFilter === 'prod' ? 'bg-white text-emerald-700 shadow-sm ring-1 ring-gray-200/60' : 'text-gray-500 hover:text-gray-700'"
-                class="flex-1 inline-flex items-center justify-center gap-1.5 px-5 py-2 text-sm font-medium rounded-lg transition-all duration-150">
+                :class="recipeFilter === 'prod' ? 'bg-emerald-600 text-white shadow-sm' : 'text-gray-500 hover:text-gray-700'"
+                class="flex-1 inline-flex items-center justify-center gap-1.5 px-5 py-2 text-sm font-semibold rounded-full transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-white">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z"/><path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6z"/></svg>
                 Produk Jadi
             </button>
             <button
                 @click="recipeFilter = 'semi'"
-                :class="recipeFilter === 'semi' ? 'bg-white text-purple-700 shadow-sm ring-1 ring-gray-200/60' : 'text-gray-500 hover:text-gray-700'"
-                class="flex-1 inline-flex items-center justify-center gap-1.5 px-5 py-2 text-sm font-medium rounded-lg transition-all duration-150">
+                :class="recipeFilter === 'semi' ? 'bg-emerald-600 text-white shadow-sm' : 'text-gray-500 hover:text-gray-700'"
+                class="flex-1 inline-flex items-center justify-center gap-1.5 px-5 py-2 text-sm font-semibold rounded-full transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-white">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11.42 15.17L17.25 21A2.652 2.652 0 0021 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 11-3.586-3.586l6.837-5.63m5.108-.233c.55-.164 1.163-.188 1.743-.14a4.5 4.5 0 004.486-6.336l-3.276 3.277a3.004 3.004 0 01-2.25-2.25l3.276-3.276a4.5 4.5 0 00-6.336 4.486c.091 1.076-.071 2.264-.904 2.95l-.102.085m-1.745 1.437L5.909 7.5H4.5L2.25 3.75l1.5-1.5L7.5 4.5v1.409l4.26 4.26m-1.745 1.437l1.745-1.437m6.615 8.206L15.75 15.75M4.867 19.125h.008v.008h-.008v-.008z"/></svg>
                 Setengah Jadi
             </button>
@@ -151,6 +151,7 @@
                 $id = $parts[1] ?? null;
                 $displayName = $outputNames[$outputKey] ?? 'Produk Tidak Diketahui';
             @endphp
+            @continue(!$id || $displayName === 'Produk Tidak Diketahui')
             <div 
                 class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden transition-all hover:shadow-md"
                 x-data="{ open: false }"

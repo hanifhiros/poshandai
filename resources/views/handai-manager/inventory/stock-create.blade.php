@@ -2,6 +2,16 @@
 
 @section('title', 'Tambah Pembelian Bahan')
 
+@push('styles')
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
+<style>
+    /* Make the placeholder option in Choices dropdown look subtle */
+    select.stock-select option[value=""] {
+        color: #94a3b8;
+    }
+</style>
+@endpush
+
 @section('content')
 <div class="min-h-screen bg-slate-50/60 py-6 px-4 sm:px-6 lg:px-8"
      x-data="purchaseForm()"
@@ -88,43 +98,22 @@
                         <label class="block text-xs font-medium text-slate-600 mb-2">
                             Supplier <span class="text-red-400">*</span>
                         </label>
-                        <div x-data="{ open: false, search: '' }" @click.away="open = false" class="relative">
-                            <input type="text"
-                                   x-model="search"
-                                   @focus="open = true; search = ''"
-                                   @input="open = true"
-                                   :placeholder="form.supplier_name || 'Cari / ketik supplier...'"
-                                   :class="[form.supplier_name ? 'text-slate-800' : 'text-slate-400 italic', errors.supplier_name ? 'border-red-400 ring-2 ring-red-100' : '']"
-                                   class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400 transition">
-                            <input type="hidden" name="supplier_id" :value="form.supplier_id ">
+                        <div class="relative">
+                            <select
+                                name="supplier_id"
+                                x-model="form.supplier_id"
+                                @change="selectSupplierById($event.target.value); clearError('supplier_name');"
+                                :class="errors.supplier_name ? 'border-red-400 ring-2 ring-red-100' : ''"
+                                class="stock-select w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400 transition">
+                                <option value="">Cari / pilih supplier...</option>
+                                <template x-for="sup in suppliersData" :key="sup.id">
+                                    <option :value="sup.id" x-text="sup.name"></option>
+                                </template>
+                            </select>
                             <input type="hidden" name="supplier_name" :value="form.supplier_name">
                             <div x-show="errors.supplier_name" data-error-field class="text-xs text-red-500 mt-1 flex items-center gap-1">
                                 <svg class="w-3 h-3 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
                                 <span x-text="errors.supplier_name"></span>
-                            </div>
-
-                            {{-- Dropdown --}}
-                            <div x-show="open" x-transition
-                                 class="absolute z-50 mt-1 w-full bg-white border border-slate-200 rounded-xl shadow-xl max-h-48 overflow-y-auto">
-                                {{-- Use typed text as manual supplier --}}
-                                <button type="button"
-                                        x-show="search.trim().length > 0"
-                                        @click="form.supplier_id = ''; form.supplier_name = search.trim(); open = false; clearError('supplier_name')"
-                                        class="w-full text-left px-3 py-2 text-sm text-slate-500 hover:bg-slate-50 transition border-b border-slate-100">
-                                    <i class="ti ti-pencil mr-1"></i> Gunakan: "<span x-text="search.trim()" class="font-medium text-slate-700"></span>"
-                                </button>
-                                <template x-for="sup in suppliersData.filter(s => !search || s.name.toLowerCase().includes(search.toLowerCase()))" :key="sup.id">
-                                    <button type="button"
-                                            @click="form.supplier_id = sup.id; form.supplier_name = sup.name; open = false; search = sup.name; clearError('supplier_name')"
-                                            class="w-full text-left px-3 py-2 text-sm hover:bg-emerald-50 hover:text-emerald-700 transition flex items-center gap-2">
-                                        <i class="ti ti-building-store text-slate-400"></i>
-                                        <span x-text="sup.name"></span>
-                                    </button>
-                                </template>
-                                <div x-show="suppliersData.filter(s => !search || s.name.toLowerCase().includes(search.toLowerCase())).length === 0 && search.trim().length === 0"
-                                     class="px-3 py-2 text-xs text-slate-400 italic">
-                                    Belum ada supplier. <a href="{{ route('manager.operational.suppliers.create') }}" class="text-emerald-600 underline">Tambah Supplier</a>
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -164,17 +153,33 @@
                         <label class="block text-xs font-medium text-slate-600 mb-2">
                             Metode Pembayaran <span class="text-red-400">*</span>
                         </label>
-                        <select name="payment_method"
-                                x-model="form.payment_method"
-                                @change="clearError('payment_method')"
-                                required
-                                :class="errors.payment_method ? 'border-red-400 ring-2 ring-red-100' : ''"
-                                class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400 transition">
-                            <option value="">-- Pilih --</option>
-                            <option value="cash">Cash</option>
-                            <option value="transfer">Transfer Bank</option>
-                            <option value="hutang">Hutang (Kredit)</option>
-                        </select>
+                        <div x-data="{ open: false, options: [
+                                { value: 'cash', label: 'Cash' },
+                                { value: 'transfer', label: 'Transfer Bank' },
+                                { value: 'hutang', label: 'Hutang (Kredit)' }
+                            ] }"
+                             @click.away="open = false" class="relative">
+                            <button type="button"
+                                    @click="open = !open"
+                                    :class="errors.payment_method ? 'border-red-400 ring-2 ring-red-100' : ''"
+                                    class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 text-left flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400 transition">
+                                <span x-text="options.find(o => o.value === form.payment_method)?.label || '-- Pilih --'"></span>
+                                <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                            </button>
+                            <input type="hidden" name="payment_method" x-model="form.payment_method">
+
+                            <div x-show="open" x-transition
+                                 class="absolute z-50 mt-1 w-full bg-white border border-slate-200 rounded-xl shadow-lg max-h-52 overflow-y-auto">
+                                <template x-for="opt in options" :key="opt.value">
+                                    <button type="button"
+                                            @click="form.payment_method = opt.value; open = false; clearError('payment_method')"
+                                            :class="form.payment_method === opt.value ? 'bg-emerald-50 text-emerald-700 font-medium' : 'hover:bg-slate-50'"
+                                            class="w-full text-left px-3 py-2 text-sm transition flex items-center">
+                                        <span x-text="opt.label"></span>
+                                    </button>
+                                </template>
+                            </div>
+                        </div>
                         <div x-show="errors.payment_method" data-error-field class="text-xs text-red-500 mt-1 flex items-center gap-1">
                             <svg class="w-3 h-3 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
                             <span x-text="errors.payment_method"></span>
@@ -207,7 +212,7 @@
         {{-- ═══════════════════════════════════════════════════════
              SECTION 2: Detail Item Pembelian
              ═══════════════════════════════════════════════════════ --}}
-        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-visible">
             <div class="px-6 py-4 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
                 <h2 class="text-sm font-semibold text-slate-700 flex items-center gap-2">
                     <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -248,7 +253,7 @@
                 </div>
 
                 {{-- ===================== Desktop Table ===================== --}}
-                <div x-show="items.length > 0" class="hidden md:block overflow-x-auto">
+                <div x-show="items.length > 0" class="hidden md:block overflow-x-auto overflow-visible">
                     <table class="w-full text-sm">
                         <thead>
                             <tr class="text-xs text-slate-500 uppercase tracking-wider border-b border-slate-100">
@@ -266,48 +271,21 @@
                                 <tr class="border-t border-slate-50 align-top group hover:bg-slate-50/50 transition-colors">
                                     <td class="py-3 text-slate-400 text-xs" x-text="idx + 1"></td>
 
-                                    {{-- Bahan (searchable) --}}
+                                    {{-- Bahan (searchable via Choices.js) --}}
                                     <td class="py-3 pr-2">
-                                        <div class="relative" x-data="{ open: false, search: '' }" @click.away="open = false">
-                                            <input type="text"
-                                                   x-model="search"
-                                                   @focus="open = true; search = ''"
-                                                   @input="open = true"
-                                                   :placeholder="item.stock_name || 'Cari bahan...'"
-                                                   :class="[item.stock_id ? 'text-slate-800' : 'text-slate-400 italic', errors['item_' + idx + '_stock'] ? 'border-red-400 ring-2 ring-red-100' : '']"
-                                                   class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400 transition">
-                                            <input type="hidden" :name="'items['+idx+'][stock_id]'" :value="item.stock_id">
-                                            <input type="hidden" :name="'items['+idx+'][unit_id]'" :value="item.unit_id">
-                                            <div x-show="errors['item_' + idx + '_stock']" data-error-field class="text-xs text-red-500 mt-1"
-                                                 x-text="errors['item_' + idx + '_stock']"></div>
-
-                                            {{-- Dropdown --}}
-                                            <div x-show="open" x-transition
-                                                 class="absolute z-50 mt-1 w-full bg-white border border-slate-100 rounded-lg shadow-lg max-h-40 overflow-y-auto">
-                                                <template x-for="s in filteredStocks(search)" :key="s.id">
-                                                    <button type="button"
-                                                            @click="selectStock(idx, s); open = false; search = s.name"
-                                                            :class="item.stock_id == s.id ? 'bg-emerald-50 text-emerald-700 font-medium' : 'hover:bg-slate-50'"
-                                                            class="w-full text-left px-2.5 py-[6px] text-[13px] transition flex items-center justify-between gap-1">
-                                                        <span class="truncate" x-text="s.name"></span>
-                                                        <span class="text-[11px] text-slate-400 shrink-0" x-text="s.unit_symbol"></span>
-                                                    </button>
-                                                </template>
-                                                <div x-show="filteredStocks(search).length === 0"
-                                                     class="px-2.5 py-1.5 text-xs text-slate-400 italic">
-                                                    Tidak ditemukan
-                                                </div>
-                                                {{-- Quick create stock --}}
-                                                <button type="button"
-                                                        @click="open = false; openNewStockModal(idx)"
-                                                        class="w-full text-left px-2.5 py-[6px] text-[13px] border-t border-slate-100 text-emerald-600 hover:bg-emerald-50/70 font-medium transition flex items-center gap-1">
-                                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                                                    </svg>
-                                                    Buat Bahan Baru
-                                                </button>
-                                            </div>
-                                        </div>
+                                        <select
+                                            :name="'items['+idx+'][stock_id]'"
+                                            x-model="item.stock_id"
+                                            @change="selectStockById(idx, item.stock_id); clearError('item_' + idx + '_stock')"
+                                            class="stock-select w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400 transition">
+                                            <option value="">Cari bahan...</option>
+                                            <template x-for="s in stocksData" :key="s.id">
+                                                <option :value="s.id" x-text="s.name"></option>
+                                            </template>
+                                        </select>
+                                        <input type="hidden" :name="'items['+idx+'][unit_id]'" :value="item.unit_id">
+                                        <div x-show="errors['item_' + idx + '_stock']" data-error-field class="text-xs text-red-500 mt-1"
+                                             x-text="errors['item_' + idx + '_stock']"></div>
                                     </td>
 
                                     {{-- Satuan (readonly) --}}
@@ -377,39 +355,21 @@
                             <div class="text-xs font-medium text-slate-400 mb-3">Item #<span x-text="idx+1"></span></div>
 
                             {{-- Bahan (mobile) --}}
-                            <div class="mb-3" x-data="{ open: false, search: '' }" @click.away="open = false">
+                            <div class="mb-3">
                                 <label class="text-xs text-slate-500 mb-1 block">Bahan</label>
-                                <input type="text"
-                                       x-model="search"
-                                       @focus="open = true; search = ''"
-                                       :placeholder="item.stock_name || 'Cari bahan...'"
-                                       :class="errors['item_' + idx + '_stock'] ? 'border-red-400 ring-2 ring-red-100' : ''"
-                                       class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400">
-                                <input type="hidden" :name="'items['+idx+'][stock_id]'" :value="item.stock_id">
+                                <select
+                                    :name="'items['+idx+'][stock_id]'"
+                                    x-model="item.stock_id"
+                                    @change="selectStockById(idx, item.stock_id); clearError('item_' + idx + '_stock')"
+                                    class="stock-select w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400">
+                                    <option value="">Cari bahan...</option>
+                                    <template x-for="s in stocksData" :key="s.id">
+                                        <option :value="s.id" x-text="s.name"></option>
+                                    </template>
+                                </select>
                                 <input type="hidden" :name="'items['+idx+'][unit_id]'" :value="item.unit_id">
                                 <div x-show="errors['item_' + idx + '_stock']" data-error-field class="text-xs text-red-500 mt-1"
                                      x-text="errors['item_' + idx + '_stock']"></div>
-                                <div x-show="open" x-transition
-                                     class="absolute z-30 left-4 right-4 mt-1 bg-white border border-slate-100 rounded-lg shadow-md max-h-40 overflow-y-auto">
-                                    <template x-for="s in filteredStocks(search)" :key="s.id">
-                                        <button type="button"
-                                                @click="selectStock(idx, s); open = false; search = s.name"
-                                                :class="item.stock_id == s.id ? 'bg-emerald-50 text-emerald-700 font-medium' : 'hover:bg-slate-50'"
-                                                class="w-full text-left px-3 py-[7px] text-[13px] transition flex justify-between gap-1">
-                                            <span class="truncate" x-text="s.name"></span>
-                                            <span class="text-[11px] text-slate-400 shrink-0" x-text="s.unit_symbol"></span>
-                                        </button>
-                                    </template>
-                                    {{-- Quick create stock (mobile) --}}
-                                    <button type="button"
-                                            @click="open = false; openNewStockModal(idx)"
-                                            class="w-full text-left px-3 py-[7px] text-[13px] border-t border-slate-100 text-emerald-600 hover:bg-emerald-50/70 font-medium transition flex items-center gap-1">
-                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                                        </svg>
-                                        Buat Bahan Baru
-                                    </button>
-                                </div>
                             </div>
 
                             <div class="grid grid-cols-2 gap-3">
@@ -794,6 +754,7 @@ function purchaseForm() {
             if (this.items.length > 1) {
                 this.items = this.items.slice(0,1);
             }
+            this.initChoices();
         },
 
         addItem() {
@@ -809,8 +770,7 @@ function purchaseForm() {
                 cost:        0,
             });
             this.$nextTick(() => {
-                const inputs = document.querySelectorAll('input[placeholder="Cari bahan..."]');
-                if (inputs.length) inputs[inputs.length - 1].focus();
+                this.initChoices();
             });
         },
 
@@ -849,6 +809,36 @@ function purchaseForm() {
 
         formatRp(val) {
             return 'Rp ' + new Intl.NumberFormat('id-ID').format(Math.round(val || 0));
+        },
+
+        initChoices() {
+            this.$nextTick(() => {
+                if (typeof Choices === 'undefined') return;
+                document.querySelectorAll('.stock-select:not(.choices-initialized)').forEach(el => {
+                    el.classList.add('choices-initialized');
+                    try { new Choices(el, { searchEnabled: true, shouldSort: false, itemSelectText: '', allowHTML: true }); } catch (e) {}
+                });
+            });
+        },
+
+        selectStockById(idx, id) {
+            const stock = this.stocksData.find(s => String(s.id) === String(id));
+            if (!stock) return;
+            this.items[idx].stock_id = stock.id;
+            this.items[idx].stock_name = stock.name;
+            this.items[idx].unit_id = stock.unit_id;
+            this.items[idx].unit_symbol = stock.unit_symbol;
+            this.clearError('item_' + idx + '_stock');
+        },
+
+        selectSupplierById(id) {
+            const sup = this.suppliersData.find(s => String(s.id) === String(id));
+            if (!sup) {
+                this.form.supplier_name = '';
+                return;
+            }
+            this.form.supplier_id = sup.id;
+            this.form.supplier_name = sup.name;
         },
 
         get isValid() {
@@ -1091,4 +1081,9 @@ function purchaseForm() {
     }
 }
 </script>
+
+@push('vendor-script')
+<script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
+@endpush
+
 @endsection

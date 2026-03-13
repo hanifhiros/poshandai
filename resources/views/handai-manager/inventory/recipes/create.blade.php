@@ -62,32 +62,34 @@
                 <h2 class="text-[13px] font-semibold text-gray-700">Pilih Output</h2>
             </div>
 
-            <div class="flex items-center gap-4 mb-3">
-                <label class="inline-flex items-center gap-1">
-                    <input type="radio" name="outputType" value="finished" x-model="outputType" class="form-radio" checked>
-                    <span class="text-sm">Produk Jadi</span>
-                </label>
-                <label class="inline-flex items-center gap-1">
-                    <input type="radio" name="outputType" value="semi" x-model="outputType" class="form-radio">
-                    <span class="text-sm">Produk Setengah Jadi</span>
-                </label>
+            <div class="grid grid-cols-2 gap-3 mb-4">
+                <button type="button" @click="outputType = 'finished'" :class="outputType === 'finished' ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm' : 'bg-white text-gray-700 border-gray-200 hover:bg-emerald-50'" class="py-3 px-4 rounded-lg text-sm font-medium transition">
+                    Produk Jadi
+                </button>
+                <button type="button" @click="outputType = 'semi'" :class="outputType === 'semi' ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm' : 'bg-white text-gray-700 border-gray-200 hover:bg-purple-50'" class="py-3 px-4 rounded-lg text-sm font-medium transition">
+                    Produk Setengah Jadi
+                </button>
             </div>
 
-            <div x-show="outputType === 'finished'">
-                <select id="product-select" class="rcp-select" @change="onOutputChange($event.target.value)" x-ref="productSelect">
-                    <option value="">-- Pilih Produk --</option>
-                    @foreach ($products as $product)
-                        <option value="{{ $product->id }}">{{ $product->name }}</option>
-                    @endforeach
-                </select>
-            </div>
-            <div x-show="outputType === 'semi'">
-                <select id="semi-select" class="rcp-select" @change="onOutputChange($event.target.value)">
-                    <option value="">-- Pilih Produk Setengah Jadi --</option>
-                    @foreach ($semiFinishedProducts as $sfp)
-                        <option value="{{ $sfp->id }}">{{ $sfp->name }}</option>
-                    @endforeach
-                </select>
+            <div class="space-y-3">
+                <div x-show="outputType === 'finished'" class="space-y-2">
+                    <label class="block text-xs font-medium text-gray-600">Pilih Produk</label>
+                    <select id="product-select" class="rcp-select stock-select" @change="onOutputChange($event.target.value)" x-ref="productSelect">
+                        <option value="">-- Pilih Produk --</option>
+                        @foreach ($products as $product)
+                            <option value="{{ $product->id }}">{{ $product->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div x-show="outputType === 'semi'" class="space-y-2">
+                    <label class="block text-xs font-medium text-gray-600">Pilih Produk Setengah Jadi</label>
+                    <select id="semi-select" class="rcp-select stock-select" @change="onOutputChange($event.target.value)">
+                        <option value="">-- Pilih Produk Setengah Jadi --</option>
+                        @foreach ($semiFinishedProducts as $sfp)
+                            <option value="{{ $sfp->id }}">{{ $sfp->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
             </div>
         </div>
 
@@ -268,7 +270,7 @@
         </template>
 
         {{-- Produk Setengah Jadi Section --}}
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-4" x-show="selectedProductId">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-4" x-show="selectedProductId && outputType !== 'semi'">
             <div class="flex items-center justify-between mb-4">
                 <div class="flex items-center gap-2">
                     <div class="w-6 h-6 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center text-[11px] font-bold">3</div>
@@ -370,7 +372,7 @@
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 mb-4" x-show="selectedProductId">
             <div class="flex items-center justify-between mb-4">
                 <div class="flex items-center gap-2">
-                    <div class="w-6 h-6 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center text-[11px] font-bold">5</div>
+                    <div class="w-6 h-6 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center text-[11px] font-bold"><span x-text="variants.length ? 5 : 4"></span></div>
                     <h2 class="text-[13px] font-semibold text-gray-700">Daftar Kemasan</h2>
                 </div>
                 <div class="flex items-center gap-1">
@@ -482,7 +484,7 @@
         {{-- Standar Produksi Batch (semi output only) --}}
         <div x-show="outputType === 'semi' && selectedProductId" class="bg-white rounded-xl shadow-sm border border-orange-100 p-5 mb-4">
             <div class="flex items-center gap-2 mb-4">
-                <div class="w-6 h-6 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center text-[11px] font-bold">2</div>
+                <div class="w-6 h-6 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center text-[11px] font-bold">4</div>
                 <div>
                     <h2 class="text-[13px] font-semibold text-gray-700">Standar Produksi Batch</h2>
                     <p class="text-[11px] text-gray-400">HPP per unit = (total bahan + upah) ÷ output per batch</p>
@@ -501,10 +503,10 @@
         </div>
 
         {{-- Upah Produksi Section --}}
-        <div x-show="selectedProductId && ingredients.length > 0" class="bg-white rounded-xl shadow-sm border border-indigo-100 p-5 mb-4">
+        <div x-show="selectedProductId" class="bg-white rounded-xl shadow-sm border border-indigo-100 p-5 mb-4">
             <div class="flex items-center gap-2 mb-4">
                 <div class="w-6 h-6 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-[11px] font-bold">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2z"/></svg>
+                    5
                 </div>
                 <div>
                     <h2 class="text-[13px] font-semibold text-gray-700">Upah Produksi</h2>
@@ -532,10 +534,12 @@
         </div>
 
         {{-- Step 4: HPP Summary --}}
-        <template x-if="selectedProductId && ingredients.length > 0">
+        <template x-if="selectedProductId">
         <div class="hpp-card rounded-xl shadow-sm border border-emerald-100 p-6 mb-4">
             <div class="flex items-center gap-2 mb-4">
-                    <div class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-[11px] font-bold">3</div>
+                    <div class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-[11px] font-bold">
+                        6
+                    </div>
                 <h2 class="text-[13px] font-semibold text-emerald-800">Ringkasan HPP (Harga Pokok Produksi)</h2>
             </div>
 
@@ -610,7 +614,7 @@
         </template>
 
         {{-- Daftar Bahan & Kemasan Totals (moved below HPP) --}}
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4" x-show="ingredients.length > 0">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4" x-show="selectedProductId">
             <div class="bg-white rounded-lg border border-gray-100 p-3">
                 <div class="flex items-center justify-between mb-2">
                     <h3 class="text-[12px] font-semibold text-gray-700">Daftar Bahan Baku</h3>
@@ -643,7 +647,7 @@
                 </div>
             </div>
 
-            <div class="bg-white rounded-lg border border-gray-100 p-3" x-show="outputType === 'finished'">
+            <div class="bg-white rounded-lg border border-gray-100 p-3">
                 <div class="flex items-center justify-between mb-2">
                     <h3 class="text-[12px] font-semibold text-gray-700">Daftar Kemasan</h3>
                     <div class="text-[12px] font-mono text-gray-700">Rp <span x-text="formatNumber(getTypeTotal('kemasan'))"></span></div>
