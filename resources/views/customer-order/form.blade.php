@@ -123,7 +123,7 @@
 
                                 <!-- Submit -->
                                 <div class="modal-action">
-                                    <label for="modal-{{ $item['product']->id }}" class="btn btn-ghost">Batal</label>
+                                    <label for="modal-{{ $item['product']->id }}" class="btn btn-ghost">← Batal</label>
                                     <button type="submit" class="btn btn-primary">Tambah ke Cart</button>
                                 </div>
                             </form>

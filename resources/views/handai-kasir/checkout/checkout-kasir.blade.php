@@ -644,7 +644,7 @@
     });
 
     function loadPromos() {
-        fetch('{{ route("kasir.cart.getPromos") }}', {
+        fetch('{{ route("kasir.cart.getPromos", [], false) }}', {
             method: 'GET',
             headers: {
                 'X-CSRF-TOKEN': '{{ csrf_token() }}',
@@ -806,7 +806,7 @@
     formData.append('additional_charges[ongkos_kirim]', ongkosValue);
     formData.append('additional_charges[kemasan]', kemasinValue);
 
-    fetch("{{ route('kasir.cart.checkout') }}", {
+    fetch('{{ route("kasir.cart.checkout", [], false) }}', {
         method: "POST",
         headers: {
             "X-CSRF-TOKEN": "{{ csrf_token() }}",
@@ -841,7 +841,7 @@
         let newQty = currentQty + change;
         if (newQty < 1) newQty = 1;
 
-        fetch('{{ route("kasir.cart.update") }}', {
+        fetch('{{ route("kasir.cart.update", [], false) }}', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -900,7 +900,7 @@
        
         if (!promoCode) return alert('Masukkan promo code terlebih dahulu.');
     
-        fetch('{{ route("kasir.cart.applyPromo") }}', {
+        fetch('{{ route("kasir.cart.applyPromo", [], false) }}', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -934,7 +934,7 @@
     }
 
     function removePromo() {
-        fetch('{{ route("kasir.cart.removePromo") }}', {
+        fetch('{{ route("kasir.cart.removePromo", [], false) }}', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -959,7 +959,7 @@
     function removeItem(productId, variantId) {
     if (!confirm("Yakin ingin menghapus item ini dari keranjang?")) return;
 
-    fetch('{{ route("kasir.cart.removeItem") }}', {
+    fetch('{{ route("kasir.cart.removeItem", [], false) }}', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',

@@ -18,6 +18,9 @@
             <i class="ti ti-transfer text-indigo-600"></i> Stock Movement Log
         </h1>
         <p class="text-sm text-gray-500 mt-0.5">Seluruh pergerakan stok masuk & keluar secara real-time</p>
+        <div class="mt-2">
+            @include('handai-manager.partials.import-export-modal', ['type' => 'stock-movement', 'label' => 'Stock Movement'])
+        </div>
     </div>
 
     {{-- Stats --}}

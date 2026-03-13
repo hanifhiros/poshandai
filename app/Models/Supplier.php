@@ -4,8 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+use App\Models\Traits\ForStoreScope;
+
 class Supplier extends Model
 {
+    use ForStoreScope;
     protected $table = 'suppliers';
 
     protected $fillable = [

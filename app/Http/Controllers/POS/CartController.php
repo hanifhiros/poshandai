@@ -43,12 +43,18 @@ class CartController extends Controller
 
                 $qty = $item['quantity'];
 
+                // compute available stock (produced quantity)
+                $producedQty = ProductionHistory::where('product_variants_id', $variant->id)
+                    ->sum('quantity_produced');
+
                 $cartDetails[] = [
                     'product_id' => $variant->product_id,
                     'variant_id' => $variant->id,
                     'product_name' => $variant->product->name,
                     'variant_summary' => $variant->variantSummary(),
                     'quantity' => $qty,
+                    'available_qty' => $producedQty,
+                    'min_stock' => $variant->min_stock ?? 0,
                     'price' => $promoPrice,
                     'normal_price' => $normalPrice,
                     'note' => $item['note'] ?? '',
@@ -106,7 +112,7 @@ class CartController extends Controller
         $producedQty = ProductionHistory::where('product_variants_id', $variantId)
             ->sum('quantity_produced');
         if ($newQty > $producedQty) {
-            return response()->json(['error' => 'Stok tidak mencukupi.'], 400);
+            return response()->json(['success' => false, 'message' => 'Stok tidak mencukupi.'], 400);
         }
 
         $finalPrice = ($variant->is_promo === 'yes')
@@ -421,6 +427,26 @@ class CartController extends Controller
         $cart = session('cart', []);
         if (empty($cart)) {
             return response()->json(['success' => false, 'message' => 'Keranjang kosong.'], 400);
+        }
+
+        // revalidate stock for each cart item
+        foreach ($cart as $item) {
+            $variant = ProductVariants::find($item['variant_id']);
+            if (!$variant) continue;
+            // prior logic used production history; fall back to variant stock so cashier sees real quantity
+            $producedQty = ProductionHistory::where('product_variants_id', $variant->id)
+                ->sum('quantity_produced');
+            $availableQty = max($producedQty, $variant->quantity ?? 0);
+            if (($item['quantity'] ?? 0) > $availableQty) {
+                // tell client which variant is affected, how many are available and how many were requested
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Stok produk berubah. Silakan periksa kembali keranjang.',
+                    'variant_id' => $variant->id,
+                    'available' => $availableQty,
+                    'requested' => $item['quantity'] ?? 0,
+                ], 400);
+            }
         }
 
         $request->validate([

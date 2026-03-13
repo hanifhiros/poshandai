@@ -4,8 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+use App\Models\Traits\ForStoreScope;
+
 class StockBatch extends Model
 {
+    use ForStoreScope;
     protected $table = 'stock_batches';
 
     protected $fillable = [

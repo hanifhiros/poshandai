@@ -34,6 +34,7 @@
                 <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                 @endif
             </button>
+            @include('handai-manager.partials.import-export-modal', ['type' => 'purchase', 'label' => 'Pembelian / Stock Batch'])
             <a href="{{ route('manager.inventory.stock-batches.create') }}"
                class="h-9 inline-flex items-center gap-1.5 px-4 text-[13px] font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg transition shadow-sm">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>

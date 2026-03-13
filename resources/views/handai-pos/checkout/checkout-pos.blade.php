@@ -1,4 +1,4 @@
-@extends('layouts.layoutBlank')
+    @extends('layouts.layoutBlank')
 
 @section('title', 'POS - Checkout')
 
@@ -657,8 +657,8 @@
 
                 {{-- Footer --}}
                 <div class="confirm-footer">
-                    <button type="button" class="btn btn-outline flex-1 py-3 rounded-xl font-semibold cursor-pointer" :disabled="isProcessing" @click="showConfirmModal = false">
-                        <i class="ti ti-x mr-1"></i> Batal
+                    <button type="button" class="btn btn-outline flex-1 py-3 rounded-xl font-semibold cursor-pointer hover:bg-gray-100" :disabled="isProcessing" @click="showConfirmModal = false">
+                        <i class="ti ti-x mr-1"></i> ← Batal
                     </button>
                     <button type="button" class="btn flex-[2] py-3 rounded-xl font-bold text-white text-base cursor-pointer" :class="isProcessing ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700 shadow-lg shadow-green-200'" :disabled="isProcessing" @click="confirmAndPay()">
                         <template x-if="isProcessing">
@@ -745,6 +745,8 @@ document.addEventListener('alpine:init', () => {
         get grandTotal() { return Math.max(this.subtotal - this.discountAmount + this.totalCharges, 0); },
         get changeAmount() { return Math.max((this.cashReceived || 0) - this.grandTotal, 0); },
         get canProceedPayment() {
+            // must select payment method first
+            if (!['tunai','non_tunai','campuran'].includes(this.paymentMethod)) return false;
             if (this.paymentMethod === 'tunai' || this.paymentMethod === 'campuran') {
                 return this.cashReceived >= this.grandTotal;
             }
@@ -775,7 +777,7 @@ document.addEventListener('alpine:init', () => {
         // ---- Methods ----
         async loadPromos() {
             try {
-                const res = await fetch('{{ route("cart.getPromos") }}', { headers: { 'Accept': 'application/json' } });
+                const res = await fetch('{{ route("cart.getPromos", [], false) }}', { headers: { 'Accept': 'application/json' } });
                 const data = await res.json();
                 if (data.success) this.promoList = data.promos || [];
             } catch (e) { console.error('Load promos error:', e); }
@@ -796,20 +798,28 @@ document.addEventListener('alpine:init', () => {
 
         async _updateQty(item, qty) {
             try {
-                const res = await fetch('{{ route("pos.cart.update") }}', {
+                const res = await fetch('{{ route("pos.cart.update", [], false) }}', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
                     body: JSON.stringify({ product_id: item.product_id, variant_id: item.variant_id, quantity: qty })
                 });
                 const data = await res.json();
-                return data.success === true;
-            } catch (e) { console.error(e); return false; }
+                if (!data.success) {
+                    showToast(data.message || 'Gagal memperbarui jumlah', 'warning');
+                    return false;
+                }
+                return true;
+            } catch (e) {
+                console.error(e);
+                showToast('Gagal memperbarui jumlah', 'error');
+                return false;
+            }
         },
 
         async removeItem(item) {
             if (!confirm('Hapus ' + item.product_name + ' dari keranjang?')) return;
             try {
-                const res = await fetch('{{ route("pos.cart.remove") }}', {
+                const res = await fetch('{{ route("pos.cart.remove", [], false) }}', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
                     body: JSON.stringify({ product_id: item.product_id, variant_id: item.variant_id })
@@ -823,7 +833,7 @@ document.addEventListener('alpine:init', () => {
 
         async saveItemNote(item) {
             try {
-                await fetch('{{ route("pos.cart.itemNote") }}', {
+                await fetch('{{ route("pos.cart.itemNote", [], false) }}', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
                     body: JSON.stringify({ variant_id: item.variant_id, note: item.note })
@@ -878,21 +888,42 @@ document.addEventListener('alpine:init', () => {
                     return acc;
                 }, {}),
             };
+            console.debug('submitOrder payload', payload);
 
             // All payment methods go through direct checkout (POS handles payment in person)
             try {
-                const res = await fetch('{{ route("pos.cart.checkoutCustomer") }}', {
+                const res = await fetch('{{ route("pos.cart.checkoutCustomer", [], false) }}', {
                     method: 'POST',
+                    credentials: 'same-origin',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').getAttribute('content'),
                         'Accept': 'application/json',
                     },
                     body: JSON.stringify(payload)
                 });
                 if (!res.ok) {
-                    const text = await res.text();
-                    alert(res.status === 403 ? 'Anda tidak memiliki akses. Silakan login ulang.' : ('Error: ' + res.status));
+                    let msg = 'Error: ' + res.status;
+                    let body = null;
+                    try { body = await res.json(); if (body && body.message) msg = body.message; }
+                    catch(err) { body = await res.text(); msg = body || msg; }
+                    console.error('checkout response error', res.status, body);
+                    // adjust cart automatically if variant info given
+                    if (body && body.variant_id !== undefined) {
+                        const idx = this.cartItems.findIndex(i => i.variant_id == body.variant_id);
+                        if (idx >= 0) {
+                            if ((body.available || 0) <= 0) {
+                                this.cartItems.splice(idx, 1);
+                            } else {
+                                this.cartItems[idx].quantity = body.available;
+                            }
+                        }
+                        // enrich alert message
+                        if (body.requested !== undefined && body.available !== undefined) {
+                            msg += ' (requested ' + body.requested + ', available ' + body.available + ')';
+                        }
+                    }
+                    alert(res.status === 403 ? 'Anda tidak memiliki akses. Silakan login ulang.' : msg);
                     return;
                 }
                 const data = await res.json();
@@ -911,15 +942,19 @@ document.addEventListener('alpine:init', () => {
                 }
             } catch (e) {
                 console.error('Checkout error:', e);
-                alert('Terjadi kesalahan saat memproses pesanan.');
+                let msg = 'Terjadi kesalahan saat memproses pesanan.';
+                if (e && e.message) msg += ' (' + e.message + ')'; if(e && e.stack) { msg += '\nStack: ' + e.stack; }
+                if (e && e.stack) msg += '\n\nStack:\n' + e.stack;
+                alert(msg);
             }
         },
 
         async handleSnapPayment(payload) {
             try {
-                const res = await fetch('{{ route("cart.checkout") }}', {
+                const res = await fetch('{{ route("cart.checkout", [], false) }}', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
+                    credentials: 'same-origin',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').getAttribute('content'), 'Accept': 'application/json' },
                     body: JSON.stringify(payload)
                 });
                 if (!res.ok) {
@@ -938,7 +973,7 @@ document.addEventListener('alpine:init', () => {
                         this.transactionDate = data.created_at || new Date().toISOString();
                         this.cashierName = data.cashier_name || this.cashierName;
                         this.step = 3;
-                        fetch('{{ route("cart.clear") }}', { method: 'POST', headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' } });
+                        fetch('{{ route("cart.clear", [], false) }}', { method: 'POST', headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' } });
                     },
                     onPending: () => alert('Pembayaran masih diproses. Cek kembali nanti.'),
                     onError: () => alert('Pembayaran gagal. Silakan coba lagi.'),

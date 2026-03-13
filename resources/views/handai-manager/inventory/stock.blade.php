@@ -1,54 +1,201 @@
 @extends('handai-manager.layouts.master')
 @section('title', 'Inventory Control')
 
-@section('content')
+@section('page-style')
 <style>
-[x-cloak]{display:none!important}
-:root{--inv-bg:#f8f9fb;--inv-card:#fff;--inv-border:#eceef2;--inv-muted:#8b919e;--inv-text:#1e2330;--inv-accent:#3b82f6;--inv-success:#10b981;--inv-warn:#f59e0b;--inv-danger:#ef4444;--inv-purple:#8b5cf6}
-.inv-card{background:var(--inv-card);border:1px solid var(--inv-border);border-radius:12px;box-shadow:0 1px 2px rgba(0,0,0,.03)}
-.inv-input{height:36px;padding:0 12px;font-size:13px;border:1px solid var(--inv-border);border-radius:8px;background:#fff;outline:none;transition:border .15s,box-shadow .15s;width:100%}
-.inv-input:focus{border-color:var(--inv-accent);box-shadow:0 0 0 3px rgba(59,130,246,.08)}
-.inv-btn{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 14px;font-size:13px;font-weight:500;border-radius:8px;border:none;cursor:pointer;transition:all .15s;white-space:nowrap}
-.inv-btn-sm{height:30px;padding:0 10px;font-size:11px;gap:4px}
-.inv-btn-primary{background:var(--inv-accent);color:#fff}.inv-btn-primary:hover{background:#2563eb}
-.inv-btn-outline{background:#fff;border:1px solid var(--inv-border);color:#4b5563}.inv-btn-outline:hover{border-color:#d1d5db;background:#f9fafb}
-.inv-btn-success{background:var(--inv-success);color:#fff}.inv-btn-success:hover{background:#059669}
-.inv-btn-danger{background:var(--inv-danger);color:#fff}.inv-btn-danger:hover{background:#dc2626}
-.inv-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600;line-height:1.4;white-space:nowrap}
-.inv-badge .dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
-.inv-table{width:100%;border-collapse:separate;border-spacing:0;font-size:13px}
-.inv-table thead th{position:sticky;top:0;z-index:5;background:#f8f9fb;padding:10px 14px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--inv-muted);border-bottom:1px solid var(--inv-border);white-space:nowrap}
-.inv-table tbody td{padding:12px 14px;border-bottom:1px solid #f3f4f6;vertical-align:middle}
-.inv-table tbody tr{transition:background .12s}
-.inv-table tbody tr:hover{background:#f1f5ff}
-.inv-table tbody tr:last-child td{border-bottom:none}
-.inv-table tbody tr.row-danger{background:#fef2f2}.inv-table tbody tr.row-danger:hover{background:#fee2e2}
-.inv-table tbody tr.row-warn{background:#fffbeb}.inv-table tbody tr.row-warn:hover{background:#fef3c7}
-.inv-table .act-cell{opacity:0;transition:opacity .12s}
-.inv-table tbody tr:hover .act-cell{opacity:1}
-@media(max-width:767px){.inv-table .act-cell{opacity:1}}
-.sort-link{cursor:pointer;user-select:none;transition:color .12s}.sort-link:hover{color:var(--inv-accent)}
-.stat{padding:16px 18px;position:relative;overflow:hidden}
-.stat .stat-bar{position:absolute;top:0;left:0;right:0;height:3px;border-radius:12px 12px 0 0}
-.tip{position:relative}.tip:hover .tip-text{opacity:1;transform:translateY(0);pointer-events:auto}
-.tip-text{position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%) translateY(4px);padding:5px 10px;border-radius:6px;background:#1e293b;color:#fff;font-size:11px;font-weight:500;white-space:nowrap;opacity:0;pointer-events:none;transition:all .18s;z-index:30}
-.tip-text::after{content:'';position:absolute;top:100%;left:50%;margin-left:-4px;border:4px solid transparent;border-top-color:#1e293b}
-.mob-card{padding:16px;border-bottom:1px solid #f1f5f9;transition:background .12s}.mob-card:last-child{border-bottom:none}.mob-card:hover{background:#f8fafc}
-.col-toggle{position:absolute;right:0;top:calc(100% + 4px);background:#fff;border:1px solid var(--inv-border);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.08);padding:12px;z-index:40;min-width:200px}
-.val-card{display:flex;align-items:center;gap:14px;padding:18px 20px}
-.val-card .val-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.action-item{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border-radius:10px;transition:background .12s}
-.action-item:hover{background:#f8fafc}
-.filter-chip{display:inline-flex;align-items:center;gap:4px;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;transition:all .15s;border:1px solid var(--inv-border);background:#fff;color:#6b7280;text-decoration:none}
-.filter-chip:hover{border-color:#d1d5db;background:#f9fafb}
-.filter-chip.active{background:var(--inv-accent);color:#fff;border-color:var(--inv-accent)}
-.filter-chip-warn.active{background:var(--inv-warn);border-color:var(--inv-warn)}
-.filter-chip-danger.active{background:var(--inv-danger);border-color:var(--inv-danger)}
-.filter-chip-success.active{background:var(--inv-success);border-color:var(--inv-success)}
-.section-title{display:flex;align-items:center;gap:8px;margin-bottom:16px}
-.section-title .bar{width:4px;height:20px;border-radius:4px}
-.section-title h2{font-size:15px;font-weight:700;color:var(--inv-text)}
+    /* ═══════════════════════════════════════════════════
+       INVENTORY CONTROL — CLEAN ERP STYLE
+       Matches dashboard visual language
+       ═══════════════════════════════════════════════════ */
+    [x-cloak] { display: none !important; }
+
+    :root {
+        --inv-bg: #f1f5f9;
+        --inv-card: #ffffff;
+        --inv-border: #e2e8f0;
+        --inv-muted: #94a3b8;
+        --inv-text: #0f172a;
+        --inv-secondary: #475569;
+        --inv-accent: #0C9044;
+        --inv-accent-light: #ecfdf5;
+        --inv-accent-hover: #0a7a3a;
+        --inv-success: #10b981;
+        --inv-warn: #f59e0b;
+        --inv-danger: #ef4444;
+        --inv-purple: #8b5cf6;
+        --inv-info: #3b82f6;
+        --inv-radius: 16px;
+        --inv-shadow: 0 1px 3px 0 rgba(0,0,0,.04), 0 1px 2px -1px rgba(0,0,0,.04);
+        --inv-shadow-hover: 0 10px 25px -5px rgba(0,0,0,.06), 0 4px 10px -6px rgba(0,0,0,.04);
+    }
+
+    .inv-card {
+        background: var(--inv-card);
+        border: 1px solid var(--inv-border);
+        border-radius: var(--inv-radius);
+        box-shadow: var(--inv-shadow);
+    }
+
+    .inv-card-hover {
+        background: var(--inv-card);
+        border: 1px solid var(--inv-border);
+        border-radius: var(--inv-radius);
+        box-shadow: var(--inv-shadow);
+        transition: all .2s ease;
+    }
+    .inv-card-hover:hover {
+        box-shadow: var(--inv-shadow-hover);
+        transform: translateY(-1px);
+    }
+
+    .inv-input {
+        height: 38px; padding: 0 14px; font-size: 13px;
+        border: 1px solid var(--inv-border); border-radius: 10px;
+        background: #fff; outline: none;
+        transition: border .15s, box-shadow .15s; width: 100%;
+    }
+    .inv-input:focus {
+        border-color: var(--inv-accent);
+        box-shadow: 0 0 0 3px rgba(12,144,68,.1);
+    }
+
+    .inv-btn {
+        display: inline-flex; align-items: center; gap: 6px;
+        height: 38px; padding: 0 18px; font-size: 13px; font-weight: 600;
+        border-radius: 10px; border: none; cursor: pointer;
+        transition: all .15s ease; white-space: nowrap;
+    }
+    .inv-btn-sm { height: 32px; padding: 0 12px; font-size: 12px; gap: 4px; }
+    .inv-btn-primary { background: var(--inv-accent); color: #fff; }
+    .inv-btn-primary:hover { background: var(--inv-accent-hover); transform: translateY(-1px); }
+    .inv-btn-outline { background: transparent; color: var(--inv-secondary); border: 1.5px solid var(--inv-border); }
+    .inv-btn-outline:hover { background: #f8fafc; border-color: #cbd5e1; }
+    .inv-btn-success { background: var(--inv-success); color: #fff; }
+    .inv-btn-success:hover { background: #059669; }
+    .inv-btn-danger { background: var(--inv-danger); color: #fff; }
+    .inv-btn-danger:hover { background: #dc2626; }
+
+    .inv-badge {
+        display: inline-flex; align-items: center; gap: 4px;
+        padding: 3px 10px; border-radius: 20px;
+        font-size: 11px; font-weight: 600; line-height: 1.4; white-space: nowrap;
+    }
+    .inv-badge .dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+
+    .inv-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 13px; }
+    .inv-table thead th {
+        position: sticky; top: 0; z-index: 5; background: #f8fafc;
+        padding: 12px 14px; font-size: 11px; font-weight: 600;
+        text-transform: uppercase; letter-spacing: .04em;
+        color: var(--inv-muted); border-bottom: 1px solid var(--inv-border); white-space: nowrap;
+    }
+    .inv-table tbody td { padding: 14px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+    .inv-table tbody tr { transition: background .12s; }
+    .inv-table tbody tr:hover { background: var(--inv-accent-light); }
+    .inv-table tbody tr:last-child td { border-bottom: none; }
+    .inv-table tbody tr.row-danger { background: #fef2f2; }
+    .inv-table tbody tr.row-danger:hover { background: #fee2e2; }
+    .inv-table tbody tr.row-warn { background: #fffbeb; }
+    .inv-table tbody tr.row-warn:hover { background: #fef3c7; }
+    .inv-table .act-cell { opacity: 0; transition: opacity .12s; }
+    .inv-table tbody tr:hover .act-cell { opacity: 1; }
+    @media(max-width:767px) { .inv-table .act-cell { opacity: 1; } }
+
+    .sort-link { cursor: pointer; user-select: none; transition: color .12s; }
+    .sort-link:hover { color: var(--inv-accent); }
+
+    .stat-card {
+        background: var(--inv-card); border: 1px solid var(--inv-border);
+        border-radius: var(--inv-radius); box-shadow: var(--inv-shadow);
+        padding: 20px; transition: all .2s ease;
+    }
+    .stat-card:hover { box-shadow: var(--inv-shadow-hover); transform: translateY(-1px); }
+
+    /* Legacy .stat for backward compat */
+    .stat { padding: 20px; position: relative; }
+    .stat .stat-bar { display: none; }
+
+    .tip { position: relative; }
+    .tip:hover .tip-text { opacity: 1; transform: translateY(0); pointer-events: auto; }
+    .tip-text {
+        position: absolute; bottom: calc(100% + 6px); left: 50%;
+        transform: translateX(-50%) translateY(4px);
+        padding: 6px 12px; border-radius: 8px;
+        background: #1e293b; color: #fff; font-size: 11px; font-weight: 500;
+        white-space: nowrap; opacity: 0; pointer-events: none;
+        transition: all .18s; z-index: 30;
+    }
+    .tip-text::after {
+        content: ''; position: absolute; top: 100%; left: 50%;
+        margin-left: -4px; border: 4px solid transparent; border-top-color: #1e293b;
+    }
+
+    .mob-card {
+        padding: 18px; border-bottom: 1px solid #f1f5f9; transition: background .12s;
+    }
+    .mob-card:last-child { border-bottom: none; }
+    .mob-card:hover { background: var(--inv-accent-light); }
+
+    .col-toggle {
+        position: absolute; right: 0; top: calc(100% + 4px);
+        background: #fff; border: 1px solid var(--inv-border);
+        border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,.08);
+        padding: 14px; z-index: 40; min-width: 200px;
+    }
+
+    .val-card {
+        display: flex; align-items: center; gap: 16px; padding: 22px 24px;
+    }
+    .val-card .val-icon {
+        width: 48px; height: 48px; border-radius: 14px;
+        display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+
+    .action-item {
+        display: flex; align-items: flex-start; gap: 12px;
+        padding: 12px 16px; border-radius: 10px; transition: background .12s;
+    }
+    .action-item:hover { background: #f8fafc; }
+
+    .filter-chip {
+        display: inline-flex; align-items: center; gap: 5px;
+        padding: 5px 14px; border-radius: 20px; font-size: 12px; font-weight: 500;
+        cursor: pointer; transition: all .15s;
+        border: 1px solid var(--inv-border); background: #fff; color: #6b7280;
+        text-decoration: none;
+    }
+    .filter-chip:hover { border-color: #d1d5db; background: #f9fafb; }
+    .filter-chip.active { background: var(--inv-accent); color: #fff; border-color: var(--inv-accent); }
+    .filter-chip-warn.active { background: var(--inv-warn); border-color: var(--inv-warn); }
+    .filter-chip-danger.active { background: var(--inv-danger); border-color: var(--inv-danger); }
+    .filter-chip-success.active { background: var(--inv-success); border-color: var(--inv-success); }
+
+    .section-title {
+        display: flex; align-items: center; gap: 10px; margin-bottom: 16px;
+    }
+    .section-title .bar { width: 4px; height: 20px; border-radius: 4px; }
+    .section-title h2 { font-size: 15px; font-weight: 700; color: var(--inv-text); }
+
+    /* Fade-in animation */
+    .fade-in-up {
+        opacity: 0; transform: translateY(12px);
+        animation: fadeInUp .4s ease forwards;
+    }
+    @keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
+    .fade-delay-1 { animation-delay: .05s; }
+    .fade-delay-2 { animation-delay: .1s; }
+    .fade-delay-3 { animation-delay: .15s; }
+    .fade-delay-4 { animation-delay: .2s; }
+    .fade-delay-5 { animation-delay: .25s; }
+
+    /* Custom scrollbar */
+    .custom-scroll::-webkit-scrollbar { width: 4px; }
+    .custom-scroll::-webkit-scrollbar-track { background: transparent; }
+    .custom-scroll::-webkit-scrollbar-thumb { background: var(--inv-border); border-radius: 10px; }
 </style>
+@endsection
+
+@section('content')
 
 @php
     $currentSort = request('sort','name');
@@ -65,11 +212,8 @@
     $fmtRp = fn($v) => 'Rp' . number_format((float)($v ?? 0), 0, ',', '.');
 @endphp
 
-<div class="py-6 px-4 sm:px-6 lg:px-8 max-w-[1600px] mx-auto" style="background:var(--inv-bg);min-height:100vh"
+<div class="py-6 px-4 md:px-6 lg:px-8 max-w-[1600px] mx-auto" style="background:var(--inv-bg);min-height:100vh;font-family:'Poppins','Public Sans',sans-serif"
      x-data="{
-        showColToggle: false,
-        cols: JSON.parse(localStorage.getItem('inv_cols') || '{&quot;type&quot;:true,&quot;category&quot;:true,&quot;hpp&quot;:true,&quot;sell&quot;:true,&quot;min&quot;:true,&quot;expired&quot;:true,&quot;value&quot;:true,&quot;usage&quot;:true,&quot;updated&quot;:false}'),
-        toggleCol(key){ this.cols[key]=!this.cols[key]; localStorage.setItem('inv_cols',JSON.stringify(this.cols)); },
         deleteId:null, deleteName:'', deleteType:'', showDeleteModal:false,
         showExpiredModal:false, expiredBatches:[],
         expiredData: @js($expiredBatchesMap),
@@ -80,28 +224,31 @@
 
     {{-- ═══════════════════════ FLASH MESSAGES ═══════════════════════ --}}
     @if(session('success'))
-    <div class="mb-5 p-3.5 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl text-[13px] flex items-center gap-2.5" x-data x-init="setTimeout(()=>$el.remove(),5000)">
+    <div class="mb-5 p-4 bg-emerald-50 border border-emerald-200 text-emerald-700 text-[13px] flex items-center gap-2.5" style="border-radius:var(--inv-radius)" x-data x-init="setTimeout(()=>$el.remove(),5000)">
         <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
         {{ session('success') }}
     </div>
     @endif
     @if(session('error'))
-    <div class="mb-5 p-3.5 bg-red-50 border border-red-200 text-red-700 rounded-xl text-[13px] flex items-center gap-2.5">
+    <div class="mb-5 p-4 bg-red-50 border border-red-200 text-red-700 text-[13px] flex items-center gap-2.5" style="border-radius:var(--inv-radius)">
         <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>
         {{ session('error') }}
     </div>
     @endif
 
     {{-- ═══════════════════════ A. HEADER ═══════════════════════ --}}
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 fade-in-up">
         <div>
-            <h1 class="text-[22px] font-bold text-[var(--inv-text)] tracking-tight flex items-center gap-2">
-                <svg class="w-6 h-6 text-[var(--inv-accent)]" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+            <h1 class="text-2xl font-bold tracking-tight flex items-center gap-2.5" style="color:var(--inv-text);letter-spacing:-0.02em">
+                <div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background:var(--inv-accent-light)">
+                    <svg class="w-5 h-5" style="color:var(--inv-accent)" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                </div>
                 Inventory Control
             </h1>
-            <p class="text-[13px] text-[var(--inv-muted)] mt-0.5">{{ $selected_store->name ?? 'Store' }} &middot; <span class="tabular-nums">{{ now()->translatedFormat('d M Y') }}</span></p>
+            <p class="text-sm mt-1" style="color:var(--inv-muted)">{{ $selected_store->name ?? 'Store' }} &middot; <span class="tabular-nums">{{ now()->translatedFormat('l, d F Y') }}</span></p>
         </div>
         <div class="flex items-center gap-2 flex-wrap">
+            @include('handai-manager.partials.import-export-modal', ['type' => 'stock', 'label' => 'Bahan Baku'])
             <a href="{{ route('manager.inventory.stock.create') }}" class="inv-btn inv-btn-primary">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
                 Tambah Pembelian
@@ -109,106 +256,101 @@
         </div>
     </div>
 
-    {{-- ═══════════════════════ B. WAREHOUSE VALUATION PANEL ═══════════════════════ --}}
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+    {{-- ═══════════════════════ B. KPI CARDS ═══════════════════════ --}}
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-6 fade-in-up fade-delay-1">
         {{-- B1. Bahan Baku --}}
-        <div class="inv-card val-card border-l-[3px] border-l-blue-400">
-            <div class="val-icon bg-blue-50">
-                <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
-            </div>
-            <div class="flex-1 min-w-0">
-                <p class="text-[10px] font-bold text-blue-500 uppercase tracking-wider">Bahan Baku</p>
-                <p class="text-xl font-bold text-[var(--inv-text)] tabular-nums mt-0.5">{{ number_format($stats->total_bahan) }} <span class="text-[13px] font-normal text-[var(--inv-muted)]">item</span></p>
-                <div class="flex items-center gap-3 mt-1">
-                    <div class="flex items-center gap-1 text-[11px]"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span><span class="text-[var(--inv-muted)]">Ready</span><span class="font-semibold text-[var(--inv-text)]">{{ $stats->raw_ready }}</span></div>
-                    <div class="flex items-center gap-1 text-[11px]"><span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span><span class="text-[var(--inv-muted)]">Low</span><span class="font-semibold text-amber-600">{{ $stats->raw_low }}</span></div>
-                    <div class="flex items-center gap-1 text-[11px]"><span class="w-1.5 h-1.5 rounded-full bg-red-400"></span><span class="text-[var(--inv-muted)]">Habis</span><span class="font-semibold text-red-600">{{ $stats->raw_out }}</span></div>
+        <div class="inv-card-hover p-5">
+            <div class="flex items-center justify-between mb-3">
+                <span class="text-xs font-semibold uppercase tracking-wider" style="color:var(--inv-info)">Bahan Baku</span>
+                <div class="w-10 h-10 rounded-xl flex items-center justify-center bg-blue-50">
+                    <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
                 </div>
-                <p class="text-[13px] font-bold text-blue-600 mt-1.5 tabular-nums">{{ $fmtRp($stats->raw_value) }}</p>
             </div>
+            <p class="text-2xl font-bold tabular-nums" style="color:var(--inv-text);letter-spacing:-0.02em">{{ number_format($stats->total_bahan) }} <span class="text-sm font-normal" style="color:var(--inv-muted)">item</span></p>
+            <div class="flex items-center gap-3 mt-2">
+                <span class="text-xs" style="color:var(--inv-muted)"><span class="font-semibold text-emerald-600">{{ $stats->raw_ready }}</span> Ready</span>
+                <span class="text-xs" style="color:var(--inv-muted)"><span class="font-semibold text-amber-600">{{ $stats->raw_low }}</span> Low</span>
+                <span class="text-xs" style="color:var(--inv-muted)"><span class="font-semibold text-red-500">{{ $stats->raw_out }}</span> Habis</span>
+            </div>
+            <p class="text-sm font-bold text-blue-600 mt-2 tabular-nums">{{ $fmtRp($stats->raw_value) }}</p>
         </div>
         {{-- B2. Produk Jadi --}}
-        <div class="inv-card val-card border-l-[3px] border-l-violet-400">
-            <div class="val-icon bg-violet-50">
-                <svg class="w-5 h-5 text-violet-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9"/></svg>
+        <div class="inv-card-hover p-5">
+            <div class="flex items-center justify-between mb-3">
+                <span class="text-xs font-semibold uppercase tracking-wider text-violet-500">Produk Jadi</span>
+                <div class="w-10 h-10 rounded-xl flex items-center justify-center bg-violet-50">
+                    <svg class="w-5 h-5 text-violet-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9"/></svg>
+                </div>
             </div>
-            <div class="flex-1 min-w-0">
-                <p class="text-[10px] font-bold text-violet-500 uppercase tracking-wider">Produk Jadi</p>
-                <p class="text-xl font-bold text-[var(--inv-text)] tabular-nums mt-0.5">{{ number_format($stats->total_produk) }} <span class="text-[13px] font-normal text-[var(--inv-muted)]">item</span></p>
-                <div class="flex items-center gap-3 mt-1">
-                    <div class="flex items-center gap-1 text-[11px]"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span><span class="text-[var(--inv-muted)]">Ready</span><span class="font-semibold text-[var(--inv-text)]">{{ $stats->fg_ready }}</span></div>
-                    <div class="flex items-center gap-1 text-[11px]"><span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span><span class="text-[var(--inv-muted)]">Low</span><span class="font-semibold text-amber-600">{{ $stats->fg_low }}</span></div>
-                    <div class="flex items-center gap-1 text-[11px]"><span class="w-1.5 h-1.5 rounded-full bg-red-400"></span><span class="text-[var(--inv-muted)]">Habis</span><span class="font-semibold text-red-600">{{ $stats->fg_out }}</span></div>
+            <p class="text-2xl font-bold tabular-nums" style="color:var(--inv-text);letter-spacing:-0.02em">{{ number_format($stats->total_produk) }} <span class="text-sm font-normal" style="color:var(--inv-muted)">item</span></p>
+            <div class="flex items-center gap-3 mt-2">
+                <span class="text-xs" style="color:var(--inv-muted)"><span class="font-semibold text-emerald-600">{{ $stats->fg_ready }}</span> Ready</span>
+                <span class="text-xs" style="color:var(--inv-muted)"><span class="font-semibold text-amber-600">{{ $stats->fg_low }}</span> Low</span>
+                <span class="text-xs" style="color:var(--inv-muted)"><span class="font-semibold text-red-500">{{ $stats->fg_out }}</span> Habis</span>
+            </div>
+            <div class="flex items-center gap-4 mt-2">
+                <div>
+                    <span class="text-[11px]" style="color:var(--inv-muted)">
+                        HPP <span class="text-[9px]" title="Jumlah HPP semua varian produk jadi dalam inventori (jika HPP tidak diisi ditarik dari harga jual).">(total)</span>
+                    </span>
+                    <span class="text-sm font-bold text-violet-600 tabular-nums">{{ $fmtRp($stats->fg_value) }}</span>
                 </div>
-                <div class="flex items-center gap-3 mt-1.5">
-                    <div>
-                        <span class="text-[10px] text-[var(--inv-muted)]">HPP</span>
-                        <span class="text-[13px] font-bold text-violet-600 tabular-nums ml-1">{{ $fmtRp($stats->fg_value) }}</span>
-                    </div>
-                    <div>
-                        <span class="text-[10px] text-[var(--inv-muted)]">Jual</span>
-                        <span class="text-[13px] font-bold text-emerald-600 tabular-nums ml-1">{{ $fmtRp($stats->fg_selling_value ?? 0) }}</span>
-                    </div>
-                </div>
+                <div><span class="text-[11px]" style="color:var(--inv-muted)">Jual</span> <span class="text-sm font-bold text-emerald-600 tabular-nums">{{ $fmtRp($stats->fg_selling_value ?? 0) }}</span></div>
             </div>
         </div>
         {{-- B3. Total Gudang --}}
-        <div class="inv-card val-card border-l-[3px] border-l-emerald-400">
-            <div class="val-icon bg-emerald-50">
-                <svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z"/></svg>
+        <div class="inv-card-hover p-5">
+            <div class="flex items-center justify-between mb-3">
+                <span class="text-xs font-semibold uppercase tracking-wider" style="color:var(--inv-accent)">Total Estimasi Gudang</span>
+                <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background:var(--inv-accent-light)">
+                    <svg class="w-5 h-5" style="color:var(--inv-accent)" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z"/></svg>
+                </div>
             </div>
-            <div class="flex-1 min-w-0">
-                <p class="text-[10px] font-bold text-emerald-500 uppercase tracking-wider">Total Estimasi Gudang</p>
-                <p class="text-xl font-bold text-[var(--inv-text)] tabular-nums mt-0.5">{{ number_format($stats->total_items) }} <span class="text-[13px] font-normal text-[var(--inv-muted)]">item</span></p>
-                <p class="text-[18px] font-bold text-emerald-600 mt-1 tabular-nums">{{ $fmtRp($stats->total_value) }}</p>
-                <p class="text-[10px] text-[var(--inv-muted)] mt-0.5">Bahan {{ $fmtRp($stats->raw_value) }} + FG {{ $fmtRp($stats->fg_value) }}</p>
-            </div>
+            <p class="text-2xl font-bold tabular-nums" style="color:var(--inv-text);letter-spacing:-0.02em">{{ number_format($stats->total_items) }} <span class="text-sm font-normal" style="color:var(--inv-muted)">item</span></p>
+            <p class="text-xl font-bold tabular-nums mt-1" style="color:var(--inv-accent)">{{ $fmtRp($stats->total_value) }}</p>
+            <p class="text-xs mt-1" style="color:var(--inv-muted)">Bahan {{ $fmtRp($stats->raw_value) }} + Produk Jadi {{ $fmtRp($stats->fg_value) }}</p>
         </div>
     </div>
 
-    {{-- ═══════════════════════ C. STATUS OVERVIEW STRIP ═══════════════════════ --}}
-    <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3 mb-6">
-        <div class="inv-card stat">
-            <div class="stat-bar bg-emerald-400"></div>
-            <p class="text-[10px] font-bold text-emerald-500 uppercase tracking-wider">Ready</p>
-            <p class="text-2xl font-bold text-emerald-600 mt-1 tabular-nums">{{ number_format($stats->ready) }}</p>
+    {{-- ═══════════════════════ C. STATUS OVERVIEW ═══════════════════════ --}}
+    {{-- two-row status grid --}}
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 fade-in-up fade-delay-2">
+        <div class="stat-card">
+            <p class="text-[11px] font-semibold text-emerald-500 uppercase tracking-wider">Ready</p>
+            <p class="text-2xl font-bold text-emerald-600 mt-2 tabular-nums">{{ number_format($stats->ready) }}</p>
         </div>
-        <div class="inv-card stat">
-            <div class="stat-bar bg-amber-400"></div>
-            <p class="text-[10px] font-bold text-amber-500 uppercase tracking-wider">Hampir Habis</p>
-            <p class="text-2xl font-bold text-amber-600 mt-1 tabular-nums">{{ number_format($stats->low_stock) }}</p>
+        <div class="stat-card">
+            <p class="text-[11px] font-semibold text-amber-500 uppercase tracking-wider">Hampir Habis</p>
+            <p class="text-2xl font-bold text-amber-600 mt-2 tabular-nums">{{ number_format($stats->low_stock) }}</p>
         </div>
-        <div class="inv-card stat">
-            <div class="stat-bar bg-red-400"></div>
-            <p class="text-[10px] font-bold text-red-400 uppercase tracking-wider">Habis</p>
-            <p class="text-2xl font-bold text-red-500 mt-1 tabular-nums">{{ number_format($stats->out_of_stock) }}</p>
+        <div class="stat-card">
+            <p class="text-[11px] font-semibold text-red-400 uppercase tracking-wider">Habis</p>
+            <p class="text-2xl font-bold text-red-500 mt-2 tabular-nums">{{ number_format($stats->out_of_stock) }}</p>
         </div>
-        <div class="inv-card stat">
-            <div class="stat-bar bg-blue-400"></div>
-            <p class="text-[10px] font-bold text-blue-500 uppercase tracking-wider">Perlu Reorder</p>
-            <p class="text-2xl font-bold text-blue-600 mt-1 tabular-nums">{{ number_format($stats->reorder) }}</p>
+        <div class="stat-card">
+            <p class="text-[11px] font-semibold text-blue-500 uppercase tracking-wider">Perlu Reorder</p>
+            <p class="text-2xl font-bold text-blue-600 mt-2 tabular-nums">{{ number_format($stats->reorder) }}</p>
         </div>
-        <div class="inv-card stat">
-            <div class="stat-bar bg-orange-400"></div>
-            <p class="text-[10px] font-bold text-orange-500 uppercase tracking-wider">Hampir Expired</p>
-            <p class="text-2xl font-bold text-orange-500 mt-1 tabular-nums">{{ number_format($stats->almost_expired) }}</p>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6 fade-in-up fade-delay-3">
+        <div class="stat-card">
+            <p class="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Slow Movers</p>
+            <p class="text-2xl font-bold text-gray-500 mt-2 tabular-nums">{{ number_format($stats->slow_movers) }}</p>
+            <p class="text-[10px]" style="color:var(--inv-muted)">turnover &lt;0.3x</p>
         </div>
-        <div class="inv-card stat">
-            <div class="stat-bar bg-gray-400"></div>
-            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Slow Movers</p>
-            <p class="text-2xl font-bold text-gray-500 mt-1 tabular-nums">{{ number_format($stats->slow_movers) }}</p>
-            <p class="text-[10px] text-[var(--inv-muted)]">turnover &lt;0.3x</p>
+        <div class="stat-card">
+            <p class="text-[11px] font-semibold text-orange-500 uppercase tracking-wider">Hampir Basi</p>
+            <p class="text-2xl font-bold text-orange-500 mt-2 tabular-nums">{{ number_format($stats->almost_expired) }}</p>
         </div>
-        <div class="inv-card stat">
-            <div class="stat-bar bg-rose-400"></div>
-            <p class="text-[10px] font-bold text-rose-400 uppercase tracking-wider">Waste/Expired 30d</p>
-            <p class="text-lg font-bold text-rose-500 mt-1 tabular-nums leading-tight">{{ $fmtRp($stats->waste_expired_loss_30d) }}</p>
+        <div class="stat-card">
+            <p class="text-[11px] font-semibold text-red-500 uppercase tracking-wider">Basi</p>
+            <p class="text-2xl font-bold text-red-500 mt-2 tabular-nums">{{ number_format($stats->expired ?? 0) }}</p>
         </div>
     </div>
 
     {{-- ═══════════════════════ D. ACTION ITEMS (Operational Insights) ═══════════════════════ --}}
     @if($actionItems->count() > 0)
-    <div class="inv-card mb-6 overflow-hidden" x-data="{open:true}">
+    <div class="inv-card mb-6 overflow-hidden fade-in-up fade-delay-3" x-data="{open:true}">
         <button @click="open=!open" class="w-full flex items-center justify-between px-5 py-3.5 border-b border-[var(--inv-border)] cursor-pointer hover:bg-gray-50/50 transition">
             <div class="flex items-center gap-2.5">
                 <div class="w-7 h-7 rounded-lg bg-amber-50 flex items-center justify-center">
@@ -253,9 +395,53 @@
     </div>
     @endif
 
+    {{-- ═══════════════════════ D2. SMART RECOMMENDATIONS ═══════════════════════ --}}
+    @if($recommendations->count() > 0)
+    <div class="inv-card mb-6 overflow-hidden fade-in-up fade-delay-4" x-data="{openRec:false}">
+        <button @click="openRec=!openRec" class="w-full flex items-center justify-between px-5 py-3.5 border-b border-[var(--inv-border)] cursor-pointer hover:bg-gray-50/50 transition">
+            <div class="flex items-center gap-2.5">
+                <div class="w-7 h-7 rounded-lg bg-blue-50 flex items-center justify-center">
+                    <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z"/></svg>
+                </div>
+                <span class="text-[14px] font-bold text-[var(--inv-text)]">Smart Rekomendasi</span>
+                <span class="inv-badge bg-blue-100 text-blue-700">{{ $recommendations->count() }}</span>
+            </div>
+            <svg class="w-4 h-4 text-gray-400 transition-transform" :class="openRec&&'rotate-180'" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div x-show="openRec" x-collapse x-cloak>
+            <div class="divide-y divide-gray-50">
+                @foreach($recommendations as $rec)
+                <div class="action-item">
+                    @if($rec->type === 'critical')
+                    <div class="w-7 h-7 rounded-lg bg-red-50 flex items-center justify-center shrink-0 mt-0.5">
+                        <svg class="w-3.5 h-3.5 text-red-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/></svg>
+                    </div>
+                    @elseif($rec->type === 'warning')
+                    <div class="w-7 h-7 rounded-lg bg-orange-50 flex items-center justify-center shrink-0 mt-0.5">
+                        <svg class="w-3.5 h-3.5 text-orange-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </div>
+                    @else
+                    <div class="w-7 h-7 rounded-lg bg-blue-50 flex items-center justify-center shrink-0 mt-0.5">
+                        <svg class="w-3.5 h-3.5 text-blue-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z"/></svg>
+                    </div>
+                    @endif
+                    <div class="flex-1 min-w-0">
+                        <p class="text-[12px] font-semibold text-[var(--inv-text)] leading-snug">{{ $rec->title }}</p>
+                        <p class="text-[11px] text-[var(--inv-muted)] mt-0.5 leading-relaxed">{{ $rec->message }}</p>
+                    </div>
+                    @if($rec->action_url && $rec->action_label)
+                    <a href="{{ $rec->action_url }}" class="inv-btn inv-btn-sm inv-btn-primary shrink-0">{{ $rec->action_label }}</a>
+                    @endif
+                </div>
+                @endforeach
+            </div>
+        </div>
+    </div>
+    @endif
+
     {{-- ═══════════════════════ E. FINANCE INTEGRATION ═══════════════════════ --}}
     @if($financeData->available ?? false)
-    <div class="inv-card mb-6 overflow-hidden">
+    <div class="inv-card mb-6 overflow-hidden fade-in-up fade-delay-5">
         <button @click="showFinance=!showFinance" class="w-full flex items-center justify-between px-5 py-3.5 border-b border-[var(--inv-border)] cursor-pointer hover:bg-gray-50/50 transition">
             <div class="flex items-center gap-2.5">
                 <div class="w-7 h-7 rounded-lg bg-purple-50 flex items-center justify-center">
@@ -319,7 +505,7 @@
     @endif
 
     {{-- ═══════════════════════ F. FILTER BAR ═══════════════════════ --}}
-    <form method="GET" action="{{ route('manager.inventory.stock') }}" id="filterForm" class="inv-card p-4 mb-5">
+    <form method="GET" action="{{ route('manager.inventory.stock') }}" id="filterForm" class="inv-card p-5 mb-5 fade-in-up">
         <div class="flex flex-wrap items-end gap-3">
             {{-- Search --}}
             <div class="flex-1 min-w-[200px]">
@@ -338,6 +524,9 @@
                 </a>
                 <a href="{{ route('manager.inventory.stock', array_merge(request()->except(['type','page']), ['type'=>'produk'])) }}" class="filter-chip {{ $typeFilter==='produk' ? 'active' : '' }}">
                     <span class="w-1.5 h-1.5 rounded-full bg-violet-400"></span>Produk
+                </a>
+                <a href="{{ route('manager.inventory.stock', array_merge(request()->except(['type','page']), ['type'=>'setengah'])) }}" class="filter-chip {{ $typeFilter==='setengah' ? 'active' : '' }}">
+                    <span class="w-1.5 h-1.5 rounded-full bg-purple-400"></span>Setengah Jadi
                 </a>
             </div>
 
@@ -403,8 +592,8 @@
             </span>
             @endif
             @if(request('type') && request('type') !== 'all')
-            <span class="inv-badge {{ request('type')==='bahan' ? 'bg-blue-50 text-blue-600' : 'bg-violet-50 text-violet-600' }}">
-                {{ request('type')==='bahan' ? 'Bahan Baku' : 'Produk Jadi' }}
+            <span class="inv-badge {{ request('type')==='bahan' ? 'bg-blue-50 text-blue-600' : (request('type')==='setengah' ? 'bg-purple-50 text-purple-600' : 'bg-violet-50 text-violet-600') }}">
+                {{ request('type')==='bahan' ? 'Bahan Baku' : (request('type')==='setengah' ? 'Produk Setengah Jadi' : 'Produk Jadi') }}
                 <a href="{{ route('manager.inventory.stock', request()->except(['type','page'])) }}" class="ml-1 hover:opacity-70">&times;</a>
             </span>
             @endif
@@ -425,7 +614,7 @@
     </form>
 
     {{-- ═══════════════════════ G. DATA TABLE ═══════════════════════ --}}
-    <div class="inv-card overflow-hidden">
+    <div class="inv-card overflow-hidden fade-in-up">
         {{-- Toolbar --}}
         <div class="px-5 py-3 border-b border-[var(--inv-border)] flex items-center justify-between gap-4">
             <p class="text-[12px] text-[var(--inv-muted)]">
@@ -435,42 +624,29 @@
                 <span class="mx-1 text-gray-300">&middot;</span>{{ $stats->inactive }} nonaktif
                 @endif
             </p>
-            <div class="flex items-center gap-2">
-                {{-- Column toggle --}}
-                <div class="relative">
-                    <button @click="showColToggle=!showColToggle" class="inv-btn inv-btn-outline !px-2.5 !h-8 text-[11px]" title="Pilih kolom">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"/></svg>
-                    </button>
-                    <div x-show="showColToggle" @click.outside="showColToggle=false" x-cloak x-transition class="col-toggle">
-                        <p class="text-[10px] font-bold text-[var(--inv-muted)] uppercase tracking-wider mb-2">Tampilkan Kolom</p>
-                        <template x-for="[key,label] in [['type','Tipe'],['category','Kategori'],['hpp','HPP'],['sell','Harga Jual'],['min','Min Stok'],['expired','Expired'],['value','Nilai'],['usage','Pakai 30hr'],['updated','Last Update']]">
-                            <label class="flex items-center gap-2 py-1.5 cursor-pointer text-[12px] text-gray-600 hover:text-gray-800">
-                                <input type="checkbox" :checked="cols[key]" @change="toggleCol(key)" class="rounded border-gray-300 text-blue-500 w-3.5 h-3.5 cursor-pointer"/>
-                                <span x-text="label"></span>
-                            </label>
-                        </template>
-                    </div>
-                </div>
-            </div>
         </div>
 
         {{-- ── Desktop Table ── --}}
-        <div class="hidden md:block overflow-x-auto">
-            <table class="inv-table">
+        <div class="hidden md:block w-full">
+            <table class="inv-table table-fixed">
                 <thead>
                     <tr>
-                        <th class="text-left pl-5 w-[260px]"><a href="{{ $sortUrl('name') }}" class="sort-link">Nama {!! $sortIcon('name') !!}</a></th>
-                        <th class="text-left" x-show="cols.type"><a href="{{ $sortUrl('type') }}" class="sort-link">Tipe {!! $sortIcon('type') !!}</a></th>
-                        <th class="text-left" x-show="cols.category">Kategori</th>
-                        <th class="text-right" x-show="cols.hpp"><a href="{{ $sortUrl('hpp') }}" class="sort-link">HPP {!! $sortIcon('hpp') !!}</a></th>
-                        <th class="text-right" x-show="cols.sell">Harga Jual</th>
-                        <th class="text-right"><a href="{{ $sortUrl('quantity') }}" class="sort-link">Stok {!! $sortIcon('quantity') !!}</a></th>
-                        <th class="text-right" x-show="cols.min">Min Stok</th>
-                        <th class="text-center">Status</th>
-                        <th class="text-center" x-show="cols.expired">Expired</th>
-                        <th class="text-right" x-show="cols.value"><a href="{{ $sortUrl('value') }}" class="sort-link">Nilai {!! $sortIcon('value') !!}</a></th>
-                        <th class="text-right" x-show="cols.usage">Pakai 30hr</th>
-                        <th class="text-right" x-show="cols.updated"><a href="{{ $sortUrl('updated_at') }}" class="sort-link">Update {!! $sortIcon('updated_at') !!}</a></th>
+                        <th class="text-left pl-5 w-1/3">
+                            <a href="{{ $sortUrl('name') }}" class="sort-link text-[12px]">Produk & Kategori {!! $sortIcon('name') !!}</a>
+                        </th>
+                        <th class="text-right w-1/5">
+                            <div class="flex flex-col items-end gap-1">
+                                <a href="{{ $sortUrl('hpp') }}" class="sort-link text-[11px]">HPP {!! $sortIcon('hpp') !!}</a>
+                                <span class="text-[10px] text-gray-400">Harga Jual &middot; <a href="{{ $sortUrl('value') }}" class="sort-link hover:text-[var(--inv-accent)]">Tot Nilai {!! $sortIcon('value') !!}</a></span>
+                            </div>
+                        </th>
+                        <th class="text-right w-1/4">
+                            <div class="flex flex-col items-end gap-1">
+                                <a href="{{ $sortUrl('quantity') }}" class="sort-link text-[11px]">Stok Tersedia {!! $sortIcon('quantity') !!}</a>
+                                <span class="text-[10px] text-gray-400">Min Stok &middot; Pakai/30hr</span>
+                            </div>
+                        </th>
+                        <th class="text-center w-1/6">Status & Kondisi</th>
                         <th class="w-[80px]"></th>
                     </tr>
                 </thead>
@@ -482,147 +658,115 @@
                         $isExpired = ($item->freshness ?? '') === 'Expired' || ($item->expired_qty ?? 0) > 0;
                         $rowClass = $isOut ? 'row-danger' : ($isExpired ? 'row-danger' : ($isLow ? 'row-warn' : ''));
                     @endphp
-                    <tr class="{{ $rowClass }}">
-                        {{-- Name --}}
+                    <tr class="{{ $rowClass }} cursor-pointer" @click="$dispatch('open-detail', {type:'{{ $item->model_type }}', id:{{ $item->id }}})">
+                        {{-- Produk & Kategori --}}
                         <td class="pl-5">
-                            <div class="flex items-center gap-2.5 min-w-0">
-                                <div class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 text-[10px] font-bold {{ $item->model_type==='stock' ? 'bg-blue-50 text-blue-500' : 'bg-violet-50 text-violet-500' }}">
-                                    {{ $item->model_type==='stock' ? 'BB' : 'PJ' }}
+                            <div class="flex items-start gap-3 min-w-0 py-1">
+                                <div class="w-9 h-9 rounded-lg flex items-center justify-center shrink-0 text-[11px] font-bold mt-0.5 {{ $item->model_type==='stock' ? 'bg-blue-50 text-blue-500' : ($item->model_type==='semi_finished' ? 'bg-purple-50 text-purple-500' : 'bg-violet-50 text-violet-500') }}">
+                                    {{ $item->model_type==='stock' ? 'BB' : ($item->model_type==='semi_finished' ? 'SJ' : 'PJ') }}
                                 </div>
                                 <div class="min-w-0 flex-1">
-                                    <p class="font-semibold text-[var(--inv-text)] leading-snug truncate text-[13px]">{{ $item->name }}</p>
+                                    <p class="font-semibold text-[var(--inv-text)] leading-snug truncate text-[14px]">{{ $item->name }}</p>
                                     @if($item->subtitle && $item->subtitle !== 'Tanpa Varian')
                                     <p class="text-[11px] text-[var(--inv-muted)] mt-0.5 truncate leading-none">{{ $item->subtitle }}</p>
+                                    @endif
+                                    <p class="text-[11px] text-gray-500 mt-1.5 flex items-center gap-1.5">
+                                        <span class="inline-block w-1.5 h-1.5 rounded-full {{ $item->model_type==='stock' ? 'bg-blue-400' : ($item->model_type==='semi_finished' ? 'bg-purple-400' : 'bg-violet-400') }}"></span>
+                                        {{ $item->category_name ?: 'Tanpa Kategori' }}
+                                    </p>
+                                </div>
+                            </div>
+                        </td>
+
+                        {{-- Finansial (HPP, Jual, Nilai) --}}
+                        <td class="text-right">
+                            <div class="flex flex-col items-end justify-center py-1">
+                                <div class="flex items-baseline gap-1.5">
+                                    <span class="text-[10px] text-[var(--inv-muted)]">HPP:</span>
+                                    <span class="font-semibold tabular-nums text-[13px] text-[var(--inv-text)]">Rp{{ number_format($item->hpp,0,',','.') }}<span class="text-[10px] text-[var(--inv-muted)] font-normal">/{{ $item->unit_symbol }}</span></span>
+                                </div>
+                                @if($item->selling_price)
+                                <div class="mt-1 flex items-center gap-1.5 text-[11px]">
+                                    <span class="text-gray-400">Jual:</span>
+                                    <span class="font-medium text-gray-700">Rp{{ number_format($item->selling_price,0,',','.') }}</span>
+                                </div>
+                                @endif
+                                <div class="mt-1 flex items-center gap-1.5 text-[11px]">
+                                    <span class="text-gray-400">Tot Nilai:</span>
+                                    <span class="font-semibold text-emerald-600 tabular-nums border-b border-emerald-100 border-dashed pb-0.5" title="Total Nilai Inventori">Rp{{ number_format($item->inventory_value,0,',','.') }}</span>
+                                </div>
+                            </div>
+                        </td>
+
+                        {{-- Stok & Pergerakan --}}
+                        <td class="text-right pr-4">
+                            <div class="flex flex-col items-end py-1">
+                                <span class="font-bold tabular-nums text-[15px] {{ $isOut ? 'text-red-600' : ($isLow ? 'text-amber-600' : 'text-[var(--inv-text)]') }}">
+                                    {{ $item->quantity_fmt }} <span class="text-[11px] text-[var(--inv-muted)] font-medium">{{ $item->unit_symbol }}</span>
+                                </span>
+                                <div class="mt-1 flex flex-col items-end gap-0.5 text-[11px] text-gray-500">
+                                    @if($item->min_stock > 0)
+                                    <span>Min: <b class="{{ $item->quantity <= $item->min_stock ? 'text-red-500' : 'text-gray-600' }}">{{ number_format($item->min_stock,0) }}</b></span>
+                                    @endif
+                                    @if($item->usage_30d > 0)
+                                    <span>Pakai 30hr: <b class="text-gray-600">{{ number_format($item->usage_30d,0) }}</b> {{ $item->unit_symbol }}</span>
                                     @endif
                                 </div>
                             </div>
                         </td>
-                        {{-- Type --}}
-                        <td x-show="cols.type">
-                            <span class="inv-badge {{ $item->model_type==='stock' ? 'bg-blue-50 text-blue-600' : 'bg-violet-50 text-violet-600' }}">
-                                {{ $item->type_label }}
-                            </span>
-                        </td>
-                        {{-- Category --}}
-                        <td x-show="cols.category" class="text-[12px] text-gray-500">{{ $item->category_name }}</td>
-                        {{-- HPP --}}
-                        <td x-show="cols.hpp" class="text-right tabular-nums font-medium text-[var(--inv-text)]">
-                            <span class="tip">
-                                Rp{{ number_format($item->hpp,0,',','.') }}
-                                <span class="tip-text">Harga Pokok Produksi</span>
-                            </span>
-                            @if($item->unit_symbol)
-                            <span class="text-[10px] text-[var(--inv-muted)] font-normal">/{{ $item->unit_symbol }}</span>
-                            @endif
-                        </td>
-                        {{-- Selling price --}}
-                        <td x-show="cols.sell" class="text-right tabular-nums text-[12px]">
-                            @if($item->selling_price)
-                            <span class="font-medium text-[var(--inv-text)]">Rp{{ number_format($item->selling_price,0,',','.') }}</span>
-                            @if($item->margin_percent !== null)
-                            <span class="block text-[10px] {{ ($item->margin_percent ?? 0) >= 30 ? 'text-emerald-500' : (($item->margin_percent ?? 0) < 15 ? 'text-red-400' : 'text-[var(--inv-muted)]') }}">
-                                margin {{ $item->margin_percent }}%
-                            </span>
-                            @endif
-                            @else
-                            <span class="text-gray-200">&mdash;</span>
-                            @endif
-                        </td>
-                        {{-- Quantity --}}
-                        <td class="text-right">
-                            <span class="font-bold tabular-nums text-[14px] {{ $isOut ? 'text-red-600' : ($isLow ? 'text-amber-600' : 'text-[var(--inv-text)]') }}">
-                                {{ $item->quantity_fmt }}
-                            </span>
-                            <span class="text-[10px] text-[var(--inv-muted)] ml-0.5">{{ $item->unit_symbol }}</span>
-                        </td>
-                        {{-- Min Stock --}}
-                        <td x-show="cols.min" class="text-right tabular-nums text-[12px]">
-                            @if($item->min_stock > 0)
-                            <span class="{{ $item->quantity <= $item->min_stock ? 'text-red-500 font-semibold' : 'text-gray-500' }}">{{ number_format($item->min_stock,0) }}</span>
-                            @if($item->reorder_point > 0)
-                            <span class="text-[10px] text-[var(--inv-muted)]"> / {{ number_format($item->reorder_point,0) }}</span>
-                            @endif
-                            @else
-                            <span class="text-gray-200">&mdash;</span>
-                            @endif
-                        </td>
-                        {{-- Status --}}
+
+                        {{-- Status & Kondisi --}}
                         <td class="text-center">
-                            @if($isOut)
-                            <span class="inv-badge bg-red-50 text-red-600"><span class="dot bg-red-400"></span>Habis</span>
-                            @elseif($isLow)
-                            <span class="inv-badge bg-amber-50 text-amber-600"><span class="dot bg-amber-400"></span>Low</span>
-                            @elseif($item->needs_reorder)
-                            <span class="inv-badge bg-blue-50 text-blue-600"><span class="dot bg-blue-400"></span>Reorder</span>
-                            @else
-                            <span class="inv-badge bg-emerald-50 text-emerald-600"><span class="dot bg-emerald-400"></span>Ready</span>
-                            @endif
-                        </td>
-                        {{-- Expired / Freshness --}}
-                        <td x-show="cols.expired" class="text-center">
-                            @if($item->model_type === 'product_variant')
-                                @if(($item->freshness ?? '-') === 'Fresh')
-                                <span class="inv-badge bg-emerald-50 text-emerald-600"><span class="dot bg-emerald-400"></span>Fresh</span>
-                                @if($item->days_left !== null)<span class="block text-[10px] text-emerald-500 mt-0.5">{{ $item->days_left }}hr</span>@endif
-                                @elseif(($item->freshness ?? '') === 'Hampir Expired')
-                                <span class="inv-badge bg-orange-50 text-orange-600"><span class="dot bg-orange-400 animate-pulse"></span>{{ $item->days_left ?? '?' }}hr</span>
-                                @elseif(($item->freshness ?? '') === 'Expired')
-                                <span class="inv-badge bg-red-50 text-red-600"><span class="dot bg-red-400"></span>Expired</span>
+                            <div class="flex flex-col items-center justify-center gap-1.5 py-1">
+                                @if($isOut)
+                                <span class="inv-badge bg-red-50 text-red-600"><span class="dot bg-red-400"></span>Habis</span>
+                                @elseif($isLow)
+                                <span class="inv-badge bg-amber-50 text-amber-600"><span class="dot bg-amber-400"></span>Low Stock</span>
+                                @elseif($item->needs_reorder)
+                                <span class="inv-badge bg-blue-50 text-blue-600"><span class="dot bg-blue-400"></span>Reorder</span>
                                 @else
-                                <span class="text-gray-200">&mdash;</span>
+                                <span class="inv-badge bg-emerald-50 text-emerald-600"><span class="dot bg-emerald-400"></span>Ready</span>
                                 @endif
-                            @else
-                                @if(($item->almost_expired ?? 0) > 0)
-                                <button @click="openExpired({{ $item->id }})" class="text-amber-600 font-semibold hover:text-amber-700 cursor-pointer text-[12px] tabular-nums">
-                                    {{ number_format($item->almost_expired, $item->almost_expired == intval($item->almost_expired) ? 0 : 1) }}
-                                    <span class="block text-[10px] text-amber-400 font-normal">&le;{{ $item->days_left }}hr</span>
-                                </button>
+
+                                @if($item->model_type === 'product_variant')
+                                    @if(($item->freshness ?? '-') === 'Fresh')
+                                    <span class="text-[10px] text-emerald-500 mt-0.5 font-medium">{{ $item->days_left }}hr till exp</span>
+                                    @elseif(($item->freshness ?? '') === 'Hampir Expired')
+                                    <span class="text-[10px] font-bold text-orange-600 mt-0.5 animate-pulse">{{ $item->days_left ?? '?' }}hr till exp</span>
+                                    @elseif(($item->freshness ?? '') === 'Expired')
+                                    <span class="text-[10px] font-bold text-red-600 mt-0.5">Expired</span>
+                                    @endif
                                 @else
-                                <span class="text-gray-200">&mdash;</span>
+                                    @if(($item->almost_expired ?? 0) > 0)
+                                    <button @click.stop="openExpired({{ $item->id }})" class="text-amber-600 font-semibold hover:text-amber-700 cursor-pointer text-[11px] mt-0.5 tabular-nums underline decoration-amber-200 decoration-dashed underline-offset-2">
+                                        {{ number_format($item->almost_expired, $item->almost_expired == intval($item->almost_expired) ? 0 : 1) }} expiring &le;{{ $item->days_left }}hr
+                                    </button>
+                                    @endif
                                 @endif
-                            @endif
+                                
+                                @if($item->updated_at)
+                                <span class="text-[9px] text-gray-400 mt-1">Upd: {{ $item->updated_at->diffForHumans(null, true) }}</span>
+                                @endif
+                            </div>
                         </td>
-                        {{-- Value --}}
-                        <td x-show="cols.value" class="text-right tabular-nums text-[12px] text-gray-600">
-                            Rp{{ number_format($item->inventory_value,0,',','.') }}
-                        </td>
-                        {{-- Usage 30d --}}
-                        <td x-show="cols.usage" class="text-right tabular-nums text-[12px]">
-                            @if($item->usage_30d > 0)
-                            <span class="text-[var(--inv-text)] font-medium">{{ number_format($item->usage_30d,0) }}</span>
-                            <span class="text-[10px] text-[var(--inv-muted)]">{{ $item->unit_symbol }}</span>
-                            @if($item->turnover_rate > 0)
-                            <span class="block text-[10px] {{ $item->turnover_rate < 0.5 ? 'text-red-400' : ($item->turnover_rate > 2 ? 'text-emerald-500' : 'text-[var(--inv-muted)]') }}">
-                                {{ $item->turnover_rate }}x
-                            </span>
-                            @endif
-                            @else
-                            <span class="text-gray-200">&mdash;</span>
-                            @endif
-                        </td>
-                        {{-- Updated --}}
-                        <td x-show="cols.updated" class="text-right text-[11px] text-[var(--inv-muted)]">
-                            @if($item->updated_at)
-                            {{ $item->updated_at->diffForHumans(null, true) }}
-                            @else &mdash; @endif
-                        </td>
+
                         {{-- Actions --}}
                         <td>
-                            <div class="act-cell flex items-center justify-center gap-0.5">
+                            <div class="act-cell flex flex-col items-center justify-center gap-1">
                                 @if($item->edit_url)
-                                <a href="{{ $item->edit_url }}" class="w-7 h-7 rounded-md inline-flex items-center justify-center text-gray-400 hover:text-blue-500 hover:bg-blue-50 transition" title="Edit">
-                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z"/></svg>
+                                <a href="{{ $item->edit_url }}" @click.stop class="w-7 h-7 rounded-md inline-flex items-center justify-center text-gray-400 hover:text-blue-500 hover:bg-blue-50 transition" title="Edit">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z"/></svg>
                                 </a>
                                 @endif
                                 @if($item->batch_url)
-                                <a href="{{ $item->batch_url }}" class="w-7 h-7 rounded-md inline-flex items-center justify-center text-gray-400 hover:text-emerald-500 hover:bg-emerald-50 transition" title="Tambah Batch">
-                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                                <a href="{{ $item->batch_url }}" @click.stop class="w-7 h-7 rounded-md inline-flex items-center justify-center text-gray-400 hover:text-emerald-500 hover:bg-emerald-50 transition" title="Tambah Batch">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
                                 </a>
                                 @endif
                                 @if($item->can_delete)
-                                <button @click="deleteId={{ $item->id }}; deleteName='{{ addslashes($item->name) }}'; deleteType='{{ $item->model_type }}'; showDeleteModal=true"
+                                <button @click.stop="deleteId={{ $item->id }}; deleteName='{{ addslashes($item->name) }}'; deleteType='{{ $item->model_type }}'; showDeleteModal=true"
                                         class="w-7 h-7 rounded-md inline-flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 transition cursor-pointer" title="Hapus">
-                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                                 </button>
                                 @endif
                             </div>
@@ -630,12 +774,12 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="13" class="py-20 text-center">
+                        <td colspan="5" class="py-20 text-center">
                             <div class="w-16 h-16 rounded-2xl bg-gray-100 flex items-center justify-center mx-auto mb-4">
                                 <svg class="w-8 h-8 text-gray-300" fill="none" stroke="currentColor" stroke-width="1" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
                             </div>
-                            <p class="text-[15px] text-gray-500 font-semibold">Belum ada data inventory</p>
-                            <p class="text-[13px] text-[var(--inv-muted)] mt-1 mb-4">Mulai dengan menambahkan pembelian bahan baku.</p>
+                            <p class="text-[15px] text-[var(--inv-text)] font-semibold">Belum ada data inventory</p>
+                            <p class="text-[13px] text-[var(--inv-muted)] mt-1 mb-4">Mulai dengan menambahkan pembelian bahan baku atau resep.</p>
                             <a href="{{ route('manager.inventory.stock.create') }}" class="inv-btn inv-btn-primary">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
                                 Tambah Pembelian
@@ -647,17 +791,14 @@
                 @if($inventoryItems->count() > 0)
                 <tfoot>
                     <tr class="bg-[#f8f9fb] border-t border-[var(--inv-border)]">
-                        <td colspan="5" class="py-2.5 pl-5 text-[11px] font-semibold text-[var(--inv-muted)] uppercase tracking-wider">
-                            Total halaman ini ({{ $pageTotals->items }} item)
+                        <td colspan="2" class="py-3 pl-5 text-[11px] font-semibold text-[var(--inv-muted)] uppercase tracking-wider">
+                            Total halaman ini: {{ $pageTotals->items }} item
                         </td>
-                        <td class="py-2.5 text-right"></td>
-                        <td class="py-2.5"></td>
-                        <td class="py-2.5"></td>
-                        <td class="py-2.5"></td>
-                        <td x-show="cols.value" class="py-2.5 text-right tabular-nums text-[12px] font-bold text-[var(--inv-text)] pr-3.5">
-                            Rp{{ number_format($pageTotals->value ?? 0, 0, ',', '.') }}
+                        <td class="py-3 text-right"></td>
+                        <td class="py-3 items-center justify-center text-center">
+                            <span class="text-[12px] font-bold text-[var(--inv-text)]" title="Total Nilai HPP Barang">Tot Nilai: Rp{{ number_format($pageTotals->value ?? 0, 0, ',', '.') }}</span>
                         </td>
-                        <td colspan="3"></td>
+                        <td></td>
                     </tr>
                 </tfoot>
                 @endif
@@ -672,11 +813,11 @@
                 $isLow = $item->status === 'Low Stock';
                 $accent = $isOut ? 'border-l-red-400' : ($isLow ? 'border-l-amber-400' : ($item->needs_reorder ? 'border-l-blue-400' : 'border-l-emerald-400'));
             @endphp
-            <div class="mob-card border-l-[3px] {{ $accent }} {{ $isOut ? 'bg-red-50/30' : '' }}">
+            <div class="mob-card border-l-[3px] {{ $accent }} {{ $isOut ? 'bg-red-50/30' : '' }} cursor-pointer" @click="$dispatch('open-detail', {type:'{{ $item->model_type }}', id:{{ $item->id }}})">
                 <div class="flex items-start justify-between gap-2 mb-2.5">
                     <div class="min-w-0 flex-1">
                         <div class="flex items-center gap-2 mb-0.5">
-                            <span class="inv-badge {{ $item->model_type==='stock' ? 'bg-blue-50 text-blue-600' : 'bg-violet-50 text-violet-600' }} !text-[9px] !py-0 !px-1.5">{{ $item->model_type === 'stock' ? 'BB' : 'PJ' }}</span>
+                            <span class="inv-badge {{ $item->model_type==='stock' ? 'bg-blue-50 text-blue-600' : ($item->model_type==='semi_finished' ? 'bg-purple-50 text-purple-600' : 'bg-violet-50 text-violet-600') }} !text-[9px] !py-0 !px-1.5">{{ $item->model_type === 'stock' ? 'BB' : ($item->model_type==='semi_finished' ? 'SJ' : 'PJ') }}</span>
                             <span class="text-[11px] text-[var(--inv-muted)]">{{ $item->category_name }}</span>
                         </div>
                         <p class="font-semibold text-[var(--inv-text)] text-[13px] leading-snug truncate">{{ $item->name }}</p>
@@ -797,13 +938,63 @@
         @endif
     </div>
 
+    {{-- ═══════════════════════ G2. INSIGHT VISUALS ═══════════════════════ --}}
+    <div class="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-5 mb-6 fade-in-up">
+        {{-- Movement Chart --}}
+        <div class="lg:col-span-2 inv-card p-6">
+            <div class="section-title mb-4"><div class="bar" style="background:var(--inv-accent)"></div><h2>Pergerakan Stok 30 Hari</h2></div>
+            <div style="height:260px;"><canvas id="movementChart"></canvas></div>
+        </div>
+
+        {{-- Fast & Slow Movers --}}
+        <div class="inv-card p-6 flex flex-col">
+            <div class="section-title mb-3"><div class="bar" style="background:var(--inv-accent)"></div><h2>Fast & Slow Movers</h2></div>
+
+            {{-- Fast Movers --}}
+            <p class="text-[10px] font-bold text-emerald-500 uppercase tracking-wider mb-2">🚀 Fast Movers</p>
+            @forelse($fastMovers as $fm)
+            <div class="flex items-center justify-between py-1.5 border-b border-gray-50 last:border-0">
+                <div class="flex items-center gap-2 min-w-0 flex-1">
+                    <span class="w-5 h-5 rounded flex items-center justify-center text-[9px] font-bold {{ $fm->model_type==='stock' ? 'bg-blue-50 text-blue-500' : ($fm->model_type==='semi_finished' ? 'bg-purple-50 text-purple-500' : 'bg-violet-50 text-violet-500') }}">{{ $fm->model_type==='stock' ? 'BB' : ($fm->model_type==='semi_finished' ? 'SJ' : 'PJ') }}</span>
+                    <span class="text-[12px] font-medium text-[var(--inv-text)] truncate">{{ $fm->name }}</span>
+                </div>
+                <div class="text-right shrink-0 ml-2">
+                    <span class="text-[12px] font-bold text-emerald-600 tabular-nums">{{ $fm->turnover_rate }}x</span>
+                    <span class="block text-[10px] text-[var(--inv-muted)]">{{ number_format($fm->usage_30d,0) }} {{ $fm->unit_symbol }}/30hr</span>
+                </div>
+            </div>
+            @empty
+            <p class="text-[12px] text-[var(--inv-muted)] py-2">Belum ada data.</p>
+            @endforelse
+
+            <div class="my-3 border-t border-gray-100"></div>
+
+            {{-- Slow Movers --}}
+            <p class="text-[10px] font-bold text-red-400 uppercase tracking-wider mb-2">🐢 Slow Movers</p>
+            @forelse($topSlowMovers as $sm)
+            <div class="flex items-center justify-between py-1.5 border-b border-gray-50 last:border-0">
+                <div class="flex items-center gap-2 min-w-0 flex-1">
+                    <span class="w-5 h-5 rounded flex items-center justify-center text-[9px] font-bold {{ $sm->model_type==='stock' ? 'bg-blue-50 text-blue-500' : ($sm->model_type==='semi_finished' ? 'bg-purple-50 text-purple-500' : 'bg-violet-50 text-violet-500') }}">{{ $sm->model_type==='stock' ? 'BB' : ($sm->model_type==='semi_finished' ? 'SJ' : 'PJ') }}</span>
+                    <span class="text-[12px] font-medium text-[var(--inv-text)] truncate">{{ $sm->name }}</span>
+                </div>
+                <div class="text-right shrink-0 ml-2">
+                    <span class="text-[12px] font-bold text-red-500 tabular-nums">{{ $sm->turnover_rate }}x</span>
+                    <span class="block text-[10px] text-[var(--inv-muted)]">{{ number_format($sm->usage_30d,0) }} {{ $sm->unit_symbol }}/30hr</span>
+                </div>
+            </div>
+            @empty
+            <p class="text-[12px] text-[var(--inv-muted)] py-2">Tidak ada slow movers.</p>
+            @endforelse
+        </div>
+    </div>
+
     {{-- ═══════════════════════ H. R&D APPROVED ═══════════════════════ --}}
     @if($approvedProjects->isNotEmpty())
-    <div class="mt-8">
-        <div class="section-title"><div class="bar bg-blue-500"></div><h2>R&D Disetujui</h2></div>
+    <div class="mt-6 fade-in-up">
+        <div class="section-title"><div class="bar" style="background:var(--inv-accent)"></div><h2>R&D Disetujui</h2></div>
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
             @foreach($approvedProjects as $project)
-            <div class="inv-card p-5">
+            <div class="inv-card p-6">
                 <div class="flex items-start justify-between mb-3">
                     <div>
                         <h3 class="text-[14px] font-bold text-[var(--inv-text)]">{{ $project->id }}</h3>
@@ -843,7 +1034,7 @@
 
     {{-- ═══════════════════════ I. EXPIRED STORED ═══════════════════════ --}}
     @if($storedExpiredStocks->count() > 0)
-    <div class="mt-8">
+    <div class="mt-6 fade-in-up">
         <div class="section-title"><div class="bar bg-red-500"></div><h2 class="!text-red-700">Stok Expired Masih Disimpan</h2></div>
         <div class="inv-card overflow-hidden border-red-200">
             <table class="w-full text-[13px]">
@@ -894,7 +1085,7 @@
                 <span class="font-semibold text-gray-600" x-text="deleteName"></span> akan dihapus permanen.
             </p>
             <div class="flex gap-3">
-                <button @click="showDeleteModal=false" class="flex-1 h-10 rounded-lg border border-[var(--inv-border)] text-[13px] font-medium text-gray-500 hover:bg-gray-50 transition cursor-pointer">Batal</button>
+                <button @click="showDeleteModal=false" class="flex-1 h-10 rounded-lg border border-[var(--inv-border)] text-[13px] font-medium text-gray-500 hover:bg-gray-50 hover:bg-gray-100 transition cursor-pointer">← Batal</button>
                 <form :action="'/manager/inventory/stock/' + deleteId" method="POST" class="flex-1">
                     @csrf @method('DELETE')
                     <button type="submit" class="w-full h-10 rounded-lg bg-red-500 hover:bg-red-600 text-white text-[13px] font-semibold transition cursor-pointer">Ya, Hapus</button>
@@ -942,5 +1133,234 @@
         </div>
     </div>
 
+    {{-- ═══════════════════════ J. DETAIL DRAWER ═══════════════════════ --}}
+    <div x-data="detailDrawer()" @open-detail.window="openDetail($event.detail.type, $event.detail.id)">
+        {{-- Overlay --}}
+        <div x-show="open" x-cloak
+             x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+             x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+             class="fixed inset-0 z-40 bg-black/15 backdrop-blur-[1px]" @click="open=false"></div>
+        {{-- Drawer --}}
+        <div x-show="open" x-cloak
+             x-transition:enter="transition ease-out duration-300" x-transition:enter-start="translate-x-full" x-transition:enter-end="translate-x-0"
+             x-transition:leave="transition ease-in duration-200" x-transition:leave-start="translate-x-0" x-transition:leave-end="translate-x-full"
+             class="fixed right-0 top-0 bottom-0 z-50 w-full max-w-[480px] bg-white shadow-2xl flex flex-col overflow-hidden">
+            {{-- Drawer header --}}
+            <div class="flex items-center justify-between px-6 py-4 border-b border-[var(--inv-border)]" style="background:var(--inv-bg)">
+                <div class="min-w-0 flex-1">
+                    <p class="text-[15px] font-bold text-[var(--inv-text)] truncate" x-text="detail?.name || 'Detail'"></p>
+                    <p class="text-[11px] text-[var(--inv-muted)] mt-0.5" x-text="detail?.category || ''"></p>
+                </div>
+                <button @click="open=false" class="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition cursor-pointer ml-3">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+
+            {{-- Loading state --}}
+            <div x-show="loading" class="flex-1 flex items-center justify-center">
+                <svg class="w-8 h-8 animate-spin" style="color:var(--inv-accent)" viewBox="0 0 24 24" fill="none"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/></svg>
+            </div>
+
+            {{-- Detail content --}}
+            <div x-show="!loading && detail" class="flex-1 overflow-y-auto px-5 py-4 space-y-5">
+                {{-- KPI row --}}
+                <div class="grid grid-cols-3 gap-3">
+                    <div class="bg-blue-50/50 rounded-xl p-3 text-center border border-blue-100">
+                        <p class="text-[10px] font-bold text-blue-500 uppercase tracking-wider">Stok</p>
+                        <p class="text-[18px] font-bold mt-1 tabular-nums" :class="(detail?.quantity??0)<=0?'text-red-600':((detail?.status??'')==='Low Stock'?'text-amber-600':'text-[var(--inv-text)]')" x-text="formatNumber(detail?.quantity)+' '+(detail?.unit||'')"></p>
+                    </div>
+                    <div class="bg-violet-50/50 rounded-xl p-3 text-center border border-violet-100">
+                        <p class="text-[10px] font-bold text-violet-500 uppercase tracking-wider">HPP</p>
+                        <p class="text-[18px] font-bold text-violet-600 mt-1 tabular-nums" x-text="formatRp(detail?.hpp)"></p>
+                    </div>
+                    <div class="bg-emerald-50/50 rounded-xl p-3 text-center border border-emerald-100">
+                        <p class="text-[10px] font-bold text-emerald-500 uppercase tracking-wider">Nilai</p>
+                        <p class="text-[18px] font-bold text-emerald-600 mt-1 tabular-nums" x-text="formatRp(detail?.inventory_value)"></p>
+                    </div>
+                </div>
+
+                {{-- Extra info --}}
+                <div class="space-y-2">
+                    <div class="flex justify-between text-[12px]"><span class="text-[var(--inv-muted)]">Status</span>
+                        <span class="font-semibold" :class="{
+                            'text-red-600': detail?.status==='Out of Stock'||detail?.status==='Habis',
+                            'text-amber-600': detail?.status==='Low Stock',
+                            'text-emerald-600': detail?.status==='Ready'
+                        }" x-text="detail?.status"></span>
+                    </div>
+                    <div class="flex justify-between text-[12px]"><span class="text-[var(--inv-muted)]">Supplier</span><span class="font-medium text-[var(--inv-text)]" x-text="detail?.supplier||'-'"></span></div>
+                    <div class="flex justify-between text-[12px]"><span class="text-[var(--inv-muted)]">Min Stok</span><span class="font-medium text-[var(--inv-text)] tabular-nums" x-text="formatNumber(detail?.min_stock)"></span></div>
+                    <template x-if="detail?.selling_price">
+                        <div class="flex justify-between text-[12px]"><span class="text-[var(--inv-muted)]">Harga Jual</span><span class="font-medium text-[var(--inv-text)] tabular-nums" x-text="formatRp(detail?.selling_price)"></span></div>
+                    </template>
+                    <template x-if="detail?.margin !== undefined && detail?.margin !== null">
+                        <div class="flex justify-between text-[12px]"><span class="text-[var(--inv-muted)]">Margin</span><span class="font-semibold tabular-nums" :class="detail.margin>=30?'text-emerald-600':(detail.margin<15?'text-red-500':'text-[var(--inv-text)]')" x-text="detail.margin+'%'"></span></div>
+                    </template>
+                    <div class="flex justify-between text-[12px]"><span class="text-[var(--inv-muted)]">Penjualan 30hr</span><span class="font-medium text-[var(--inv-text)] tabular-nums" x-text="(detail?.sales_30d??0)+' transaksi'"></span></div>
+                </div>
+
+                {{-- Batches (raw materials only) --}}
+                <template x-if="detail?.batches && detail.batches.length > 0">
+                    <div>
+                        <p class="text-[10px] font-bold text-[var(--inv-muted)] uppercase tracking-wider mb-2">Batch Terakhir</p>
+                        <div class="space-y-1.5">
+                            <template x-for="(batch,idx) in detail.batches" :key="idx">
+                                <div class="bg-gray-50 rounded-lg p-2.5 flex items-center justify-between text-[12px]">
+                                    <div>
+                                        <span class="text-[var(--inv-muted)]" x-text="batch.buy_date"></span>
+                                        <span class="ml-2 font-medium text-[var(--inv-text)]" x-text="batch.supplier"></span>
+                                    </div>
+                                    <div class="text-right">
+                                        <span class="font-semibold tabular-nums" x-text="batch.qty+' '+batch.unit"></span>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </template>
+
+                {{-- Recent movements --}}
+                <template x-if="detail?.movements && detail.movements.length > 0">
+                    <div>
+                        <p class="text-[10px] font-bold text-[var(--inv-muted)] uppercase tracking-wider mb-2">Riwayat Pergerakan</p>
+                        <div class="space-y-1">
+                            <template x-for="(mv,idx) in detail.movements.slice(0,10)" :key="idx">
+                                <div class="flex items-center justify-between text-[12px] py-1.5 border-b border-gray-50">
+                                    <div class="flex items-center gap-2">
+                                        <span class="w-5 h-5 rounded flex items-center justify-center text-[9px] font-bold" :class="mv.qty>0?'bg-emerald-50 text-emerald-500':'bg-red-50 text-red-500'" x-text="mv.qty>0?'IN':'OUT'"></span>
+                                        <span class="text-[var(--inv-muted)]" x-text="mv.date"></span>
+                                    </div>
+                                    <div class="text-right">
+                                        <span class="font-semibold tabular-nums" :class="mv.qty>0?'text-emerald-600':'text-red-500'" x-text="(mv.qty>0?'+':'')+mv.qty+' '+mv.unit"></span>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </template>
+            </div>
+
+            {{-- Drawer footer --}}
+            <div x-show="!loading && detail" class="px-6 py-4 border-t border-[var(--inv-border)] flex items-center gap-2" style="background:var(--inv-bg)">
+                <template x-if="detail?.edit_url">
+                    <a :href="detail.edit_url" class="inv-btn inv-btn-primary flex-1 justify-center">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z"/></svg>
+                        Edit
+                    </a>
+                </template>
+                <template x-if="detail?.batch_url">
+                    <a :href="detail.batch_url" class="inv-btn inv-btn-success flex-1 justify-center">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                        Beli / Batch
+                    </a>
+                </template>
+                <button @click="open=false" class="inv-btn inv-btn-outline flex-1 justify-center">Tutup</button>
+            </div>
+        </div>
+    </div>
+
 </div>
+
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script>
+// ── Detail Drawer Component ──
+document.addEventListener('alpine:init', () => {
+    Alpine.data('detailDrawer', () => ({
+        open: false,
+        loading: false,
+        detail: null,
+        async openDetail(type, id) {
+            this.open = true;
+            this.loading = true;
+            this.detail = null;
+            try {
+                const res = await fetch(`/manager/inventory/stock/detail/${type}/${id}`);
+                if (!res.ok) throw new Error('Failed');
+                this.detail = await res.json();
+            } catch (e) {
+                console.error('Detail fetch error:', e);
+                this.detail = { name: 'Error', category: 'Gagal memuat data' };
+            } finally {
+                this.loading = false;
+            }
+        },
+        formatRp(v) {
+            if (!v && v !== 0) return 'Rp0';
+            return 'Rp' + Math.round(v).toLocaleString('id-ID');
+        },
+        formatNumber(v) {
+            if (!v && v !== 0) return '0';
+            return Number(v).toLocaleString('id-ID');
+        }
+    }));
+});
+
+// ── Listen for drawer open from table row clicks ──
+window.openStockDetail = function(type, id) {
+    const drawerEl = document.querySelector('[x-data*="detailDrawer"]');
+    if (drawerEl && drawerEl.__x) {
+        drawerEl.__x.$data.openDetail(type, id);
+    } else if (drawerEl) {
+        // Alpine v3
+        Alpine.evaluate(drawerEl, `openDetail('${type}', ${id})`);
+    }
+};
+
+// ── Movement Chart ──
+document.addEventListener('DOMContentLoaded', function() {
+    const mvCtx = document.getElementById('movementChart');
+    if (!mvCtx) return;
+
+    const chartData = @json($movementChart);
+
+    new Chart(mvCtx, {
+        type: 'line',
+        data: {
+            labels: chartData.labels,
+            datasets: [
+                {
+                    label: 'Masuk',
+                    data: chartData.in,
+                    borderColor: '#10b981',
+                    backgroundColor: 'rgba(16,185,129,0.08)',
+                    fill: true,
+                    tension: 0.35,
+                    borderWidth: 2,
+                    pointRadius: 0,
+                    pointHoverRadius: 4,
+                },
+                {
+                    label: 'Keluar',
+                    data: chartData.out,
+                    borderColor: '#ef4444',
+                    backgroundColor: 'rgba(239,68,68,0.06)',
+                    fill: true,
+                    tension: 0.35,
+                    borderWidth: 2,
+                    pointRadius: 0,
+                    pointHoverRadius: 4,
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
+            plugins: {
+                legend: { position: 'top', labels: { boxWidth: 10, font: { size: 11 }, usePointStyle: true, pointStyle: 'circle', padding: 16 } },
+                tooltip: {
+                    backgroundColor: '#1e293b', titleFont: { size: 11 }, bodyFont: { size: 11 }, padding: 10, cornerRadius: 8,
+                    callbacks: { label: ctx => ctx.dataset.label + ': ' + ctx.parsed.y.toLocaleString('id-ID') + ' unit' }
+                }
+            },
+            scales: {
+                x: { grid: { display: false }, ticks: { font: { size: 10 }, color: '#9ca3af', maxRotation: 0 } },
+                y: { beginAtZero: true, grid: { color: '#f3f4f6' }, ticks: { font: { size: 10 }, color: '#9ca3af' } }
+            }
+        }
+    });
+});
+</script>
+@endpush
 @endsection

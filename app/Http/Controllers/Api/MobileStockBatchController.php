@@ -19,7 +19,7 @@ class MobileStockBatchController extends Controller
         $validated = $request->validate([
             'unit_qty' => 'required|numeric|min:1',
             'unit_id' => 'required|exists:units,id',
-            'cost' => 'required|numeric|min:0',
+            'cost' => 'required|numeric|min:0.01',
             'buy_date' => 'required|date',
             'store_id' => 'required|exists:store,id',
             'nota' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',

@@ -28,6 +28,16 @@ class StoreController extends Controller
             Session::put('selected_store', $store_id);
         }
 
+        // when called from superadmin simulate page, go directly to dashboard
+        try {
+            $prev = url()->previous();
+            if (str_contains(parse_url($prev, PHP_URL_PATH) ?? '', '/superadmin/simulate')) {
+                return redirect()->route('pos.dashboard');
+            }
+        } catch (\Exception $e) {
+            // ignore parsing errors
+        }
+
         return redirect()->route('pos.startorder');
     }
 }

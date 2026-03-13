@@ -6,8 +6,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Carbon\Carbon;
 use App\Models\ProductVariants;
+use App\Models\Traits\ForStoreScope;
+
 class Product extends Model
 {
+    use ForStoreScope;
     use HasFactory;
     protected $table = 'product';
     protected $fillable = [
@@ -20,12 +23,14 @@ class Product extends Model
         'expired_duration', 
         'image_url',
         'hpp',// ⬅️ tambahkan ini
+        'wage_per_unit',
     ];
 
     protected $casts = [
         'expired_duration' => 'integer',
         'is_promo'         => 'boolean',
         'price_discount'   => 'decimal:0',
+        'wage_per_unit'    => 'decimal:2',
     ];
     public function getDefaultExpiredAt(Carbon $productionDate = null)
 {

@@ -28,10 +28,13 @@
             </h1>
             <p class="text-sm text-gray-500 mt-0.5">Kelola data supplier & vendor bahan baku</p>
         </div>
-        <a href="{{ route('manager.operational.suppliers.create') }}"
-           class="inline-flex items-center gap-2 px-4 py-2.5 bg-green-600 text-white rounded-xl text-sm font-medium hover:bg-green-700 transition shadow-sm">
-            <i class="ti ti-plus text-base"></i> Tambah Supplier
-        </a>
+        <div class="flex items-center gap-2">
+            @include('handai-manager.partials.import-export-modal', ['type' => 'supplier', 'label' => 'Supplier'])
+            <a href="{{ route('manager.operational.suppliers.create') }}"
+               class="inline-flex items-center gap-2 px-4 py-2.5 bg-green-600 text-white rounded-xl text-sm font-medium hover:bg-green-700 transition shadow-sm">
+                <i class="ti ti-plus text-base"></i> Tambah Supplier
+            </a>
+        </div>
     </div>
 
     {{-- Stats --}}

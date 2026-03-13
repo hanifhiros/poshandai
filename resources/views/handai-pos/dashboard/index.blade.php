@@ -164,6 +164,12 @@
         cursor: not-allowed;
     }
 
+    /* Qty press (micro interaction) */
+    .qty-press {
+        transform: scale(0.92);
+        transition: transform 0.08s ease;
+    }
+
     /* Checkout button glow */
     .checkout-btn {
         transition: all 0.2s ease;
@@ -177,6 +183,16 @@
     .checkout-btn:active {
         transform: translateY(0);
         box-shadow: 0 2px 10px rgba(12,144,68,0.25);
+    }
+
+    /* Checkout pulse when total updates */
+    @keyframes checkoutPulseKey {
+        0% { transform: scale(1); box-shadow: 0 4px 18px rgba(12,144,68,0.25); }
+        50% { transform: scale(1.03); box-shadow: 0 6px 28px rgba(12,144,68,0.35); }
+        100% { transform: scale(1); box-shadow: 0 4px 18px rgba(12,144,68,0.25); }
+    }
+    .checkout-pulse {
+        animation: checkoutPulseKey 0.45s ease-in-out;
     }
 
     /* Smooth fade for Alpine */
@@ -222,6 +238,37 @@
     /* Cart drawer panel */
     .cart-drawer-panel {
         transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* Image lazy placeholder */
+    .img-loading { filter: blur(8px) saturate(0.9); transform: scale(1.02); transition: filter 0.32s ease, transform 0.32s ease, opacity 0.32s ease; }
+    .img-loaded { filter: none; transform: none; opacity: 1; }
+
+    /* Larger touch targets on small screens */
+    @media (max-width: 768px) {
+        .qty-btn { width: 44px !important; height: 44px !important; }
+        .mobile-cart-fab { width: 64px !important; height: 64px !important; }
+        .checkout-btn { height: 56px !important; }
+    }
+
+    /* Bottom-sheet behavior on narrow screens (mobile) */
+    @media (max-width: 768px) {
+        .cart-drawer-panel {
+            left: 0 !important;
+            right: 0 !important;
+            top: auto !important;
+            bottom: 0 !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            height: 72vh !important;
+            max-height: 86vh !important;
+            border-left: none !important;
+            border-top: 1px solid rgba(226,232,240,0.6) !important;
+            border-radius: 12px 12px 0 0 !important;
+            transform: translateY(0) !important;
+        }
+        .cart-drawer-panel .cart-items { overflow-y: auto; }
+        .cart-summary { position: sticky; bottom: 0; z-index: 40; box-shadow: 0 -10px 30px rgba(0,0,0,0.06); }
     }
 
     /* Mobile header adjustments */
@@ -381,7 +428,7 @@
 
 @section('content')
 {{-- ========== MAIN 2-PANEL LAYOUT ========== --}}
-<div class="flex flex-1 overflow-hidden" x-data="posStore()" x-init="init()" @keydown.window="handleShortcut($event)" @open-help.window="showHelp = true">
+<div class="flex flex-1 overflow-hidden" x-data="posStore()" x-init="init()" @keydown.window="handleShortcut($event)" @open-help.window="showHelp = true" @pos-sidebar-toggle.window="sidebarCollapsed = $event.detail.collapsed" @pos-mobile-close.window="mobileCartOpen = false">
 
     {{-- ===== LEFT: Product Selection Area ===== --}}
     <div class="flex-1 flex flex-col overflow-hidden min-w-0">
@@ -418,7 +465,7 @@
             </div>
 
             {{-- === LAYOUT CONTROLS BAR === --}}
-            <div class="flex items-center gap-2 sm:gap-3 mb-3 overflow-x-auto hide-scrollbar">
+            <div class="flex items-center gap-2 sm:gap-3 mb-3">
                 {{-- View mode tabs: Kolom / Baris / Scroll --}}
                 <div class="flex items-center gap-0.5 bg-slate-100 rounded-lg p-0.5 shrink-0">
                     <button @click="setViewMode('grid')"
@@ -433,12 +480,7 @@
                         <i class="ti ti-list text-sm"></i>
                         <span class="hidden xs:inline">Baris</span>
                     </button>
-                    <button @click="setViewMode('hscroll')"
-                            class="hidden md:flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-md text-[11px] sm:text-xs font-semibold transition-all duration-200 cursor-pointer"
-                            :class="viewMode === 'hscroll' ? 'bg-white text-[#0C9044] shadow-sm' : 'text-slate-400 hover:text-slate-600'">
-                        <i class="ti ti-arrows-left-right text-sm"></i>
-                        Scroll
-                    </button>
+                    {{-- Scroll view removed per UX update --}}
                 </div>
 
                 {{-- Column count selector — grid mode --}}
@@ -474,24 +516,7 @@
                 </div>
 
                 {{-- Scroll card size selector — hscroll mode --}}
-                <div class="flex items-center gap-1 shrink-0" x-show="viewMode === 'hscroll'" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 -translate-x-2" x-transition:enter-end="opacity-100 translate-x-0">
-                    <div class="w-px h-5 bg-slate-200"></div>
-                    <button @click="hscrollSize = 'sm'; localStorage.setItem('pos_hscroll_size', 'sm')"
-                            class="layout-btn h-8 px-2.5 rounded-lg border border-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-500 cursor-pointer gap-1"
-                            :class="hscrollSize === 'sm' ? 'layout-active' : ''">
-                        S
-                    </button>
-                    <button @click="hscrollSize = 'md'; localStorage.setItem('pos_hscroll_size', 'md')"
-                            class="layout-btn h-8 px-2.5 rounded-lg border border-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-500 cursor-pointer gap-1"
-                            :class="hscrollSize === 'md' ? 'layout-active' : ''">
-                        M
-                    </button>
-                    <button @click="hscrollSize = 'lg'; localStorage.setItem('pos_hscroll_size', 'lg')"
-                            class="layout-btn h-8 px-2.5 rounded-lg border border-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-500 cursor-pointer gap-1"
-                            :class="hscrollSize === 'lg' ? 'layout-active' : ''">
-                        L
-                    </button>
-                </div>
+                {{-- Horizontal scroll controls removed — feature deprecated. --}}
             </div>
 
             {{-- Category Filter Pills --}}
@@ -534,7 +559,7 @@
             </div>
 
             {{-- === GRID VIEW === --}}
-            <div x-show="viewMode === 'grid'" class="product-grid-wrap"
+                <div id="main-products" x-show="viewMode === 'grid'" class="product-grid-wrap"
                  :class="{
                     'grid-mode-2': gridCols === 2,
                     'grid-mode-3': gridCols === 3,
@@ -542,21 +567,30 @@
                     'grid-mode-5': gridCols === 5
                  }">
                 <template x-for="item in filteredProducts" :key="'grid-'+item.product.id">
-                    <div class="prod-card bg-white rounded-xl border border-slate-200/60 overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.04)]"
-                         :class="{ 'sold-out': item.isSoldOut }"
-                         @click="!item.isSoldOut && openVariantModal(item)">
+                      <div :data-product-id="item.product.id" tabindex="0" class="prod-card pos-focusable bg-white rounded-xl border border-slate-200/60 overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.04)]"
+                          :class="{ 'sold-out': item.isSoldOut }"
+                          @pointerdown="startCardPress(item)"
+                          @pointerup="endCardPress(item)"
+                          @pointercancel="cancelCardPress()"
+                          @click="if(!_suppressClick && !item.isSoldOut) openVariantModal(item)"
+                          @keydown.enter.prevent="if(!item.isSoldOut) openVariantModal(item)"
+                          @keydown.space.prevent="if(!item.isSoldOut) openVariantModal(item)"
+                          :aria-label="item.product.name">
 
                         {{-- Image — fixed height container --}}
                         <div class="prod-img rounded-t-xl">
-                            <img :src="item.product.image_url ? '{{ asset('') }}' + item.product.image_url : '{{ asset('assets/image.png') }}'"
-                                 :alt="item.product.name"
-                                 loading="lazy"
-                                 onerror="this.src='{{ asset('assets/image.png') }}'">
+                               <img :src="item.product.image_url ? '{{ asset('') }}' + item.product.image_url : '{{ asset('assets/image.png') }}'"
+                                   :alt="item.product.name"
+                                   loading="lazy"
+                                   class="img-loading"
+                                   onload="this.classList.remove('img-loading'); this.classList.add('img-loaded')"
+                                   onerror="this.src='{{ asset('assets/image.png') }}'">
 
                             {{-- Favorite star --}}
                             <button @click.stop="toggleFavorite(item.product.id)"
-                                    class="prod-badge-fav absolute top-2 right-2 w-7 h-7 rounded-full flex items-center justify-center bg-white border border-slate-200/80 shadow-sm transition-all duration-200 cursor-pointer hover:shadow-md hover:scale-110 focus:outline-none"
-                                    :title="isFavorite(item.product.id) ? 'Hapus dari favorit' : 'Tambah ke favorit'">
+                                      class="prod-badge-fav absolute top-2 right-2 w-7 h-7 rounded-full flex items-center justify-center bg-white border border-slate-200/80 shadow-sm transition-all duration-200 cursor-pointer hover:shadow-md hover:scale-110 focus:outline-none"
+                                                :aria-label="isFavorite(item.product.id) ? 'Hapus dari favorit' : 'Tambah ke favorit'"
+                                                :title="isFavorite(item.product.id) ? 'Hapus dari favorit' : 'Tambah ke favorit'">
                                 <svg x-show="!isFavorite(item.product.id)" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                                     <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" stroke="#cbd5e1" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
                                 </svg>
@@ -610,12 +644,19 @@
                     'gap-3': listSize === 'large'
                  }">
                 <template x-for="item in filteredProducts" :key="'list-'+item.product.id">
-                    <div class="prod-card-list bg-white rounded-xl border border-slate-200/60 overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.04)] flex"
-                         :class="{
-                            'sold-out': item.isSoldOut,
-                            'rounded-lg': listSize === 'compact'
-                         }"
-                         @click="!item.isSoldOut && openVariantModal(item)">
+                          <div :data-product-id="item.product.id" class="prod-card-list pos-focusable bg-white rounded-xl border border-slate-200/60 overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.04)] flex"
+                                  :class="{
+                                      'sold-out': item.isSoldOut,
+                                      'rounded-lg': listSize === 'compact'
+                                  }"
+                                  tabindex="0"
+                                  @pointerdown="startCardPress(item)"
+                                  @pointerup="endCardPress(item)"
+                                  @pointercancel="cancelCardPress()"
+                                  @click="if(!_suppressClick && !item.isSoldOut) openVariantModal(item)"
+                                  @keydown.enter.prevent="if(!item.isSoldOut) openVariantModal(item)"
+                                  @keydown.space.prevent="if(!item.isSoldOut) openVariantModal(item)"
+                                  :aria-label="item.product.name">
 
                         {{-- Image (adaptive thumbnail) --}}
                         <div class="relative bg-slate-50 flex items-center justify-center shrink-0"
@@ -701,10 +742,11 @@
                                 </div>
 
                                 {{-- Favorite --}}
-                                <button @click.stop="toggleFavorite(item.product.id)"
-                                        class="rounded-full flex items-center justify-center shrink-0 bg-transparent cursor-pointer hover:bg-slate-50 focus:outline-none"
-                                        :class="listSize === 'compact' ? 'w-6 h-6' : 'w-7 h-7'"
-                                        :title="isFavorite(item.product.id) ? 'Hapus dari favorit' : 'Tambah ke favorit'">
+                                        <button @click.stop="toggleFavorite(item.product.id)"
+                                            class="rounded-full flex items-center justify-center shrink-0 bg-transparent cursor-pointer hover:bg-slate-50 focus:outline-none"
+                                            :class="listSize === 'compact' ? 'w-6 h-6' : 'w-7 h-7'"
+                                            :aria-label="isFavorite(item.product.id) ? 'Hapus dari favorit' : 'Tambah ke favorit'"
+                                            :title="isFavorite(item.product.id) ? 'Hapus dari favorit' : 'Tambah ke favorit'">
                                     <svg x-show="!isFavorite(item.product.id)" xmlns="http://www.w3.org/2000/svg" :class="listSize === 'compact' ? 'w-3 h-3' : 'w-4 h-4'" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                                         <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" stroke="#cbd5e1" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
                                     </svg>
@@ -722,20 +764,30 @@
             <div x-show="viewMode === 'hscroll'" class="product-hscroll-wrap"
                  :class="'hscroll-' + hscrollSize">
                 <template x-for="item in filteredProducts" :key="'hs-'+item.product.id">
-                    <div class="prod-card bg-white rounded-xl border border-slate-200/60 overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.04)]"
-                         :class="{ 'sold-out': item.isSoldOut }"
-                         @click="!item.isSoldOut && openVariantModal(item)">
+                      <div :data-product-id="item.product.id" class="prod-card pos-focusable bg-white rounded-xl border border-slate-200/60 overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.04)]"
+                          :class="{ 'sold-out': item.isSoldOut }"
+                          tabindex="0"
+                          @pointerdown="startCardPress(item)"
+                          @pointerup="endCardPress(item)"
+                          @pointercancel="cancelCardPress()"
+                          @click="if(!_suppressClick && !item.isSoldOut) openVariantModal(item)"
+                          @keydown.enter.prevent="if(!item.isSoldOut) openVariantModal(item)"
+                          @keydown.space.prevent="if(!item.isSoldOut) openVariantModal(item)"
+                          :aria-label="item.product.name">
 
                         {{-- Image --}}
                         <div class="prod-img rounded-t-xl">
-                            <img :src="item.product.image_url ? '{{ asset('') }}' + item.product.image_url : '{{ asset('assets/image.png') }}'"
-                                 :alt="item.product.name"
-                                 loading="lazy"
-                                 onerror="this.src='{{ asset('assets/image.png') }}'">
+                               <img :src="item.product.image_url ? '{{ asset('') }}' + item.product.image_url : '{{ asset('assets/image.png') }}'"
+                                   :alt="item.product.name"
+                                   loading="lazy"
+                                   class="img-loading"
+                                   onload="this.classList.remove('img-loading'); this.classList.add('img-loaded')"
+                                   onerror="this.src='{{ asset('assets/image.png') }}'">
 
                             {{-- Favorite star --}}
-                            <button @click.stop="toggleFavorite(item.product.id)"
+                                <button @click.stop="toggleFavorite(item.product.id)"
                                     class="prod-badge-fav absolute top-1.5 right-1.5 w-6 h-6 rounded-full flex items-center justify-center bg-white border border-slate-200/80 shadow-sm transition-all duration-200 cursor-pointer hover:shadow-md hover:scale-110 focus:outline-none"
+                                    :aria-label="isFavorite(item.product.id) ? 'Hapus dari favorit' : 'Tambah ke favorit'"
                                     :title="isFavorite(item.product.id) ? 'Hapus dari favorit' : 'Tambah ke favorit'">
                                 <svg x-show="!isFavorite(item.product.id)" xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                                     <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" stroke="#cbd5e1" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -788,9 +840,9 @@
     </div>
 
     {{-- ===== MOBILE CART FAB ===== --}}
-    <button @click="mobileCartOpen = true"
+        <button aria-label="Buka Keranjang" @click.prevent="openCartAlpine()"
             x-show="!mobileCartOpen"
-            class="md:hidden fixed bottom-20 right-4 z-30 w-14 h-14 rounded-full bg-[#0C9044] text-white flex items-center justify-center mobile-cart-fab cursor-pointer">
+            class="lg:hidden fixed bottom-20 right-4 z-30 w-14 h-14 rounded-full bg-[#0C9044] text-white flex items-center justify-center mobile-cart-fab cursor-pointer">
         <i class="ti ti-shopping-cart text-xl"></i>
         <span x-show="cartItems.length > 0"
               class="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center badge-bounce"
@@ -806,23 +858,46 @@
          x-transition:leave-start="opacity-100"
          x-transition:leave-end="opacity-0"
          @click="mobileCartOpen = false"
-         class="md:hidden fixed inset-0 bg-black/40 backdrop-blur-sm z-40"></div>
+         class="lg:hidden fixed inset-0 bg-black/40 backdrop-blur-sm z-40"></div>
+
+    {{-- Quick open button when sidebar collapsed (desktop) --}}
+    <!-- Desktop quick-open -->
+    <button x-show="sidebarCollapsed"
+            @click.prevent="openCartAlpine()"
+            aria-label="Buka Keranjang"
+            class="hidden lg:flex fixed right-4 top-28 z-50 w-14 h-14 rounded-l-full bg-green-600 text-white items-center justify-center shadow-lg cursor-pointer ring-2 ring-green-300/40"
+            title="Buka Keranjang">
+        <i class="ti ti-chevron-left text-lg"></i>
+    </button>
+
+    <!-- Mobile quick-open (visible on small screens) -->
+    <button x-show="sidebarCollapsed"
+            @click.prevent="openCartAlpine()"
+            aria-label="Buka Keranjang"
+            class="lg:hidden fixed bottom-20 right-4 z-50 w-14 h-14 rounded-full bg-green-600 text-white flex items-center justify-center shadow-lg cursor-pointer ring-2 ring-green-300/40"
+            title="Buka Keranjang">
+        <i class="ti ti-chevron-left text-lg"></i>
+    </button>
 
     {{-- ===== RIGHT: Cart & Checkout Panel ===== --}}
-    <div class="cart-drawer-panel fixed inset-y-0 right-0 z-50 w-[85vw] max-w-[380px]
-                md:relative md:z-auto md:w-[360px] xl:md:w-[380px] md:max-w-none
-                bg-white border-l border-slate-200/80 flex flex-col shrink-0 overflow-hidden"
-         :class="mobileCartOpen ? 'translate-x-0' : 'translate-x-full md:translate-x-0'">
+                        <div id="cartPanel" x-ref="cartPanel" @touchstart.prevent="startDrag($event)" @touchmove.prevent="onDrag($event)" @touchend.prevent="endDrag($event)"
+                                class="cart-drawer-panel fixed inset-y-0 right-0 z-50 w-[85vw] max-w-[380px]
+                            md:relative md:z-auto md:w-[360px] xl:md:w-[380px] md:max-w-none
+                            bg-white border-l border-slate-200/80 flex flex-col shrink-0 overflow-hidden"
+                                :class="(mobileCartOpen || !sidebarCollapsed) ? 'translate-x-0' : 'translate-x-full'"
+                                :aria-hidden="!(mobileCartOpen || !sidebarCollapsed)"
+                                :tabindex="(mobileCartOpen || !sidebarCollapsed) ? 0 : -1">
 
         {{-- Cart Header --}}
         <div class="px-5 py-4 border-b border-slate-100 shrink-0">
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2.5">
-                    {{-- Mobile close button --}}
-                    <button @click="mobileCartOpen = false"
-                            class="md:hidden w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition cursor-pointer -ml-1">
-                        <i class="ti ti-arrow-right text-lg"></i>
-                    </button>
+                    {{-- Close button (collapses sidebar) --}}
+                            <button id="cart-close-btn" @click="closeCart()" aria-label="Tutup Keranjang"
+                                        class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition cursor-pointer -ml-1"
+                                        title="Tutup Keranjang">
+                                <i class="ti ti-arrow-right text-lg"></i>
+                            </button>
                     <div class="relative">
                         <i class="ti ti-shopping-cart text-xl text-slate-600"></i>
                         <span x-show="cartItems.length > 0"
@@ -832,16 +907,26 @@
                     </div>
                     <h3 class="text-sm font-bold text-slate-800" x-text="t('cart')"></h3>
                 </div>
-                <button x-show="cartItems.length > 0"
-                        @click="confirmClearCart()"
-                        class="text-xs text-red-400 hover:text-red-600 font-medium transition cursor-pointer flex items-center gap-1 px-2 py-1.5 rounded-lg hover:bg-red-50">
-                    <i class="ti ti-trash text-sm"></i> <span x-text="t('delete_all')"></span>
-                </button>
+                <div class="flex items-center gap-2">
+                    <button x-show="cartItems.length > 0"
+                            @click="confirmClearCart()"
+                            aria-label="Hapus semua item dalam keranjang"
+                            class="text-xs text-red-400 hover:text-red-600 font-medium transition cursor-pointer flex items-center gap-1 px-2 py-1.5 rounded-lg hover:bg-red-50">
+                        <i class="ti ti-trash text-sm"></i> <span x-text="t('delete_all')"></span>
+                    </button>
+
+                    <!-- Sync inspector toggle (visible when debug enabled) -->
+                    <button x-show="true" @click="showSyncInspector = !showSyncInspector"
+                            aria-label="Toggle sync inspector"
+                            class="ml-2 px-2 py-1.5 rounded-md bg-slate-50 text-slate-600 text-xs border border-slate-100 hover:bg-slate-100 transition">
+                        Sync: <span x-text="pendingSync.length"></span> / T: <span x-text="telemetryQueue.length"></span>
+                    </button>
+                </div>
             </div>
         </div>
 
         {{-- Cart Items --}}
-        <div class="flex-1 overflow-y-auto pos-scroll px-4 py-4" x-ref="cartList">
+        <div class="cart-items flex-1 overflow-y-auto pos-scroll px-4 py-4" x-ref="cartList">
             {{-- Empty cart --}}
             <div x-show="cartItems.length === 0" class="flex flex-col items-center justify-center h-full text-center py-10">
                 <div class="w-16 h-16 rounded-full bg-slate-50 flex items-center justify-center mb-3">
@@ -882,13 +967,13 @@
                         {{-- Qty + Subtotal row --}}
                         <div class="flex items-center justify-between mt-2.5 pt-2.5 border-t border-slate-50">
                             <div class="flex items-center gap-1.5">
-                                <button @click="decreaseQty(item)" :disabled="item.quantity <= 1"
-                                        class="qty-btn w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-500 cursor-pointer">
+                                <button @pointerdown.prevent="startHoldIncrement(item, -1)" @pointerup.prevent="stopHoldIncrement()" @pointercancel.prevent="stopHoldIncrement()" @click="if(!_suppressClick) decreaseQty(item); _suppressClick=false" :disabled="item.quantity <= 1"
+                                    class="qty-btn w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-500 cursor-pointer">
                                     <i class="ti ti-minus text-xs"></i>
                                 </button>
                                 <span class="w-8 text-center text-sm font-bold text-slate-700" x-text="item.quantity"></span>
-                                <button @click="increaseQty(item)"
-                                        class="qty-btn w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-500 cursor-pointer">
+                                <button @pointerdown.prevent="startHoldIncrement(item, 1)" @pointerup.prevent="stopHoldIncrement()" @pointercancel.prevent="stopHoldIncrement()" @click="if(!_suppressClick) increaseQty(item); _suppressClick=false"
+                                    class="qty-btn w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-500 cursor-pointer">
                                     <i class="ti ti-plus text-xs"></i>
                                 </button>
                             </div>
@@ -898,10 +983,38 @@
                     </div>
                 </template>
             </div>
+
+            {{-- Sync Inspector Panel (collapsible) --}}
+            <div x-show="showSyncInspector" x-transition class="mt-4 p-3 bg-slate-50 rounded-lg border border-slate-100 text-sm">
+                <div class="flex items-center justify-between mb-2">
+                    <strong class="text-sm">Sync Inspector</strong>
+                    <button @click="showSyncInspector = false" aria-label="Tutup Inspector" class="text-xs text-slate-500 hover:text-slate-700">Tutup</button>
+                </div>
+                <div class="mb-2">Pending tasks: <span class="font-semibold" x-text="pendingSync.length"></span></div>
+                <template x-if="pendingSync.length">
+                    <div class="mb-2 max-h-36 overflow-y-auto border-t border-slate-100 pt-2">
+                        <template x-for="(t, i) in pendingSync" :key="i">
+                            <div class="py-1 flex items-center justify-between">
+                                <div class="truncate text-xs"><span class="font-medium" x-text="t.type"></span> — <span x-text="JSON.stringify(t.payload)"></span></div>
+                                <div class="ml-2 flex items-center gap-2">
+                                    <button @click="(function(idx){ const task = pendingSync.splice(idx,1)[0]; pendingSync.unshift(task); try{ if(window.localforage) localforage.setItem('pos_pending_sync', pendingSync);}catch(e){}; processSyncQueue(); })(i)" class="px-2 py-1 text-xs bg-green-50 text-green-700 rounded">Retry</button>
+                                    <button @click="(function(idx){ pendingSync.splice(idx,1); try{ if(window.localforage) localforage.setItem('pos_pending_sync', pendingSync);}catch(e){}; })(i)" class="px-2 py-1 text-xs bg-red-50 text-red-700 rounded">Remove</button>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </template>
+                <div class="flex items-center gap-2 mt-3">
+                    <button @click="manualRetryPending()" class="px-3 py-1.5 rounded bg-green-600 text-white text-sm">Process Now</button>
+                    <button @click="clearPendingSync()" class="px-3 py-1.5 rounded bg-red-600 text-white text-sm">Clear Pending</button>
+                    <button @click="clearTelemetryQueue()" class="px-3 py-1.5 rounded bg-slate-200 text-sm">Clear Telemetry</button>
+                    <button @click="flushTelemetry()" class="px-3 py-1.5 rounded bg-amber-500 text-white text-sm">Flush Telemetry</button>
+                </div>
+            </div>
         </div>
 
         {{-- Cart Summary & Checkout --}}
-        <div class="border-t border-slate-200 bg-white px-5 py-5 shrink-0 space-y-3.5">
+        <div class="cart-summary border-t border-slate-200 bg-white px-5 py-5 shrink-0 space-y-3.5">
             {{-- Summary rows --}}
             <div class="space-y-2">
                 <div class="flex items-center justify-between">
@@ -923,16 +1036,16 @@
                 <span class="text-lg font-extrabold text-[#3A3A3A]" x-text="'Rp ' + Number(cartTotal).toLocaleString('id-ID')"></span>
             </div>
 
-            {{-- Checkout Button --}}
-            <a :href="cartItems.length > 0 ? '{{ route('pos.checkout') }}' : '#'"
-               @click.prevent="if (cartItems.length > 0) { PosSound.checkout(); window.location.href = '{{ route('pos.checkout') }}'; } else { PosSound.error(); showToast(t('cart_empty_warning'), 'warning'); }"
-               class="checkout-btn w-full h-12 rounded-xl flex items-center justify-center gap-2 text-sm font-bold text-white cursor-pointer"
-               :class="cartItems.length > 0 ? 'bg-[#0C9044] hover:bg-green-700' : 'bg-slate-300 cursor-not-allowed'">
+             {{-- Checkout Button --}}
+             <button aria-label="Checkout" @click.prevent="openCheckoutConfirm()"
+                 class="checkout-btn w-full h-12 rounded-xl flex items-center justify-center gap-2 text-sm font-bold text-white cursor-pointer"
+                 :class="cartItems.length > 0 ? 'bg-[#0C9044] hover:bg-green-700' : 'bg-slate-300 cursor-not-allowed'"
+                 :disabled="cartItems.length === 0">
                 <i class="ti ti-arrow-right text-lg"></i>
                 <span x-text="t('checkout')"></span>
                 <span x-show="cartItems.length > 0" class="ml-1 px-2 py-0.5 rounded-md bg-white/20 text-xs"
                       x-text="'Rp ' + Number(cartTotal).toLocaleString('id-ID')"></span>
-            </a>
+             </button>
         </div>
     </div>
 
@@ -941,8 +1054,9 @@
          x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
          class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" @click.self="showModal = false" @keydown.escape.window="showModal = false">
 
-        <div x-show="showModal" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+            <div x-show="showModal" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
              x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
+             x-ref="variantModal" role="dialog" aria-modal="true" aria-label="Pilih varian"
              class="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden">
 
             {{-- Modal Header --}}
@@ -951,7 +1065,7 @@
                     <h3 class="text-base font-bold text-slate-800" x-text="modalProduct?.product?.name"></h3>
                     <p class="text-xs text-slate-400 mt-0.5" x-text="t('variant') + ' & ' + t('quantity')"></p>
                 </div>
-                <button @click="showModal = false" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition cursor-pointer">
+                <button @click="showModal = false" aria-label="Tutup" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition cursor-pointer">
                     <i class="ti ti-x text-lg"></i>
                 </button>
             </div>
@@ -974,13 +1088,19 @@
                     <div>
                         <label class="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5 block" x-text="t('quantity')"></label>
                         <div class="flex items-center gap-2">
-                            <button @click="modalQty > 1 && modalQty--" :disabled="modalQty <= 1"
+                                <button @click="modalQty > 1 && (modalQty--, (navigator.vibrate ? navigator.vibrate(8) : null))" :disabled="modalQty <= 1"
+                                    @pointerdown.prevent="$event.currentTarget.classList.add('qty-press')"
+                                    @pointerup.prevent="$event.currentTarget.classList.remove('qty-press')"
+                                    @pointercancel.prevent="$event.currentTarget.classList.remove('qty-press')"
                                     class="qty-btn w-10 h-10 rounded-xl border border-slate-200 flex items-center justify-center text-slate-500 cursor-pointer">
                                 <i class="ti ti-minus text-sm"></i>
                             </button>
                             <input type="number" x-model.number="modalQty" min="1"
                                    class="w-16 h-10 rounded-xl border border-slate-200 text-center text-sm font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#0C9044]/20 focus:border-[#0C9044]/50" />
-                            <button @click="modalQty++"
+                                <button @click="modalQty++ , (navigator.vibrate ? navigator.vibrate(8) : null)"
+                                    @pointerdown.prevent="$event.currentTarget.classList.add('qty-press')"
+                                    @pointerup.prevent="$event.currentTarget.classList.remove('qty-press')"
+                                    @pointercancel.prevent="$event.currentTarget.classList.remove('qty-press')"
                                     class="qty-btn w-10 h-10 rounded-xl border border-slate-200 flex items-center justify-center text-slate-500 cursor-pointer">
                                 <i class="ti ti-plus text-sm"></i>
                             </button>
@@ -1028,17 +1148,18 @@
          x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
          class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" @click.self="showClearConfirm = false">
 
-        <div x-show="showClearConfirm" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
-             class="bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-4 p-6 text-center">
+           <div x-show="showClearConfirm" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+               x-ref="clearModal" role="dialog" aria-modal="true" aria-label="Konfirmasi Hapus Semua"
+               class="bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-4 p-6 text-center">
             <div class="w-14 h-14 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
                 <i class="ti ti-alert-triangle text-2xl text-red-500"></i>
             </div>
             <h3 class="text-base font-bold text-slate-800 mb-1">Hapus Semua Item?</h3>
             <p class="text-sm text-slate-400 mb-5">Semua item dalam keranjang akan dihapus. Tindakan ini tidak bisa dibatalkan.</p>
             <div class="flex gap-3">
-                <button @click="showClearConfirm = false"
-                        class="flex-1 h-10 rounded-xl border border-slate-200 text-sm font-semibold text-slate-500 hover:bg-slate-50 transition cursor-pointer">
-                    Batal
+                <button @click="showClearConfirm = false" aria-label="Tutup"
+                        class="flex-1 h-10 rounded-xl border border-slate-200 text-sm font-semibold text-slate-500 hover:bg-slate-50 hover:bg-gray-100 transition cursor-pointer">
+                    ← Batal
                 </button>
                 <button @click="clearCart()"
                         class="flex-1 h-10 rounded-xl bg-red-500 hover:bg-red-600 text-white text-sm font-bold transition cursor-pointer">
@@ -1053,8 +1174,9 @@
          x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
          class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" @click.self="showHelp = false">
 
-        <div x-show="showHelp" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
-             class="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden">
+           <div x-show="showHelp" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+               x-ref="helpModal" role="dialog" aria-modal="true" aria-label="Panduan Shortcut"
+               class="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden">
 
             {{-- Header --}}
             <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
@@ -1064,7 +1186,7 @@
                     </div>
                     <h3 class="text-base font-bold text-slate-800">Keyboard Shortcuts</h3>
                 </div>
-                <button @click="showHelp = false" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition cursor-pointer">
+                <button @click="showHelp = false" aria-label="Tutup" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition cursor-pointer">
                     <i class="ti ti-x text-lg"></i>
                 </button>
             </div>
@@ -1183,7 +1305,24 @@
             </div>
         </div>
     </div>
+    {{-- Checkout Confirmation Modal (mobile/desktop) --}}
+    <div x-show="showCheckoutConfirm" x-transition.opacity class="fixed inset-0 z-60 flex items-center justify-center bg-black/40" @click.self="showCheckoutConfirm = false">
+        <div x-ref="checkoutModal" role="dialog" aria-modal="true" aria-label="Konfirmasi Checkout" class="bg-white rounded-xl shadow-xl w-full max-w-md mx-4 p-5">
+            <h3 class="text-lg font-bold mb-2">Konfirmasi Checkout</h3>
+            <p class="text-sm text-slate-500 mb-4">Periksa ringkasan pesanan sebelum melanjutkan.</p>
+            <div class="space-y-2 mb-4">
+                <div class="flex justify-between"><span class="text-sm text-slate-500">Subtotal</span><span class="font-semibold">Rp <span x-text="Number(cartSubtotal).toLocaleString('id-ID')"></span></span></div>
+                <div class="flex justify-between" x-show="cartDiscount>0"><span class="text-sm text-emerald-500">Diskon</span><span class="font-semibold text-emerald-600">- Rp <span x-text="Number(cartDiscount).toLocaleString('id-ID')"></span></span></div>
+                <div class="flex justify-between"><span class="text-sm font-bold">Total</span><span class="font-bold text-lg">Rp <span x-text="Number(cartTotal).toLocaleString('id-ID')"></span></span></div>
+            </div>
+            <div class="flex gap-3">
+                <button @click="showCheckoutConfirm = false" class="flex-1 h-11 rounded-lg border border-slate-200 hover:bg-gray-100">← Batal</button>
+                <button @click="confirmCheckout()" class="flex-1 h-11 rounded-lg bg-[#0C9044] text-white font-bold">Lanjutkan</button>
+            </div>
+        </div>
+    </div>
 </div>
+
 @endsection
 
 @section('page-script')
@@ -1260,12 +1399,13 @@
             allProducts: @json($productsWithDetails->values()),
             filteredProducts: [],
             searchQuery: '{{ $searchTerm }}',
-            activeCategory: '{{ $categoryName }}',
+            activeCategory: localStorage.getItem('pos_active_category') || '{{ $categoryName }}',
 
             // Layout preferences (persisted in localStorage)
             gridCols: parseInt(localStorage.getItem('pos_grid_cols')) || 4,
             viewMode: localStorage.getItem('pos_view_mode') || 'grid',
             listSize: localStorage.getItem('pos_list_size') || 'normal',
+            hscrollSize: localStorage.getItem('pos_hscroll_size') || 'md',
 
             // Cart data from server session
             cartItems: @json($cartDetails),
@@ -1273,6 +1413,8 @@
 
             // Modal
             showModal: false,
+            // Sync inspector UI
+            showSyncInspector: false,
             showHelp: false,
             modalProduct: null,
             modalSelectedVariantId: null,
@@ -1292,14 +1434,331 @@
             // Favorites (localStorage)
             favorites: JSON.parse(localStorage.getItem('pos_favorites') || '[]'),
 
+            // Persisted customer selection
+            selectedCustomerName: localStorage.getItem('pos_selected_customer_name') || '',
+
+            // Offline / sync queue
+            pendingSync: [],
+            processingSync: false,
+            // Telemetry batching
+            telemetryQueue: [],
+            telemetryTimer: null,
+
             // Mobile cart drawer
             mobileCartOpen: false,
+            // Desktop collapse state (allow closing sidebar on larger screens)
+            sidebarCollapsed: false,
+
+            // Card long-press helpers
+            _cardPressTimer: null,
+            _cardPressSecondTimer: null,
+            _cardLongPress: false,
+            _suppressClick: false,
+
+            // Hold-to-increment helpers
+            _holdTimer: null,
+            _holdInterval: null,
+
+            // Undo stack for multiple removed items
+            undoStack: [], // each entry: { id, item, timer }
+            undoExpireMs: 7000,
+            showCheckoutConfirm: false,
+
+            // Micro-interaction state
+            checkoutPulse: false,
+
+            // Drag / swipe for mobile drawer
+            dragStartY: 0,
+            dragCurrentY: 0,
+            isDragging: false,
+            dragThreshold: 80,
+
+            // Focus trap helpers
+            _focusTrapContainer: null,
+            _focusTrapHandler: null,
+            _prevFocusedElement: null,
 
             init() {
                 this.filterProducts();
                 // Apply responsive defaults if no preference saved
                 if (!localStorage.getItem('pos_grid_cols')) {
                     this.gridCols = window.innerWidth < 640 ? 2 : window.innerWidth < 1024 ? 3 : 4;
+                }
+                // Load persisted sidebar collapse preference
+                if (localStorage.getItem('sidebarCollapsed') === 'true') {
+                    this.sidebarCollapsed = true;
+                } else {
+                    this.sidebarCollapsed = false;
+                    this.$nextTick && this.$nextTick(() => { if (this.$refs && this.$refs.cartPanel) this.$refs.cartPanel.style.display = ''; });
+                }
+
+                // Persist sidebar collapse changes (if Alpine $watch available)
+                try {
+                    this.$watch && this.$watch('sidebarCollapsed', (v) => localStorage.setItem('sidebarCollapsed', v ? 'true' : 'false'));
+                    this.$watch && this.$watch('activeCategory', (v) => localStorage.setItem('pos_active_category', v));
+                    this.$watch && this.$watch('selectedCustomerName', (v) => localStorage.setItem('pos_selected_customer_name', v));
+                    this.$watch && this.$watch('showModal', (v) => v ? this.trapFocus('variantModal') : this.releaseFocus());
+                    this.$watch && this.$watch('showClearConfirm', (v) => v ? this.trapFocus('clearModal') : this.releaseFocus());
+                    this.$watch && this.$watch('showHelp', (v) => v ? this.trapFocus('helpModal') : this.releaseFocus());
+                    this.$watch && this.$watch('showCheckoutConfirm', (v) => v ? this.trapFocus('checkoutModal') : this.releaseFocus());
+                    this.$watch && this.$watch('mobileCartOpen', (v) => v ? this.trapFocus('cartPanel') : this.releaseFocus());
+                } catch (e) {
+                    // ignore if $watch not available
+                }
+
+                // Start processing sync queue
+                // Load persisted pendingSync from localforage (if available)
+                try {
+                    if (window.localforage) {
+                        localforage.getItem('pos_pending_sync').then((data) => {
+                            if (Array.isArray(data) && data.length) {
+                                this.pendingSync = data.concat(this.pendingSync || []);
+                            }
+                            this.processSyncQueue();
+                        }).catch(() => { this.processSyncQueue(); });
+                    } else { this.processSyncQueue(); }
+                } catch (e) { this.processSyncQueue(); }
+
+                // Restore telemetry queue if any
+                try {
+                    if (window.localforage) {
+                        localforage.getItem('pos_telemetry_queue').then((q) => { if (Array.isArray(q)) this.telemetryQueue = q; });
+                    }
+                } catch (e) {}
+            },
+
+            // ===== Focus trap utilities =====
+            trapFocus(refName) {
+                try {
+                    const container = this.$refs && this.$refs[refName] ? this.$refs[refName] : null;
+                    if (!container) return;
+                    this._prevFocusedElement = document.activeElement;
+                    const focusable = container.querySelectorAll('a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])');
+                    if (focusable && focusable.length) focusable[0].focus();
+
+                    this._focusTrapContainer = container;
+                    this._focusTrapHandler = (e) => {
+                        if (e.key === 'Escape') {
+                            // close commonly used modals
+                            if (refName === 'variantModal') this.showModal = false;
+                            if (refName === 'clearModal') this.showClearConfirm = false;
+                            if (refName === 'helpModal') this.showHelp = false;
+                            if (refName === 'checkoutModal') this.showCheckoutConfirm = false;
+                            if (refName === 'cartPanel') this.mobileCartOpen = false;
+                            return;
+                        }
+                        if (e.key === 'Tab') {
+                            const focusableEls = Array.from(container.querySelectorAll('a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])'));
+                            if (!focusableEls.length) { e.preventDefault(); return; }
+                            const firstEl = focusableEls[0];
+                            const lastEl = focusableEls[focusableEls.length - 1];
+                            if (e.shiftKey) {
+                                if (document.activeElement === firstEl) { e.preventDefault(); lastEl.focus(); }
+                            } else {
+                                if (document.activeElement === lastEl) { e.preventDefault(); firstEl.focus(); }
+                            }
+                        }
+                    };
+                    document.addEventListener('keydown', this._focusTrapHandler);
+                } catch (e) { console.error(e); }
+            },
+
+            releaseFocus() {
+                try {
+                    if (this._focusTrapHandler) {
+                        document.removeEventListener('keydown', this._focusTrapHandler);
+                        this._focusTrapHandler = null;
+                    }
+                    if (this._prevFocusedElement && this._prevFocusedElement.focus) {
+                        this._prevFocusedElement.focus();
+                    }
+                    this._prevFocusedElement = null;
+                    this._focusTrapContainer = null;
+                } catch (e) { console.error(e); }
+            },
+
+            // ===== Offline Sync Queue =====
+            pushSync(task) {
+                // Annotate task with retry count
+                task.retryCount = task.retryCount || 0;
+                this.pendingSync.push(task);
+                // persist
+                try { if (window.localforage) localforage.setItem('pos_pending_sync', this.pendingSync); } catch(e) {}
+                this.processSyncQueue();
+            },
+            processSyncQueue() {
+                if (this.processingSync) return;
+                if (!this.pendingSync.length) return;
+                this.processingSync = true;
+                const task = this.pendingSync.shift();
+
+                const doNext = (delay = 150) => setTimeout(() => { this.processingSync = false; this.processSyncQueue(); }, delay);
+
+                if (task.type === 'update') {
+                    fetch('{{ route("pos.cart.update", [], false) }}', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content, 'Accept': 'application/json' },
+                        body: JSON.stringify(task.payload)
+                    }).then(() => { try { if (window.localforage) localforage.setItem('pos_pending_sync', this.pendingSync); } catch(e){}; doNext(); }).catch(() => {
+                        // exponential backoff & retry
+                        task.retryCount = (task.retryCount || 0) + 1;
+                        const backoff = Math.min(30000, 500 * Math.pow(2, Math.min(task.retryCount, 6)) );
+                        this.pendingSync.unshift(task);
+                        try { if (window.localforage) localforage.setItem('pos_pending_sync', this.pendingSync); } catch(e){}
+                        setTimeout(() => { this.processingSync = false; this.processSyncQueue(); }, backoff);
+                    });
+                } else if (task.type === 'add') {
+                    fetch('{{ route("cart.add", [], false) }}', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content, 'Accept': 'application/json' },
+                        body: JSON.stringify(task.payload)
+                    }).then(() => { try { if (window.localforage) localforage.setItem('pos_pending_sync', this.pendingSync); } catch(e){}; doNext(); }).catch(() => {
+                        task.retryCount = (task.retryCount || 0) + 1;
+                        const backoff = Math.min(30000, 500 * Math.pow(2, Math.min(task.retryCount, 6)) );
+                        this.pendingSync.unshift(task);
+                        try { if (window.localforage) localforage.setItem('pos_pending_sync', this.pendingSync); } catch(e){}
+                        setTimeout(() => { this.processingSync = false; this.processSyncQueue(); }, backoff);
+                    });
+                } else if (task.type === 'remove') {
+                    fetch('{{ route("pos.cart.remove", [], false) }}', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content, 'Accept': 'application/json' },
+                        body: JSON.stringify(task.payload)
+                    }).then(() => { try { if (window.localforage) localforage.setItem('pos_pending_sync', this.pendingSync); } catch(e){}; doNext(); }).catch(() => {
+                        task.retryCount = (task.retryCount || 0) + 1;
+                        const backoff = Math.min(30000, 500 * Math.pow(2, Math.min(task.retryCount, 6)) );
+                        this.pendingSync.unshift(task);
+                        try { if (window.localforage) localforage.setItem('pos_pending_sync', this.pendingSync); } catch(e){}
+                        setTimeout(() => { this.processingSync = false; this.processSyncQueue(); }, backoff);
+                    });
+                } else if (task.type === 'note') {
+                    fetch('{{ route("pos.cart.itemNote", [], false) }}', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content, 'Accept': 'application/json' },
+                        body: JSON.stringify(task.payload)
+                    }).then(() => { try { if (window.localforage) localforage.setItem('pos_pending_sync', this.pendingSync); } catch(e){}; doNext(); }).catch(() => {
+                        task.retryCount = (task.retryCount || 0) + 1;
+                        const backoff = Math.min(30000, 500 * Math.pow(2, Math.min(task.retryCount, 6)) );
+                        this.pendingSync.unshift(task);
+                        try { if (window.localforage) localforage.setItem('pos_pending_sync', this.pendingSync); } catch(e){}
+                        setTimeout(() => { this.processingSync = false; this.processSyncQueue(); }, backoff);
+                    });
+                } else {
+                    doNext();
+                }
+            },
+
+            // ===== Telemetry batching =====
+            trackEventBuffered(name, props) {
+                try {
+                    const evt = { name, props: props || {}, ts: Date.now() };
+                    this.telemetryQueue.push(evt);
+                    // persist telemetry queue
+                    try { if (window.localforage) localforage.setItem('pos_telemetry_queue', this.telemetryQueue); } catch(e){}
+                    if (this.telemetryTimer) return;
+                    this.telemetryTimer = setTimeout(() => { this.flushTelemetry(); }, 3000);
+                } catch (e) {}
+            },
+            flushTelemetry() {
+                if (!this.telemetryQueue.length) { clearTimeout(this.telemetryTimer); this.telemetryTimer = null; return; }
+                const batch = this.telemetryQueue.splice(0, 25);
+                try { if (window.trackEventBatch) { window.trackEventBatch(batch); } else if (window.trackEvent) { batch.forEach(b => window.trackEvent(b.name, b.props)); } }
+                catch(e){}
+                try { if (window.localforage) localforage.setItem('pos_telemetry_queue', this.telemetryQueue); } catch(e){}
+                clearTimeout(this.telemetryTimer); this.telemetryTimer = null;
+            },
+
+            // Sync inspector controls
+            manualRetryPending() {
+                try {
+                    if (!this.pendingSync.length) return;
+                    // bump retryCount and reprocess immediately
+                    this.pendingSync.forEach(t => t.retryCount = (t.retryCount || 0));
+                    try { if (window.localforage) localforage.setItem('pos_pending_sync', this.pendingSync); } catch(e){}
+                    this.processSyncQueue();
+                } catch (e) { console.error(e); }
+            },
+            clearPendingSync() {
+                this.pendingSync = [];
+                try { if (window.localforage) localforage.removeItem('pos_pending_sync'); } catch(e){}
+            },
+            clearTelemetryQueue() {
+                this.telemetryQueue = [];
+                try { if (window.localforage) localforage.removeItem('pos_telemetry_queue'); } catch(e){}
+            },
+            openSyncInspector() { this.showSyncInspector = true; },
+            closeSyncInspector() { this.showSyncInspector = false; },
+
+            // Touch/drag handlers
+            startDrag(e) {
+                this.isDragging = true;
+                this.dragStartY = (e.touches && e.touches[0]) ? e.touches[0].clientY : (e.clientY || 0);
+                this.dragCurrentY = this.dragStartY;
+            },
+            onDrag(e) {
+                if (!this.isDragging) return;
+                this.dragCurrentY = (e.touches && e.touches[0]) ? e.touches[0].clientY : (e.clientY || 0);
+                const delta = this.dragCurrentY - this.dragStartY;
+                if (delta > 0 && this.$refs && this.$refs.cartPanel) {
+                    this.$refs.cartPanel.style.transform = `translateY(${delta}px)`;
+                }
+            },
+            endDrag(e) {
+                if (!this.isDragging) return;
+                this.isDragging = false;
+                const delta = this.dragCurrentY - this.dragStartY;
+                if (this.$refs && this.$refs.cartPanel) this.$refs.cartPanel.style.transform = '';
+                if (delta > this.dragThreshold) {
+                    // close when dragged down far enough
+                    this.mobileCartOpen = false;
+                    this.sidebarCollapsed = true;
+                }
+                this.dragStartY = 0; this.dragCurrentY = 0;
+            },
+
+            // Close cart with Alpine-controlled animation
+            closeCart() {
+                try { console.log('closeCart clicked'); } catch(e) {}
+                const panel = this.$refs && this.$refs.cartPanel ? this.$refs.cartPanel : null;
+                if (panel) {
+                    panel.style.display = '';
+                    panel.classList.remove('cart-anim-in');
+                    panel.classList.add('cart-anim-out');
+                    setTimeout(() => {
+                        panel.style.display = 'none';
+                        panel.classList.remove('cart-anim-out');
+                        this.mobileCartOpen = false;
+                        this.sidebarCollapsed = true;
+                        try { localStorage.setItem('sidebarCollapsed','true'); } catch(e){}
+                    }, 320);
+                } else {
+                    this.mobileCartOpen = false;
+                    this.sidebarCollapsed = true;
+                }
+            },
+
+            // Open cart with Alpine-controlled animation
+            openCartAlpine() {
+                try { console.log('openCartAlpine invoked'); } catch(e) {}
+                const panel = this.$refs && this.$refs.cartPanel ? this.$refs.cartPanel : null;
+                if (panel) {
+                    panel.style.display = '';
+                    panel.classList.remove('cart-anim-out');
+                    // ensure start offscreen
+                    panel.style.transform = 'translateX(100%)';
+                    requestAnimationFrame(() => {
+                        panel.classList.add('cart-anim-in');
+                    });
+                    setTimeout(() => {
+                        panel.classList.remove('cart-anim-in');
+                        panel.style.transform = '';
+                        this.mobileCartOpen = true;
+                        this.sidebarCollapsed = false;
+                        try { localStorage.setItem('sidebarCollapsed','false'); } catch(e){}
+                    }, 420);
+                } else {
+                    this.mobileCartOpen = true;
+                    this.sidebarCollapsed = false;
                 }
             },
 
@@ -1324,10 +1783,12 @@
                 if (idx > -1) {
                     this.favorites.splice(idx, 1);
                     showToast('Dihapus dari favorit', 'info', 1500);
+                    window.trackEvent && window.trackEvent('favorite_removed', { product_id: productId });
                 } else {
                     this.favorites.push(productId);
                     showToast('Ditambahkan ke favorit', 'success', 1500);
                     PosSound.addToCart();
+                    window.trackEvent && window.trackEvent('favorite_added', { product_id: productId });
                 }
                 localStorage.setItem('pos_favorites', JSON.stringify(this.favorites));
                 if (this.activeCategory === 'Favorit') this.filterProducts();
@@ -1412,6 +1873,72 @@
                 this.showModal = true;
             },
 
+            // ===== Long-press on product card (quick add x5 / x10) =====
+            startCardPress(item) {
+                try { if (this._cardPressTimer) clearTimeout(this._cardPressTimer); } catch(e){}
+                this._cardLongPress = false;
+                // after 600ms -> quick add 5
+                this._cardPressTimer = setTimeout(() => {
+                    this._cardLongPress = true;
+                    const qty1 = 5;
+                    const variantId = (item.variants && item.variants.length === 1) ? item.variants[0].id : (item.variant_id || null);
+                    const payload = variantId ? { product_id: item.product.id, variant_id: variantId, quantity: qty1 } : { product_id: item.product.id, quantity: qty1 };
+                    this.pushSync({ type: 'add', payload });
+                    PosSound.addToCart();
+                    showToast((item.product.name || 'Produk') + ' +'+qty1, 'success', 1400);
+                    this.animateProductAdded && this.animateProductAdded(item.product.id);
+
+                    // after additional 600ms -> add another +5 (total 10)
+                    this._cardPressSecondTimer = setTimeout(() => {
+                        const qty2 = 5;
+                        const payload2 = variantId ? { product_id: item.product.id, variant_id: variantId, quantity: qty2 } : { product_id: item.product.id, quantity: qty2 };
+                        this.pushSync({ type: 'add', payload: payload2 });
+                        PosSound.addToCart();
+                        showToast((item.product.name || 'Produk') + ' +'+(qty1+qty2), 'success', 1400);
+                        this.animateProductAdded && this.animateProductAdded(item.product.id);
+                    }, 600);
+                }, 600);
+            },
+            endCardPress(item) {
+                if (this._cardPressTimer) { clearTimeout(this._cardPressTimer); this._cardPressTimer = null; }
+                if (this._cardPressSecondTimer) { clearTimeout(this._cardPressSecondTimer); this._cardPressSecondTimer = null; }
+                if (this._cardLongPress) {
+                    // prevent click after long press
+                    this._suppressClick = true;
+                    setTimeout(() => { this._suppressClick = false; }, 50);
+                    this._cardLongPress = false;
+                }
+            },
+            cancelCardPress() {
+                if (this._cardPressTimer) { clearTimeout(this._cardPressTimer); this._cardPressTimer = null; }
+                if (this._cardPressSecondTimer) { clearTimeout(this._cardPressSecondTimer); this._cardPressSecondTimer = null; }
+                this._cardLongPress = false;
+            },
+
+            // ===== Hold-to-increment / hold-to-decrement for qty buttons =====
+            startHoldIncrement(item, delta) {
+                // delta: +1 or -1
+                if (this._holdTimer) clearTimeout(this._holdTimer);
+                if (this._holdInterval) { clearInterval(this._holdInterval); this._holdInterval = null; }
+                // immediate step
+                if (delta > 0) this.increaseQty(item); else this.decreaseQty(item);
+                this._suppressClick = true;
+                // after short delay, start repeating
+                this._holdTimer = setTimeout(() => {
+                    let speed = 300;
+                    this._holdInterval = setInterval(() => {
+                        if (delta > 0) this.increaseQty(item); else this.decreaseQty(item);
+                        speed = Math.max(80, speed - 20);
+                        // if speed changed, restart interval for next tick speed
+                    }, speed);
+                }, 350);
+            },
+            stopHoldIncrement() {
+                if (this._holdTimer) { clearTimeout(this._holdTimer); this._holdTimer = null; }
+                if (this._holdInterval) { clearInterval(this._holdInterval); this._holdInterval = null; }
+                setTimeout(() => { this._suppressClick = false; }, 50);
+            },
+
             get modalSelectedVariant() {
                 if (!this.modalProduct || !this.modalProduct.variants) return null;
                 return this.modalProduct.variants.find(v => v.id == this.modalSelectedVariantId);
@@ -1424,43 +1951,31 @@
             // ===== Cart Operations =====
             quickAddToCart(productId, variant) {
                 const variantId = variant.id;
-                fetch('{{ route('cart.add') }}', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                        'Accept': 'application/json'
-                    },
-                    body: JSON.stringify({ product_id: productId, variant_id: variantId, quantity: 1 })
-                })
-                .then(res => {
-                    const existing = this.cartItems.find(i => i.variant_id == variantId);
-                    if (existing) {
-                        existing.quantity += 1;
-                    } else {
-                        const product = this.allProducts.find(p => p.product.id == productId);
-                        this.cartItems.push({
-                            product_id: productId,
-                            variant_id: variantId,
-                            product_name: product?.product?.name || 'Produk',
-                            variant_summary: variant.variant_options?.join(', ') || 'Default',
-                            quantity: 1,
-                            price: variant.final_price,
-                            normal_price: variant.price,
-                            note: '',
-                        });
-                    }
-                    PosSound.addToCart();
-                    showToast((this.allProducts.find(p => p.product.id == productId)?.product?.name || 'Produk') + ' ' + t('added_to_cart'), 'success', 1500);
-                    this.$nextTick(() => {
-                        if (this.$refs.cartList) this.$refs.cartList.scrollTop = this.$refs.cartList.scrollHeight;
+                // Optimistic local update
+                const existing = this.cartItems.find(i => i.variant_id == variantId);
+                if (existing) {
+                    existing.quantity += 1;
+                } else {
+                    const product = this.allProducts.find(p => p.product.id == productId);
+                    this.cartItems.push({
+                        product_id: productId,
+                        variant_id: variantId,
+                        product_name: product?.product?.name || 'Produk',
+                        variant_summary: variant.variant_options?.join(', ') || 'Default',
+                        quantity: 1,
+                        price: variant.final_price,
+                        normal_price: variant.price,
+                        note: '',
                     });
-                })
-                .catch(err => {
-                    PosSound.error();
-                    showToast(t('add_failed'), 'error');
-                    console.error(err);
-                });
+                }
+                PosSound.addToCart();
+                showToast((this.allProducts.find(p => p.product.id == productId)?.product?.name || 'Produk') + ' ' + t('added_to_cart'), 'success', 1500);
+                this.$nextTick(() => { if (this.$refs.cartList) this.$refs.cartList.scrollTop = this.$refs.cartList.scrollHeight; });
+
+                // Push to offline sync queue and analytics
+                this.pushSync({ type: 'add', payload: { product_id: productId, variant_id: variantId, quantity: 1 } });
+                window.trackEvent && window.trackEvent('add_to_cart', { product_id: productId, variant_id: variantId, quantity: 1 });
+                this.animateProductAdded && this.animateProductAdded(productId);
             },
 
             addToCartFromModal() {
@@ -1470,83 +1985,110 @@
                 const variantId = this.modalSelectedVariant.id;
                 const qty = this.modalQty;
                 const note = this.modalNote.trim();
-
-                // POST to server
-                fetch('{{ route('cart.add') }}', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                        'Accept': 'application/json'
-                    },
-                    body: JSON.stringify({
+                // Optimistic local update
+                const existing = this.cartItems.find(i => i.variant_id == variantId);
+                if (existing) {
+                    existing.quantity += qty;
+                    if (note) existing.note = note;
+                } else {
+                    this.cartItems.push({
                         product_id: productId,
                         variant_id: variantId,
-                        quantity: qty
-                    })
-                })
-                .then(res => {
-                    // Update local cart optimistically
-                    const existing = this.cartItems.find(i => i.variant_id == variantId);
-                    if (existing) {
-                        existing.quantity += qty;
-                        if (note) existing.note = note;
-                    } else {
-                        this.cartItems.push({
-                            product_id: productId,
-                            variant_id: variantId,
-                            product_name: this.modalProduct.product.name,
-                            variant_summary: this.modalSelectedVariant.variant_options.join(', '),
-                            quantity: qty,
-                            price: this.modalSelectedVariant.final_price,
-                            normal_price: this.modalSelectedVariant.price,
-                            note: note,
-                        });
-                    }
-
-                    // Save note to server if present
-                    if (note) {
-                        fetch('{{ route('pos.cart.itemNote') }}', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                            },
-                            body: JSON.stringify({ variant_id: variantId, note: note })
-                        }).catch(() => {});
-                    }
-
-                    this.showModal = false;
-                    showToast(this.modalProduct.product.name + ' ' + t('added_to_cart'), 'success');
-
-                    // Scroll cart to bottom
-                    this.$nextTick(() => {
-                        if (this.$refs.cartList) {
-                            this.$refs.cartList.scrollTop = this.$refs.cartList.scrollHeight;
-                        }
+                        product_name: this.modalProduct.product.name,
+                        variant_summary: this.modalSelectedVariant.variant_options.join(', '),
+                        quantity: qty,
+                        price: this.modalSelectedVariant.final_price,
+                        normal_price: this.modalSelectedVariant.price,
+                        note: note,
                     });
-                })
-                .catch(err => {
-                    PosSound.error();
-                    showToast(t('add_failed'), 'error');
-                    console.error(err);
-                });
+                }
+
+                // Save note via sync queue
+                if (note) {
+                    this.pushSync({ type: 'note', payload: { variant_id: variantId, note: note } });
+                }
+
+                this.showModal = false;
+                showToast(this.modalProduct.product.name + ' ' + t('added_to_cart'), 'success');
+
+                // Scroll cart to bottom
+                this.$nextTick(() => { if (this.$refs.cartList) { this.$refs.cartList.scrollTop = this.$refs.cartList.scrollHeight; } });
+
+                // Push add to sync queue + analytics
+                this.pushSync({ type: 'add', payload: { product_id: productId, variant_id: variantId, quantity: qty } });
+                window.trackEvent && window.trackEvent('add_to_cart', { product_id: productId, variant_id: variantId, quantity: qty });
+                this.animateProductAdded && this.animateProductAdded(productId);
             },
 
             increaseQty(item) {
                 item.quantity++;
-                this.syncCartQuantity(item);
+                try { if (navigator && navigator.vibrate) navigator.vibrate(8); } catch(e){}
+                this.checkoutPulse = true;
+                setTimeout(() => { this.checkoutPulse = false; }, 420);
+                this.pushSync({ type: 'update', payload: { product_id: item.product_id, variant_id: item.variant_id, quantity: item.quantity } });
+                window.trackEvent && window.trackEvent('update_quantity', { product_id: item.product_id, variant_id: item.variant_id, quantity: item.quantity });
             },
 
             decreaseQty(item) {
                 if (item.quantity > 1) {
                     item.quantity--;
-                    this.syncCartQuantity(item);
+                    try { if (navigator && navigator.vibrate) navigator.vibrate(8); } catch(e){}
+                    this.checkoutPulse = true;
+                    setTimeout(() => { this.checkoutPulse = false; }, 420);
+                    this.pushSync({ type: 'update', payload: { product_id: item.product_id, variant_id: item.variant_id, quantity: item.quantity } });
+                    window.trackEvent && window.trackEvent('update_quantity', { product_id: item.product_id, variant_id: item.variant_id, quantity: item.quantity });
                 }
             },
 
+            // syncCartQuantity replaced by pending sync queue
             syncCartQuantity(item) {
-                fetch('{{ route('pos.cart.update') }}', {
+                this.pushSync({ type: 'update', payload: { product_id: item.product_id, variant_id: item.variant_id, quantity: item.quantity } });
+            },
+
+            removeCartItem(item) {
+                // Push to undo stack
+                const entryId = 'undo_' + (Math.random().toString(36).slice(2,9));
+                const cloned = JSON.parse(JSON.stringify(item));
+                const timer = setTimeout(() => {
+                    // expire: remove entry from stack
+                    this.undoStack = this.undoStack.filter(s => s.id !== entryId);
+                }, this.undoExpireMs);
+                this.undoStack.push({ id: entryId, item: cloned, timer });
+
+                // Optimistically remove locally
+                this.cartItems = this.cartItems.filter(i => i.variant_id !== item.variant_id);
+                PosSound.removeItem();
+
+                // Show undo toast (localized)
+                try {
+                    showUndoToast(t('item_removed'), () => { this.restoreRemovedById(entryId); }, this.undoExpireMs);
+                } catch (e) {
+                    showToast(t('item_removed'), 'info');
+                }
+
+                // Push remove to sync queue and analytics
+                this.pushSync({ type: 'remove', payload: { product_id: item.product_id, variant_id: item.variant_id } });
+                window.trackEvent && window.trackEvent('remove_from_cart', { product_id: item.product_id, variant_id: item.variant_id });
+            },
+            restoreRemovedById(id) {
+                const idx = this.undoStack.findIndex(s => s.id === id);
+                if (idx === -1) return;
+                const entry = this.undoStack[idx];
+                clearTimeout(entry.timer);
+                const item = entry.item;
+
+                // Restore locally
+                const exists = this.cartItems.find(i => i.variant_id === item.variant_id);
+                if (exists) {
+                    exists.quantity = (exists.quantity || 0) + (item.quantity || 1);
+                } else {
+                    this.cartItems.push(item);
+                }
+                PosSound.addToCart();
+                showToast((item.product_name || 'Produk') + ' ' + t('item_restored'), 'success');
+
+                // Attempt to restore on server
+                fetch('{{ route("cart.add", [], false) }}', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -1556,28 +2098,40 @@
                     body: JSON.stringify({
                         product_id: item.product_id,
                         variant_id: item.variant_id,
-                        quantity: item.quantity
+                        quantity: item.quantity || 1
                     })
-                }).catch(err => console.error('Cart sync failed:', err));
+                }).catch(err => console.error('Restore item failed:', err));
+
+                window.trackEvent && window.trackEvent('undo_restore', { product_id: item.product_id, variant_id: item.variant_id, quantity: item.quantity });
+                // Remove from stack
+                this.undoStack.splice(idx, 1);
             },
 
-            removeCartItem(item) {
-                this.cartItems = this.cartItems.filter(i => i.variant_id !== item.variant_id);
-                PosSound.removeItem();
-                showToast(t('item_removed'), 'info');
+            animateProductAdded(productId) {
+                try {
+                    const el = document.querySelector('[data-product-id="' + productId + '"]');
+                    if (!el) return;
+                    el.classList.add('ring', 'ring-4', 'ring-green-200/50');
+                    el.style.transform = 'scale(1.03)';
+                    setTimeout(() => { el.classList.remove('ring', 'ring-4', 'ring-green-200/50'); el.style.transform = ''; }, 420);
+                } catch (e) { /* ignore */ }
+            },
 
-                fetch('{{ route('pos.cart.remove') }}', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                        'Accept': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        product_id: item.product_id,
-                        variant_id: item.variant_id
-                    })
-                }).catch(err => console.error('Remove item failed:', err));
+            openCheckoutConfirm() {
+                if (!this.cartItems || this.cartItems.length === 0) {
+                    typeof PosSound !== 'undefined' && PosSound.error();
+                    showToast(t('cart_empty_warning'), 'warning');
+                    return;
+                }
+                this.showCheckoutConfirm = true;
+            },
+
+            confirmCheckout() {
+                // Proceed to checkout page using route helper (avoid hardcoding host)
+                typeof PosSound !== 'undefined' && PosSound.checkout();
+                console.debug('POS: confirmCheckout invoked, navigating to cart');
+                window.trackEvent && window.trackEvent('checkout_initiated', { total: this.cartTotal, items: this.cartTotalQty });
+                window.location.href = '{{ route('pos.checkout') }}';
             },
 
             confirmClearCart() {
@@ -1590,7 +2144,9 @@
                 PosSound.removeItem();
                 showToast(t('cart_cleared'), 'info');
 
-                fetch('{{ route('cart.clear') }}', {
+                window.trackEvent && window.trackEvent('clear_cart', { items: 0, total: 0 });
+
+                fetch('{{ route("cart.clear", [], false) }}', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -1682,4 +2238,20 @@
         };
     }
 </script>
+
+<style>
+/* Cart slide bounce animations */
+@keyframes cartSlideIn {
+    0% { transform: translateX(100%); }
+    60% { transform: translateX(-12px); }
+    100% { transform: translateX(0); }
+}
+@keyframes cartSlideOut {
+    0% { transform: translateX(0); }
+    60% { transform: translateX(8px); }
+    100% { transform: translateX(100%); }
+}
+.cart-anim-in { animation: cartSlideIn 380ms cubic-bezier(.2,.9,.2,1) forwards; }
+.cart-anim-out { animation: cartSlideOut 260ms cubic-bezier(.4,.0,.2,1) forwards; }
+</style>
 @endsection

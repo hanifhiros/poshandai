@@ -28,7 +28,7 @@
             <p class="text-sm text-gray-500 mt-0.5">Rekonsiliasi stok fisik vs stok sistem (audit inventory)</p>
         </div>
         <a href="{{ route('manager.operational.stock-opname.create') }}"
-           class="inline-flex items-center gap-2 px-4 py-2.5 bg-amber-600 text-white rounded-xl text-sm font-medium hover:bg-amber-700 transition shadow-sm">
+           class="inline-flex items-center gap-2 px-4 py-2.5 bg-green-600 text-white rounded-xl text-sm font-medium hover:bg-green-700 transition shadow-sm">
             <i class="ti ti-plus text-base"></i> Buat Opname Baru
         </a>
     </div>

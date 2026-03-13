@@ -51,6 +51,7 @@
                 <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                 @endif
             </button>
+            @include('handai-manager.partials.import-export-modal', ['type' => 'production', 'label' => 'Riwayat Produksi'])
             <a href="{{ route('manager.operational.produksi.create') }}"
                class="h-9 inline-flex items-center gap-1.5 px-4 text-[13px] font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg transition shadow-sm">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
@@ -89,6 +90,14 @@
                     </div>
                 </div>
                 <div class="min-w-[140px]">
+                    <label class="block text-[11px] font-medium text-gray-400 uppercase tracking-wider mb-1">Tipe</label>
+                    <select name="type" class="pdk-input appearance-none cursor-pointer">
+                        <option value="">Semua</option>
+                        <option value="finished" {{ request('type')==='finished'?'selected':'' }}>Produk Jadi</option>
+                        <option value="semi" {{ request('type')==='semi'?'selected':'' }}>Setengah Jadi</option>
+                    </select>
+                </div>
+                <div class="min-w-[140px]">
                     <label class="block text-[11px] font-medium text-gray-400 uppercase tracking-wider mb-1">Dari</label>
                     <input type="date" name="from" value="{{ request('from') }}" class="pdk-input" />
                 </div>
@@ -112,7 +121,7 @@
             <p class="text-[12px] text-gray-400">
                 <span class="font-medium text-gray-500">{{ $productions->firstItem() ?? 0 }}–{{ $productions->lastItem() ?? 0 }}</span> dari {{ $productions->total() }} catatan
             </p>
-            @if(request()->hasAny(['search','from','to']))
+            @if(request()->hasAny(['search','from','to','type']))
             <a href="{{ route('manager.operational.produksi') }}" class="text-[11px] text-emerald-600 hover:text-emerald-700 font-medium inline-flex items-center gap-1">
                 <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
                 Hapus filter
@@ -127,6 +136,7 @@
                     <tr class="bg-gray-50/80 border-b border-gray-100">
                         <th class="text-left py-2.5 px-5 text-[10.5px] font-semibold text-gray-400 uppercase tracking-wider">Tanggal</th>
                         <th class="text-left py-2.5 px-4 text-[10.5px] font-semibold text-gray-400 uppercase tracking-wider">PIC</th>
+                        <th class="text-center py-2.5 px-4 text-[10.5px] font-semibold text-gray-400 uppercase tracking-wider">Tipe</th>
                         <th class="text-left py-2.5 px-4 text-[10.5px] font-semibold text-gray-400 uppercase tracking-wider">Produk</th>
                         <th class="text-left py-2.5 px-4 text-[10.5px] font-semibold text-gray-400 uppercase tracking-wider hidden lg:table-cell">SKU</th>
                         <th class="text-right py-2.5 px-4 text-[10.5px] font-semibold text-gray-400 uppercase tracking-wider">Qty</th>
@@ -140,9 +150,10 @@
                         @click="openDetail({
                             date: '{{ \Carbon\Carbon::parse($production->production_date)->format('d M Y') }}',
                             pic: '{{ addslashes($production->pic->name ?? '-') }}',
-                            product: '{{ addslashes($production->product_name ?? $production->productVariants->product->name ?? '-') }}',
-                            variant: '{{ addslashes($production->variant_option_summary ?? $production->productVariants->options->pluck('name')->join(', ') ?? '-') }}',
-                            sku: '{{ $production->productVariants->sku->sku_code ?? '-' }}',
+                            type: '{{ $production->semi_finished_product_id ? 'setengah' : 'jadi' }}',
+                            product: '{{ addslashes($production->semi_finished_product_id ? ($production->semiFinishedProduct->name ?? '-') : ($production->product_name ?? $production->productVariants->product->name ?? '-')) }}',
+                            variant: '{{ addslashes($production->semi_finished_product_id ? '' : ($production->variant_option_summary ?? $production->productVariants->options->pluck('name')->join(', '))) }}',
+                            sku: '{{ $production->semi_finished_product_id ? '-' : ($production->productVariants->sku->sku_code ?? '-') }}',
                             qty: {{ $production->quantity_produced }},
                             usages: [
                                 @foreach($production->usages as $u)
@@ -154,9 +165,20 @@
                         <td class="py-3 px-4">
                             <span class="pdk-badge bg-blue-50 text-blue-600">{{ $production->pic->name ?? '-' }}</span>
                         </td>
+                        <td class="py-3 px-4 text-center">
+                            @if($production->semi_finished_product_id)
+                            <span class="pdk-badge bg-violet-50 text-violet-600"><span class="w-1.5 h-1.5 rounded-full bg-violet-400"></span>Setengah Jadi</span>
+                            @else
+                            <span class="pdk-badge bg-emerald-50 text-emerald-600"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>Produk Jadi</span>
+                            @endif
+                        </td>
                         <td class="py-3 px-4">
+                            @if($production->semi_finished_product_id)
+                            <p class="font-medium text-gray-800 leading-snug">{{ $production->semiFinishedProduct->name }}</p>
+                            @else
                             <p class="font-medium text-gray-800 leading-snug">{{ $production->product_name ?? $production->productVariants->product->name ?? '-' }}</p>
                             <p class="text-[11px] text-gray-400 mt-0.5 leading-none">{{ $production->variant_option_summary ?? $production->productVariants->options->pluck('name')->join(', ') ?? '-' }}</p>
+                            @endif
                         </td>
                         <td class="py-3 px-4 hidden lg:table-cell">
                             <span class="font-mono text-[11px] text-gray-400">{{ $production->productVariants->sku->sku_code ?? '-' }}</span>
@@ -177,7 +199,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="6" class="py-20 text-center">
+                        <td colspan="7" class="py-20 text-center">
                             <svg class="w-10 h-10 mx-auto mb-3 text-gray-200" fill="none" stroke="currentColor" stroke-width="1.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
                             <p class="text-sm text-gray-400 font-medium">Belum ada data produksi</p>
                             <p class="text-xs text-gray-300 mt-0.5">Tambahkan produksi untuk memulai.</p>
@@ -294,6 +316,7 @@
                         <div class="flex justify-between text-[12px]"><span class="text-gray-400">Tanggal</span><span class="font-medium text-gray-700" x-text="detailData.date"></span></div>
                         <div class="flex justify-between text-[12px]"><span class="text-gray-400">PIC</span><span class="font-medium text-gray-700" x-text="detailData.pic"></span></div>
                         <div class="flex justify-between text-[12px]"><span class="text-gray-400">Produk</span><span class="font-medium text-gray-700" x-text="detailData.product"></span></div>
+                        <div class="flex justify-between text-[12px]"><span class="text-gray-400">Tipe</span><span class="font-medium text-gray-700 capitalize" x-text="detailData.type"></span></div>
                         <div class="flex justify-between text-[12px]"><span class="text-gray-400">Varian</span><span class="text-gray-600" x-text="detailData.variant"></span></div>
                         <div class="flex justify-between text-[12px]"><span class="text-gray-400">SKU</span><span class="font-mono text-gray-500" x-text="detailData.sku"></span></div>
                         <div class="flex justify-between text-[12px]"><span class="text-gray-400">Qty Diproduksi</span><span class="font-bold text-emerald-600" x-text="detailData.qty"></span></div>

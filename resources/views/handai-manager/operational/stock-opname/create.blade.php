@@ -73,11 +73,11 @@
                             </td>
                             <td class="px-4 py-2 text-gray-500 text-xs">{{ $stock->unit->name ?? '-' }}</td>
                             <td class="px-4 py-2 text-right text-gray-600 font-mono text-xs">
-                                {{ number_format($stock->stockBatches->where('store_id', session('selected_store'))->sum('unit_qty'), 2) }}
+                                {{ number_format($stock->store_qty ?? 0, 2) }}
                             </td>
                             <td class="px-4 py-2 text-right">
                                 <input type="number" name="items[{{ $i }}][actual_qty]"
-                                       value="{{ $stock->stockBatches->where('store_id', session('selected_store'))->sum('unit_qty') }}"
+                                       value="{{ $stock->store_qty ?? 0 }}"
                                        step="0.01" min="0"
                                        class="w-24 h-8 px-2 text-sm text-right border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-400 focus:border-amber-400">
                             </td>
@@ -94,9 +94,9 @@
 
         <div class="flex justify-end gap-3 pt-4 border-t border-gray-100">
             <a href="{{ route('manager.operational.stock-opname.index') }}"
-               class="px-4 py-2.5 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-100 transition">Batal</a>
+               class="px-4 py-2.5 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-100 hover:bg-gray-100 transition">← Batal</a>
             <button type="submit"
-                    class="px-6 py-2.5 bg-amber-600 text-white rounded-xl text-sm font-medium hover:bg-amber-700 transition shadow-sm">
+                    class="px-6 py-2.5 bg-emerald-600 text-white rounded-xl text-sm font-medium hover:bg-emerald-700 transition shadow-sm">
                 <i class="ti ti-check"></i> Simpan Opname
             </button>
         </div>

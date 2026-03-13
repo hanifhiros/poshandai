@@ -326,13 +326,44 @@ class AccountingService
     }
 
     // ══════════════════════════════════════════════════
-    //  D. SALE RETURN / CANCEL
-    //  Reverse of journalSale
-    //  Dr Penjualan     xxx
-    //      Cr Kas        xxx
-    //  Dr Inventory FG  xxx
-    //      Cr HPP        xxx
+    //  C2. PRODUCTION WAGE
+    //  Dr Biaya Gaji Produksi  xxx
+    //      Cr Kas               xxx
     // ══════════════════════════════════════════════════
+
+    public static function journalProductionWage(
+        int $storeId,
+        float $totalWage,
+        int $productionId,
+        string $productName
+    ): ?Journal {
+        if ($totalWage <= 0) return null;
+
+        return self::createJournal(
+            $storeId,
+            "Upah Produksi: {$productName} (#{$productionId})",
+            Journal::SOURCE_PRODUCTION,
+            [
+                [
+                    'account_sub_type' => ChartOfAccount::SUB_GAJI,
+                    'debit'  => $totalWage,
+                    'credit' => 0,
+                    'memo'   => "Upah produksi {$productName}",
+                ],
+                [
+                    'account_sub_type' => ChartOfAccount::SUB_KAS,
+                    'debit'  => 0,
+                    'credit' => $totalWage,
+                    'memo'   => "Kas keluar upah produksi",
+                ],
+            ],
+            'production_history',
+            $productionId
+        );
+    }
+
+    // ══════════════════════════════════════════════════
+    //  D. SALE RETURN / CANCEL
 
     public static function journalSaleReturn(
         int $storeId,

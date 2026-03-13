@@ -28,6 +28,7 @@ class OperationalController extends Controller
             'productVariants.sku',
             'productVariants.product',
             'productVariants.options',
+            'semiFinishedProduct',
             'usages.stock',
             'usages.unit',
         ])
@@ -39,18 +40,30 @@ class OperationalController extends Controller
         $query->where(function ($q) use ($search) {
             $q->whereHas('productVariants.product', function ($pq) use ($search) {
                 $pq->where('name', 'LIKE', "%{$search}%");
-            })->orWhereHas('pic', function ($eq) use ($search) {
+            })
+            ->orWhereHas('semiFinishedProduct', function ($sq) use ($search) {
+                $sq->where('name', 'LIKE', "%{$search}%");
+            })
+            ->orWhereHas('pic', function ($eq) use ($search) {
                 $eq->where('name', 'LIKE', "%{$search}%");
             });
         });
     }
-
     // Date range filter
     if ($request->filled('from')) {
         $query->whereDate('production_date', '>=', $request->from);
     }
     if ($request->filled('to')) {
         $query->whereDate('production_date', '<=', $request->to);
+    }
+
+    // Type filter: finished vs semi
+    if ($request->filled('type')) {
+        if ($request->type === 'finished') {
+            $query->whereNull('semi_finished_product_id');
+        } elseif ($request->type === 'semi') {
+            $query->whereNotNull('semi_finished_product_id');
+        }
     }
 
     $productions = $query->orderBy('production_date', 'desc')->paginate(10)->appends($request->query());
@@ -89,12 +102,30 @@ public function createProduksi()
     $units = Unit::all();
     $stocks = Stock::with('unit')->where('store_id', $selected_store_id)->get();
 
+    // Build wage map: variant_id => wage_per_unit (from parent product)
+    $wageMap = [];
+    foreach ($productVariants as $pv) {
+        $wageMap[$pv->id] = (float) ($pv->product->wage_per_unit ?? 0);
+    }
+
+    // Build semi-finished wage map: sfp_id => { labor_cost_per_unit }
+    $sfpWageMap = [];
+    $sfpList = \App\Models\SemiFinishedProduct::where('store_id', $selected_store_id)->get();
+    foreach ($sfpList as $sfp) {
+        $outQty = max(0.001, (float) ($sfp->output_qty ?: 1));
+        $sfpWageMap[$sfp->id] = [
+            'labor_cost_per_unit' => round((float) ($sfp->labor_cost ?? 0) / $outQty, 2),
+        ];
+    }
+
     return view('handai-manager.operational.create-produksi', compact(
         'productVariants',
         'employees',
         'stocks',
         'selected_store',
-        'units'
+        'units',
+        'wageMap',
+        'sfpWageMap'
     ));
 }
 
@@ -103,71 +134,217 @@ public function produksiStore(Request $request)
     $request->validate([
         'production_date' => 'required|date',
         'pic_id' => 'required|exists:employee,id',
-        'product_variants_id' => 'required|exists:product_variants,id',
-        'quantity_produced' => 'required|integer|min:1',
-        'use_bom' => 'required|in:yes,no',
+        'prod_type' => 'required|in:finished,semi',
+        'product_variants_id' => 'required_if:prod_type,finished|exists:product_variants,id',
+        'semi_finished_product_id' => 'required_if:prod_type,semi|exists:semi_finished_products,id',
+        'quantity_produced' => 'required|numeric|min:0.001',
+        'use_bom' => 'required_if:prod_type,finished|in:yes,no',
     ]);
 
     DB::beginTransaction();
     try {
-        $productVariantId = $request->product_variants_id;
+        $type = $request->prod_type; // 'finished' or 'semi'
         $qtyProduced = $request->quantity_produced;
 
-        $production = ProductionHistory::create([
-            'production_date' => $request->production_date,
-            'pic_id' => $request->pic_id,
-            'product_variants_id' => $productVariantId,
-            'quantity_produced' => $qtyProduced,
-            'store_id'=>session('selected_store'),
-        ]);
+        // handle semi finished product production
+        if ($type === 'semi') {
+            $sfp = \App\Models\SemiFinishedProduct::with('materials.stock')
+                ->where('store_id', session('selected_store'))
+                ->findOrFail($request->semi_finished_product_id);
 
-        $totalCost = 0;
+            ConversionHelper::preloadAll();
+            $multiplier = $qtyProduced / $sfp->output_qty;
 
-        if ($request->use_bom === 'yes') {
-            $boms = Bom::where('product_variants_id', $productVariantId)->get();
-
-            if ($boms->isEmpty()) {
-                throw new \Exception("Produk ini belum memiliki resep (BOM). Silakan input manual atau buat resep terlebih dahulu.");
-            }
-
-            foreach ($boms as $bom) {
-                $stock = $bom->stock;
-                $stockUnitId = $stock->unit_id;
-                $bomUnitId = $bom->unit_id;
-                $conversionRate = ConversionHelper::getConversionRate($bomUnitId, $stockUnitId);
-                if ($conversionRate === null) {
-                    throw new \Exception("Konversi satuan dari unit ID $bomUnitId ke $stockUnitId tidak ditemukan.");
+            // validate availability
+            foreach ($sfp->materials as $mat) {
+                $stock = $mat->stock;
+                if (!$stock) continue;
+                $rate = ConversionHelper::getConversionRate($mat->unit_id, $stock->unit_id);
+                if ($rate === null) {
+                    throw new \Exception("Konversi satuan tidak ditemukan untuk {$stock->name}.");
                 }
-                $requiredQty = $bom->quantity_required * $qtyProduced * $conversionRate;
-
+                $requiredQty = (float) $mat->quantity_required * $multiplier * $rate;
                 if ($stock->unit_qty < $requiredQty) {
-                    throw new \Exception("Stok '{$stock->name}' tidak mencukupi. Dibutuhkan: $requiredQty, tersedia: {$stock->unit_qty}");
-                }                
+                    throw new \Exception("Stok '{$stock->name}' tidak mencukupi. Dibutuhkan: " . round($requiredQty,3) . ", tersedia: {$stock->unit_qty}");
+                }
             }
 
-            foreach ($boms as $bom) {
-                $stock = $bom->stock;
-                $stockUnitId = $stock->unit_id;
-                $bomUnitId = $bom->unit_id;
-                $conversionRate = ConversionHelper::getConversionRate($bomUnitId, $stockUnitId);
-                
-                $usedQty = $bom->quantity_required*$conversionRate * $qtyProduced;
+            $production = ProductionHistory::create([
+                'production_date' => $request->production_date,
+                'pic_id' => $request->pic_id,
+                'semi_finished_product_id' => $sfp->id,
+                'quantity_produced' => $qtyProduced,
+                'store_id' => session('selected_store'),
+                'product_name' => $sfp->name,
+                'variant_option_summary' => '',
+            ]);
+
+            $totalCost = 0;
+            foreach ($sfp->materials as $mat) {
+                $stock = $mat->stock;
+                if (!$stock) continue;
+                $rate = ConversionHelper::getConversionRate($mat->unit_id, $stock->unit_id) ?: 1;
+                $usedQty = (float) $mat->quantity_required * $multiplier * $rate;
+                $usedQtyOriginal = (float) $mat->quantity_required * $multiplier;
+
                 $stock->unit_qty -= $usedQty;
                 $stock->save();
 
                 ProductionStockUsage::create([
                     'production_history_id' => $production->id,
                     'stock_id' => $stock->id,
-                    'unit_id' => $bom->unit_id,
-                    'quantity' => $bom->quantity_required * $qtyProduced, // dalam satuan BOM (user)
+                    'unit_id' => $mat->unit_id,
+                    'stock_name' => $stock->name,
+                    'quantity' => $usedQtyOriginal,
                 ]);
 
-                // Record PRODUCTION_OUT movement
-                InventoryService::recordProductionConsumption(
-                    session('selected_store'), $stock, $usedQty, $bom->unit_id, $production->id
+                InventoryService::recordSemiFinishedConsumption(
+                    session('selected_store'), $stock, $usedQty, $mat->unit_id, $production->id
                 );
 
-                $totalCost += $bom->quantity_required * $conversionRate * $qtyProduced * $stock->price_per_unit;
+                $totalCost += $usedQty * (float) $stock->price_per_unit;
+            }
+
+            $sfp->current_qty += $qtyProduced;
+            $sfp->save();
+            $sfp->recalculateHpp();
+
+            // ── Semi-finished Production Wage ──
+            $sfpLaborCost = (float) ($sfp->labor_cost ?? 0);
+            $sfpOutputQty = max(0.001, (float) ($sfp->output_qty ?: 1));
+            $sfpWagePerUnit = round($sfpLaborCost / $sfpOutputQty, 2);
+            $sfpTotalWage = round($sfpWagePerUnit * $qtyProduced, 2);
+
+            if ($sfpTotalWage > 0) {
+                $wageJournal = null;
+                try {
+                    $wageJournal = AccountingService::journalProductionWage(
+                        session('selected_store'), $sfpTotalWage, $production->id, $sfp->name
+                    );
+                } catch (\Exception $e) {
+                    Log::warning('Semi Production Wage journal failed: ' . $e->getMessage());
+                }
+
+                \App\Models\ProductionWage::create([
+                    'store_id'              => session('selected_store'),
+                    'production_history_id' => $production->id,
+                    'employee_id'           => $request->pic_id,
+                    'recipe_sfp_id'         => $sfp->id,
+                    'production_quantity'    => $qtyProduced,
+                    'wage_per_unit'         => $sfpWagePerUnit,
+                    'total_wage'            => $sfpTotalWage,
+                    'production_date'       => $request->production_date,
+                    'journal_id'            => $wageJournal?->id,
+                ]);
+            }
+
+            DB::commit();
+            return redirect()->route('manager.operational.produksi')->with('success', "Produksi setengah jadi '{$sfp->name}' berhasil! +{$qtyProduced} {$sfp->unit?->symbol}");
+        }
+
+        // finished goods path
+        $productVariantId = $request->product_variants_id;
+
+        $prodVar = ProductVariants::find($productVariantId);
+        $production = ProductionHistory::create([
+            'production_date' => $request->production_date,
+            'pic_id' => $request->pic_id,
+            'product_variants_id' => $productVariantId,
+            'quantity_produced' => $qtyProduced,
+            'store_id'=>session('selected_store'),
+            'product_name' => $prodVar?->product->name,
+            'variant_option_summary' => $prodVar?->options->pluck('name')->join(', '),
+        ]);
+
+        $totalCost = 0;
+
+        if ($request->use_bom === 'yes') {
+            $boms = Bom::with(['stock', 'semiFinishedProduct'])->where('product_variants_id', $productVariantId)->get();
+
+            if ($boms->isEmpty()) {
+                throw new \Exception("Produk ini belum memiliki resep (BOM). Silakan input manual atau buat resep terlebih dahulu.");
+            }
+
+            // Phase 1: Validate availability
+            foreach ($boms as $bom) {
+                if ($bom->semi_finished_product_id) {
+                    // Semi-finished product ingredient
+                    $sfp = $bom->semiFinishedProduct;
+                    if (!$sfp) throw new \Exception("Produk setengah jadi pada BOM tidak ditemukan.");
+                    $sfpUnitId = $sfp->unit_id;
+                    $bomUnitId = $bom->unit_id;
+                    $conversionRate = ConversionHelper::getConversionRate($bomUnitId, $sfpUnitId);
+                    if ($conversionRate === null) {
+                        throw new \Exception("Konversi satuan dari unit ID $bomUnitId ke $sfpUnitId tidak ditemukan.");
+                    }
+                    $requiredQty = $bom->quantity_required * $qtyProduced * $conversionRate;
+                    if ($sfp->current_qty < $requiredQty) {
+                        throw new \Exception("Stok produk setengah jadi '{$sfp->name}' tidak mencukupi. Dibutuhkan: $requiredQty, tersedia: {$sfp->current_qty}");
+                    }
+                } else {
+                    // Raw material ingredient
+                    $stock = $bom->stock;
+                    $stockUnitId = $stock->unit_id;
+                    $bomUnitId = $bom->unit_id;
+                    $conversionRate = ConversionHelper::getConversionRate($bomUnitId, $stockUnitId);
+                    if ($conversionRate === null) {
+                        throw new \Exception("Konversi satuan dari unit ID $bomUnitId ke $stockUnitId tidak ditemukan.");
+                    }
+                    $requiredQty = $bom->quantity_required * $qtyProduced * $conversionRate;
+                    if ($stock->unit_qty < $requiredQty) {
+                        throw new \Exception("Stok '{$stock->name}' tidak mencukupi. Dibutuhkan: $requiredQty, tersedia: {$stock->unit_qty}");
+                    }
+                }
+            }
+
+            // Phase 2: Deduct and record
+            foreach ($boms as $bom) {
+                if ($bom->semi_finished_product_id) {
+                    // Semi-finished product consumption
+                    $sfp = $bom->semiFinishedProduct;
+                    $sfpUnitId = $sfp->unit_id;
+                    $bomUnitId = $bom->unit_id;
+                    $conversionRate = ConversionHelper::getConversionRate($bomUnitId, $sfpUnitId);
+
+                    $usedQty = $bom->quantity_required * $conversionRate * $qtyProduced;
+                    $sfp->current_qty -= $usedQty;
+                    $sfp->save();
+
+                    ProductionStockUsage::create([
+                        'production_history_id' => $production->id,
+                        'stock_id' => null,
+                        'unit_id' => $bom->unit_id,
+                        'stock_name' => $sfp->name,
+                        'quantity' => $bom->quantity_required * $qtyProduced,
+                    ]);
+
+                    $totalCost += $bom->quantity_required * $conversionRate * $qtyProduced * $sfp->price_per_unit;
+                } else {
+                    // Raw material consumption
+                    $stock = $bom->stock;
+                    $stockUnitId = $stock->unit_id;
+                    $bomUnitId = $bom->unit_id;
+                    $conversionRate = ConversionHelper::getConversionRate($bomUnitId, $stockUnitId);
+                
+                    $usedQty = $bom->quantity_required*$conversionRate * $qtyProduced;
+                    $stock->unit_qty -= $usedQty;
+                    $stock->save();
+
+                    ProductionStockUsage::create([
+                        'production_history_id' => $production->id,
+                        'stock_id' => $stock->id,
+                        'unit_id' => $bom->unit_id,
+                        'stock_name' => $stock->name,
+                        'quantity' => $bom->quantity_required * $qtyProduced,
+                    ]);
+
+                    // Record PRODUCTION_OUT movement
+                    InventoryService::recordProductionConsumption(
+                        session('selected_store'), $stock, $usedQty, $bom->unit_id, $production->id
+                    );
+
+                    $totalCost += $bom->quantity_required * $conversionRate * $qtyProduced * $stock->price_per_unit;
+                }
             }
         } else {
             // Pre-load all stocks for manual ingredients
@@ -201,6 +378,7 @@ public function produksiStore(Request $request)
                     'production_history_id' => $production->id,
                     'stock_id' => $stock->id,
                     'unit_id' => $inputUnitId,
+                    'stock_name' => $stock->name,
                     'quantity' => $inputQty,
                 ]);
 
@@ -219,11 +397,16 @@ public function produksiStore(Request $request)
             throw new \Exception("Varian produk tidak ditemukan.");
         }
 
-        // 💰 Hitung HPP baru
+        // Calculate production wage
+        $wagePerUnit = (float) ($productVariant->product->wage_per_unit ?? 0);
+        $totalWage = round($wagePerUnit * $qtyProduced, 2);
+
+        // 💰 Hitung HPP baru (material cost + wage)
+        $totalCostWithWage = $totalCost + $totalWage;
         $oldQty = $productVariant->quantity;
         $oldHpp = $productVariant->hpp;
         $newQty = $oldQty + $qtyProduced;
-        $newHpp = $newQty > 0 ? round((($oldHpp * $oldQty) + ($totalCost)) / $newQty, 2) : $oldHpp;
+        $newHpp = $newQty > 0 ? round((($oldHpp * $oldQty) + ($totalCostWithWage)) / $newQty, 2) : $oldHpp;
 
         $productVariant->quantity = $newQty;
         $productVariant->hpp = $newHpp;
@@ -241,6 +424,30 @@ public function produksiStore(Request $request)
             );
         } catch (\Exception $e) {
             Log::warning('Production Accounting journal failed: ' . $e->getMessage());
+        }
+
+        // ── Production Wage Record & Journal ──
+        if ($totalWage > 0) {
+            $wageJournal = null;
+            try {
+                $wageJournal = AccountingService::journalProductionWage(
+                    session('selected_store'), $totalWage, $production->id, $productVariant->product?->name
+                );
+            } catch (\Exception $e) {
+                Log::warning('Production Wage journal failed: ' . $e->getMessage());
+            }
+
+            \App\Models\ProductionWage::create([
+                'store_id'              => session('selected_store'),
+                'production_history_id' => $production->id,
+                'employee_id'           => $request->pic_id,
+                'recipe_product_id'     => $productVariant->product_id,
+                'production_quantity'    => $qtyProduced,
+                'wage_per_unit'         => $wagePerUnit,
+                'total_wage'            => $totalWage,
+                'production_date'       => $request->production_date,
+                'journal_id'            => $wageJournal?->id,
+            ]);
         }
 
         DB::commit();

@@ -67,7 +67,13 @@ class StockOpnameController extends Controller
         $storeId = session('selected_store');
         $selected_store = $storeId ? Store::find($storeId) : null;
 
-        $stocks = Stock::where('store_id', $storeId)->with('unit')->orderBy('name')->get();
+        $stocks = Stock::forStore($storeId)
+            ->with('unit')
+            ->withSum(['batches as store_qty' => function ($q) use ($storeId) {
+                $q->where('store_id', $storeId);
+            }], 'unit_qty')
+            ->orderBy('name')
+            ->get();
         $employees = Employee::where('store_id', $storeId)->orderBy('name')->get();
         $units = Unit::all();
 

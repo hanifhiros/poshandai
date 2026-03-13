@@ -4,8 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+use App\Models\Traits\ForStoreScope;
+
 class StockMovement extends Model
 {
+    use ForStoreScope;
     protected $table = 'stock_movements';
 
     protected $fillable = [
@@ -31,15 +34,17 @@ class StockMovement extends Model
 
     // ── Movement Type Constants ──────────────────────
 
-    const PURCHASE_IN    = 'PURCHASE_IN';
-    const PRODUCTION_OUT = 'PRODUCTION_OUT';
-    const PRODUCTION_IN  = 'PRODUCTION_IN';
-    const SALE_OUT       = 'SALE_OUT';
-    const SALE_RETURN    = 'SALE_RETURN';
-    const ADJUSTMENT     = 'ADJUSTMENT';
-    const EXPIRED_OUT    = 'EXPIRED_OUT';
-    const WASTE_OUT      = 'WASTE_OUT';
-    const RND_OUT        = 'RND_OUT';
+    const PURCHASE_IN              = 'PURCHASE_IN';
+    const PRODUCTION_OUT           = 'PRODUCTION_OUT';
+    const PRODUCTION_IN            = 'PRODUCTION_IN';
+    const SALE_OUT                 = 'SALE_OUT';
+    const SALE_RETURN              = 'SALE_RETURN';
+    const ADJUSTMENT               = 'ADJUSTMENT';
+    const EXPIRED_OUT              = 'EXPIRED_OUT';
+    const WASTE_OUT                = 'WASTE_OUT';
+    const RND_OUT                  = 'RND_OUT';
+    const SEMI_FINISHED_OUT        = 'SEMI_FINISHED_OUT';    // bahan mentah → produk setengah jadi
+    const SEMI_FINISHED_CONSUME    = 'SEMI_FINISHED_CONSUME'; // produk setengah jadi dipakai di produksi akhir
 
     // ── Relationships ────────────────────────────────
 

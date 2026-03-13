@@ -1,4 +1,3 @@
-{{-- Slim professional POS sidebar --}}
 @php use App\Helpers\RoleHelper; @endphp
 
 <aside
@@ -100,7 +99,7 @@
         </button>
 
         {{-- Collapse Toggle --}}
-        <button @click="sidebarOpen = !sidebarOpen; localStorage.setItem('pos_sidebar', sidebarOpen)"
+        <button @click="sidebarOpen = !sidebarOpen; localStorage.setItem('pos_sidebar', sidebarOpen); $dispatch('pos-sidebar-toggle', { collapsed: !sidebarOpen })"
                 class="flex items-center h-10 w-full rounded-lg px-2 text-slate-400 hover:bg-slate-50 hover:text-slate-600 transition-all duration-150 cursor-pointer">
             <div class="w-8 h-8 flex items-center justify-center shrink-0">
                 <i class="ti ti-chevrons-left text-lg transition-transform duration-300"

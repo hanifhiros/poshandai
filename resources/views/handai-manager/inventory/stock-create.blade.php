@@ -58,11 +58,21 @@
           @submit.prevent="submitForm($event)"
           class="max-w-5xl mx-auto space-y-5">
         @csrf
+        @push('styles')
+        <style>
+            #purchase-info-section label { margin-bottom: .5rem; }
+            #purchase-info-section input[type=text],
+            #purchase-info-section input[type=date],
+            #purchase-info-section select {
+                padding: .75rem 1rem; /* px-4 py-3 */
+            }
+        </style>
+        @endpush
 
         {{-- ═══════════════════════════════════════════════════════
              SECTION 1: Informasi Pembelian
              ═══════════════════════════════════════════════════════ --}}
-        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+        <div id="purchase-info-section" class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
             <div class="px-6 py-4 border-b border-slate-100 bg-slate-50/50">
                 <h2 class="text-sm font-semibold text-slate-700 flex items-center gap-2">
                     <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -71,11 +81,11 @@
                     Informasi Pembelian
                 </h2>
             </div>
-            <div class="p-6">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
+            <div class="p-8">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-24 gap-y-8">
                     {{-- Supplier --}}
-                    <div>
-                        <label class="block text-xs font-medium text-slate-600 mb-1.5">
+                    <div class="mb-4 md:pr-5">
+                        <label class="block text-xs font-medium text-slate-600 mb-2">
                             Supplier <span class="text-red-400">*</span>
                         </label>
                         <div x-data="{ open: false, search: '' }" @click.away="open = false" class="relative">
@@ -86,7 +96,7 @@
                                    :placeholder="form.supplier_name || 'Cari / ketik supplier...'"
                                    :class="[form.supplier_name ? 'text-slate-800' : 'text-slate-400 italic', errors.supplier_name ? 'border-red-400 ring-2 ring-red-100' : '']"
                                    class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400 transition">
-                            <input type="hidden" name="supplier_id" :value="form.supplier_id">
+                            <input type="hidden" name="supplier_id" :value="form.supplier_id ">
                             <input type="hidden" name="supplier_name" :value="form.supplier_name">
                             <div x-show="errors.supplier_name" data-error-field class="text-xs text-red-500 mt-1 flex items-center gap-1">
                                 <svg class="w-3 h-3 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
@@ -95,7 +105,7 @@
 
                             {{-- Dropdown --}}
                             <div x-show="open" x-transition
-                                 class="absolute z-30 mt-1 w-full bg-white border border-slate-200 rounded-xl shadow-lg max-h-48 overflow-y-auto">
+                                 class="absolute z-50 mt-1 w-full bg-white border border-slate-200 rounded-xl shadow-xl max-h-48 overflow-y-auto">
                                 {{-- Use typed text as manual supplier --}}
                                 <button type="button"
                                         x-show="search.trim().length > 0"
@@ -120,8 +130,8 @@
                     </div>
 
                     {{-- Invoice Ref --}}
-                    <div>
-                        <label class="block text-xs font-medium text-slate-600 mb-1.5">
+                    <div class="mb-4 md:pr-5">
+                        <label class="block text-xs font-medium text-slate-600 mb-2">
                             No. Invoice / Referensi
                         </label>
                         <input type="text"
@@ -132,8 +142,8 @@
                     </div>
 
                     {{-- Tanggal Pembelian --}}
-                    <div>
-                        <label class="block text-xs font-medium text-slate-600 mb-1.5">
+                    <div class="mb-4 md:pr-5">
+                        <label class="block text-xs font-medium text-slate-600 mb-2">
                             Tanggal Pembelian <span class="text-red-400">*</span>
                         </label>
                         <input type="date"
@@ -150,8 +160,8 @@
                     </div>
 
                     {{-- Metode Pembayaran --}}
-                    <div>
-                        <label class="block text-xs font-medium text-slate-600 mb-1.5">
+                    <div class="mb-4 md:pr-5">
+                        <label class="block text-xs font-medium text-slate-600 mb-2">
                             Metode Pembayaran <span class="text-red-400">*</span>
                         </label>
                         <select name="payment_method"
@@ -205,14 +215,23 @@
                     </svg>
                     Detail Item Pembelian
                 </h2>
-                <button type="button"
-                        @click="addItem()"
-                        class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-medium rounded-lg transition shadow-sm">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                    </svg>
-                    Tambah Item
-                </button>
+                <div class="flex items-center gap-1">
+                    <button type="button" @click="showNewStockModal = true"
+                            class="h-9 px-3.5 inline-flex items-center gap-2 text-sm font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-lg border border-transparent hover:border-blue-200 transition">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                        </svg>
+                        Bahan Baru
+                    </button>
+                    <button type="button"
+                            @click="addItem()"
+                            class="h-9 px-3.5 inline-flex items-center gap-2 text-sm font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-lg border border-transparent hover:border-emerald-200 transition">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                        </svg>
+                        Tambah Bahan
+                    </button>
+                </div>
             </div>
 
             <div class="p-6">
@@ -264,7 +283,7 @@
 
                                             {{-- Dropdown --}}
                                             <div x-show="open" x-transition
-                                                 class="absolute z-30 mt-1 w-full bg-white border border-slate-100 rounded-lg shadow-md max-h-40 overflow-y-auto">
+                                                 class="absolute z-50 mt-1 w-full bg-white border border-slate-100 rounded-lg shadow-lg max-h-40 overflow-y-auto">
                                                 <template x-for="s in filteredStocks(search)" :key="s.id">
                                                     <button type="button"
                                                             @click="selectStock(idx, s); open = false; search = s.name"
@@ -317,7 +336,7 @@
                                                x-model.number="item.unit_price"
                                                step="1" min="0"
                                                placeholder="0"
-                                               @input="recalcItemCost(idx); recalc()"
+                                               @input="recalcItemCost(idx); recalc(); clearError('item_' + idx + '_unit_price')"
                                                class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-right focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400 transition">
                                     </td>
 
@@ -413,11 +432,15 @@
                                 </div>
                                 <div>
                                     <label class="text-xs text-slate-500 mb-1 block">Harga Satuan</label>
-                                    <input type="number"
-                                           x-model.number="item.unit_price"
-                                           step="1" min="0"
-                                           @input="recalcItemCost(idx); recalc()"
-                                           class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-right focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400">
+                                     <input type="number"
+                                         x-model.number="item.unit_price"
+                                         step="0.01" min="0.01"
+                                           @input="recalcItemCost(idx); recalc(); clearError('item_' + idx + '_unit_price')"
+                                         class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-right focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400">
+                                     <div x-show="errors['item_' + idx + '_unit_price']" data-error-field class="text-xs text-red-500 mt-1"
+                                         x-text="errors['item_' + idx + '_unit_price']"></div>
+                                     <div x-show="errors['item_' + idx + '_unit_price']" data-error-field class="text-xs text-red-500 mt-1"
+                                         x-text="errors['item_' + idx + '_unit_price']"></div>
                                 </div>
                                 <div>
                                     <label class="text-xs text-slate-500 mb-1 block">Subtotal</label>
@@ -447,7 +470,7 @@
             <div class="p-6">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {{-- Left: notes & upload --}}
-                    <div class="space-y-4">
+                    <div class="flex flex-col justify-between h-full">
                         <div>
                             <label class="block text-xs font-medium text-slate-600 mb-1.5">Catatan</label>
                             <textarea name="purchase_notes"
@@ -456,9 +479,9 @@
                                       placeholder="Catatan tambahan untuk pembelian ini..."
                                       class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400 transition resize-none"></textarea>
                         </div>
-                        <div>
+                        <div class="flex-1 flex flex-col justify-center">
                             <label class="block text-xs font-medium text-slate-600 mb-1.5">Upload Nota / Invoice</label>
-                            <label class="flex items-center justify-center gap-2 w-full px-4 py-3 bg-slate-50 border-2 border-dashed border-slate-200 rounded-xl text-sm text-slate-500 hover:border-emerald-300 hover:text-emerald-600 cursor-pointer transition">
+                            <label class="flex items-center justify-center gap-2 w-full h-full px-4 py-0 bg-slate-50 border-2 border-dashed border-slate-200 rounded-xl text-sm text-slate-500 hover:border-emerald-300 hover:text-emerald-600 cursor-pointer transition">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                                 </svg>
@@ -499,6 +522,19 @@
                                     <input type="number"
                                            name="tax"
                                            x-model.number="form.tax"
+                                           @input="recalc()"
+                                           step="1" min="0"
+                                           placeholder="0"
+                                           class="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm text-right focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400 transition">
+                                </div>
+                            </div>
+
+                            <div class="flex justify-between items-center text-sm gap-4">
+                                <span class="text-slate-500 whitespace-nowrap">Biaya Tambahan</span>
+                                <div class="w-36">
+                                    <input type="number"
+                                           name="additional_cost"
+                                           x-model.number="form.additional_cost"
                                            @input="recalc()"
                                            step="1" min="0"
                                            placeholder="0"
@@ -562,7 +598,7 @@
              ═══════════════════════════════════════════════════════ --}}
         <div class="flex items-center justify-between bg-white rounded-2xl border border-slate-200/80 shadow-sm px-6 py-4">
             <a href="{{ route('manager.inventory.stock') }}"
-               class="text-sm text-slate-500 hover:text-slate-700 transition">
+               class="text-sm text-slate-500 hover:text-slate-700 hover:bg-gray-100 transition">
                 &larr; Batal
             </a>
             <button type="submit"
@@ -638,8 +674,8 @@
             </div>
             <div class="px-6 py-4 border-t border-slate-100 flex gap-3">
                 <button type="button" @click="showNewStockModal = false"
-                        class="flex-1 py-2.5 rounded-xl text-sm font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 transition">
-                    Batal
+                        class="flex-1 py-2.5 rounded-xl text-sm font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 hover:bg-gray-100 transition">
+                    ← Batal
                 </button>
                 <button type="button" @click="submitNewStock()"
                         :disabled="newStockSaving"
@@ -678,8 +714,8 @@
             <div class="flex gap-3">
                 <button type="button"
                         @click="showConfirm = false"
-                        class="flex-1 py-2.5 rounded-xl text-sm font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 transition">
-                    Batal
+                        class="flex-1 py-2.5 rounded-xl text-sm font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 hover:bg-gray-100 transition">
+                    ← Batal
                 </button>
                 <button type="button"
                         @click="confirmSubmit()"
@@ -735,6 +771,7 @@ function purchaseForm() {
             due_date:       '{{ old("due_date", "") }}',
             discount:       {{ old('discount', 0) }},
             tax:            {{ old('tax', 0) }},
+            additional_cost: {{ old('additional_cost', 0) }},
             purchase_notes: '',
         },
 
@@ -752,7 +789,11 @@ function purchaseForm() {
         successMsg: '',
 
         init() {
+            // start with exactly one item row; any extra (e.g. from page reload) are trimmed
             this.addItem();
+            if (this.items.length > 1) {
+                this.items = this.items.slice(0,1);
+            }
         },
 
         addItem() {
@@ -800,7 +841,9 @@ function purchaseForm() {
         recalc() {
             this.items.forEach((item, idx) => this.recalcItemCost(idx));
             this.subtotal   = this.items.reduce((sum, item) => sum + (parseFloat(item.cost) || 0), 0);
-            this.grandTotal = this.subtotal - (parseFloat(this.form.discount) || 0) + (parseFloat(this.form.tax) || 0);
+            this.grandTotal = this.subtotal - (parseFloat(this.form.discount) || 0) +
+                               (parseFloat(this.form.tax) || 0) +
+                               (parseFloat(this.form.additional_cost) || 0);
             if (this.grandTotal < 0) this.grandTotal = 0;
         },
 
@@ -814,7 +857,7 @@ function purchaseForm() {
             if (!this.form.payment_method) return false;
             if (this.form.payment_method === 'hutang' && !this.form.due_date) return false;
             if (this.items.length === 0) return false;
-            return this.items.every(i => i.stock_id && parseFloat(i.unit_qty) > 0 && parseFloat(i.cost) >= 0);
+            return this.items.every(i => i.stock_id && parseFloat(i.unit_qty) > 0 && parseFloat(i.unit_price) > 0 && parseFloat(i.cost) >= 0);
         },
 
         validate() {
@@ -830,6 +873,7 @@ function purchaseForm() {
             this.items.forEach((item, idx) => {
                 if (!item.stock_id) this.errors['item_' + idx + '_stock'] = 'Bahan harus dipilih';
                 if (!parseFloat(item.unit_qty) || parseFloat(item.unit_qty) <= 0) this.errors['item_' + idx + '_qty'] = 'Qty harus lebih dari 0';
+                if (!parseFloat(item.unit_price) || parseFloat(item.unit_price) <= 0) this.errors['item_' + idx + '_unit_price'] = 'Harga satuan harus lebih dari 0';
             });
 
             return Object.keys(this.errors).length === 0;
@@ -895,6 +939,7 @@ function purchaseForm() {
                     fd.append('items[' + idx + '][stock_id]', item.stock_id);
                     fd.append('items[' + idx + '][unit_id]', item.unit_id);
                     fd.append('items[' + idx + '][unit_qty]', item.unit_qty);
+                    fd.append('items[' + idx + '][unit_price]', item.unit_price);
                     fd.append('items[' + idx + '][cost]', item.cost);
                 });
 

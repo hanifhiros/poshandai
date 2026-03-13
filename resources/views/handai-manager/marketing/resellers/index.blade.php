@@ -12,16 +12,33 @@
 @section('content')
 <div class="py-5 px-4 sm:px-6 lg:px-8 max-w-[1360px] mx-auto">
 
+    {{-- Flash Messages --}}
+    @if(session('success'))
+    <div class="mb-4 p-3 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl text-[13px] flex items-center gap-2">
+        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+        {{ session('success') }}
+    </div>
+    @endif
+    @if(session('error'))
+    <div class="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-xl text-[13px] flex items-center gap-2">
+        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        {{ session('error') }}
+    </div>
+    @endif
+
     {{-- Header --}}
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
         <div>
             <h1 class="text-lg font-semibold text-gray-800">Database Reseller</h1>
             <p class="text-[12px] text-gray-400 mt-0.5">Kelola data reseller & link order</p>
         </div>
-        <a href="{{ route('manager.marketing.resellers.create') }}" class="h-9 px-4 inline-flex items-center gap-1.5 text-[13px] font-medium text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg transition shadow-sm">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
-            Tambah Reseller
-        </a>
+        <div class="flex items-center gap-2">
+            @include('handai-manager.partials.import-export-modal', ['type' => 'reseller', 'label' => 'Reseller'])
+            <a href="{{ route('manager.marketing.resellers.create') }}" class="h-9 px-4 inline-flex items-center gap-1.5 text-[13px] font-medium text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg transition shadow-sm">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+                Tambah Reseller
+            </a>
+        </div>
     </div>
 
     {{-- Search --}}

@@ -120,7 +120,7 @@
             </div>
 
             <div class="flex justify-between">
-                <a href="{{ route('superadmin.account.index') }}" class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 transition">Batal</a>
+                <a href="{{ route('superadmin.account.index') }}" class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 hover:bg-gray-100 transition">← Batal</a>
                 <button type="submit" class="px-6 py-2 bg-green-600 text-white font-semibold rounded hover:bg-green-700 transition">Perbarui Akun</button>
             </div>
         </form>

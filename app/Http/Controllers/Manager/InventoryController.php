@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Bom;
 use App\Models\Invoice;
 use App\Models\Product;
+use App\Models\SemiFinishedProduct;
 use App\Models\ProductCategory;
 use App\Models\ProductionHistory;
 use App\Models\ProductionStockUsage;
@@ -67,7 +68,9 @@ class InventoryController extends Controller
     {
         $product = Product::with(['variants.options'])->findOrFail($id);
         $categories = ProductCategory::all();
-        $variantAttributes = VariantAttribute::with('options')->get();
+        $variantAttributes = \Cache::remember('variantAttributes', 3600, function () {
+            return VariantAttribute::with('options')->get();
+        });
         $selected_store_id = session('selected_store');
         $selected_store = $selected_store_id ? Store::find($selected_store_id) : null;
 
@@ -357,8 +360,8 @@ class InventoryController extends Controller
 
         $request->validate([
             'unit_qty' => 'required|numeric|min:1',
-            'unit_id' => 'required|exists:units,id',
-            'cost' => 'required|numeric|min:0',
+            'unit_id' => ['required', 'exists:units,id', 'not_in:0'],
+            'cost' => 'required|numeric|min:0.01',
             'buy_date' => 'required|date',
             'nota' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048'
         ]);
@@ -563,7 +566,9 @@ public function destroy($id)
         $selected_store_id = session('selected_store');
         $selected_store = $selected_store_id ? Store::find($selected_store_id) : null;
         $categories = ProductCategory::all();
-        $variantAttributes = VariantAttribute::with('options')->get(); // semua opsi varian
+        $variantAttributes = \Cache::remember('variantAttributes', 3600, function () {
+            return VariantAttribute::with('options')->get();
+        }); // semua opsi varian
 
         return view('handai-manager.inventory.create', compact('categories', 'selected_store', 'variantAttributes'));
     }
@@ -657,7 +662,55 @@ public function destroy($id)
         $selected_store_id = session('selected_store');
         $selected_store = $selected_store_id ? Store::find($selected_store_id) : null;
         $expiredRange = (int) $request->input('expired_range', 3); // default 3 hari
+        $tab = $request->input('tab', 'produk_jadi'); // produk_jadi | setengah_jadi
 
+        // ═══════════════════════════════════════════════
+        // TAB: PRODUK SETENGAH JADI
+        // ═══════════════════════════════════════════════
+        if ($tab === 'setengah_jadi') {
+            $sfpQuery = SemiFinishedProduct::with(['unit', 'materials.stock.unit', 'materials.unit'])
+                ->where('store_id', $selected_store_id);
+
+            if ($request->filled('search')) {
+                $sfpQuery->where('name', 'LIKE', '%' . $request->search . '%');
+            }
+
+            if ($request->filled('status')) {
+                switch ($request->status) {
+                    case 'Ready':
+                        $sfpQuery->whereRaw('current_qty > min_stock AND current_qty > 0');
+                        break;
+                    case 'Low Stock':
+                        $sfpQuery->whereRaw('current_qty > 0 AND min_stock > 0 AND current_qty <= min_stock');
+                        break;
+                    case 'Out of Stock':
+                        $sfpQuery->where('current_qty', '<=', 0);
+                        break;
+                }
+            }
+
+            $semiFinishedProducts = $sfpQuery->orderBy('name')->paginate(10);
+
+            // Stats for SFP
+            $sfpAll = SemiFinishedProduct::where('store_id', $selected_store_id);
+            $sfpStats = (object) [
+                'total'        => (clone $sfpAll)->count(),
+                'ready'        => (clone $sfpAll)->whereRaw('current_qty > 0 AND (min_stock = 0 OR current_qty > min_stock)')->count(),
+                'low_stock'    => (clone $sfpAll)->whereRaw('current_qty > 0 AND min_stock > 0 AND current_qty <= min_stock')->count(),
+                'out_of_stock' => (clone $sfpAll)->where('current_qty', '<=', 0)->count(),
+            ];
+
+            return view('handai-manager.inventory.products', compact(
+                'selected_store',
+                'tab',
+                'semiFinishedProducts',
+                'sfpStats'
+            ));
+        }
+
+        // ═══════════════════════════════════════════════
+        // TAB: PRODUK JADI (default — existing logic)
+        // ═══════════════════════════════════════════════
         $query = ProductVariants::with(['product.category', 'variantOptions', 'productionHistories'])
             ->whereHas('product', function ($q) use ($selected_store_id) {
                 $q->where('store_id', $selected_store_id);
@@ -762,6 +815,7 @@ public function destroy($id)
 
         return view('handai-manager.inventory.products', compact(
             'selected_store',
+            'tab',
             'variants',
             'categories',
             'expiredVariants',
@@ -834,13 +888,24 @@ public function destroy($id)
         // ══════════════════════════════════════════════
         //  FETCH ALL FINISHED GOODS
         // ══════════════════════════════════════════════
+        // fetch finished goods belonging to the selected store. previously we only checked the
+        // parent product's store_id which could be unset and result in zero values. include
+        // variants whose own store_id matches as well for completeness.
         $allFG = ProductVariants::with(['product.category', 'options.attribute', 'productionHistories'])
-            ->whereHas('product', fn($q) => $q->where('store_id', $selected_store_id))
+            ->where(function($q) use ($selected_store_id) {
+                $q->where('store_id', $selected_store_id)
+                  ->orWhereHas('product', fn($q2) => $q2->where('store_id', $selected_store_id));
+            })
             ->get();
 
         foreach ($allFG as $fg) {
             $fg->computed_margin     = $fg->margin_percent;
+            // core value based on HPP, but if HPP is missing fall back to selling price to give a
+            // rough estimation instead of zero.
             $fg->computed_inv_value  = $fg->inventory_value;
+            if (($fg->computed_inv_value ?? 0) <= 0 && (float)($fg->price ?? 0) > 0) {
+                $fg->computed_inv_value = round((float)$fg->price * (float)$fg->quantity, 2);
+            }
             $fg->computed_freshness  = $fg->freshness_status;
             $fg->computed_days_left  = $fg->days_until_expiry;
             $fg->computed_fg_status  = $fg->fg_status;
@@ -912,6 +977,49 @@ public function destroy($id)
             ]);
         }
 
+        // ══════════════════════════════════════════════
+        //  SEMI-FINISHED PRODUCTS (Produk Setengah Jadi)
+        // ══════════════════════════════════════════════
+        $allSfp = SemiFinishedProduct::with('unit')->where('store_id', $selected_store_id)->get();
+        foreach ($allSfp as $sfp) {
+            $unified->push((object) [
+                'id'              => $sfp->id,
+                'model_type'      => 'semi_finished',
+                'type_label'      => 'Produk Setengah Jadi',
+                'name'            => $sfp->name,
+                'subtitle'        => trim(($sfp->unit->symbol ?? '') ),
+                'sku'             => null,
+                'category_name'   => '—',
+                'category_id'     => null,
+                'hpp'             => (float) ($sfp->price_per_unit ?? 0),
+                'selling_price'   => null,
+                'quantity'        => (float) ($sfp->current_qty ?? 0),
+                'unit_qty'        => (float) ($sfp->current_qty ?? 0),
+                'quantity_fmt'    => number_format($sfp->current_qty ?: 0, ($sfp->current_qty == intval($sfp->current_qty)) ? 0 : 1),
+                'unit_symbol'     => $sfp->unit->symbol ?? '',
+                'min_stock'       => (float) ($sfp->min_stock ?? 0),
+                'reorder_point'   => 0,
+                'status'          => $sfp->stock_status ?? 'Ready',
+                'needs_reorder'   => false,
+                'almost_expired'  => 0,
+                'days_left'       => null,
+                'freshness'       => null,
+                'expired_date'    => null,
+                'inventory_value' => (float) ($sfp->price_per_unit * ($sfp->current_qty ?? 0)),
+                'usage_30d'       => 0,
+                'turnover_rate'   => 0,
+                'margin_percent'  => null,
+                'updated_at'      => $sfp->updated_at,
+                'edit_url'        => route('manager.inventory.semi-finished.edit', $sfp->id),
+                'batch_url'       => null,
+                'can_delete'      => true,
+                'expired_batches' => collect(),
+                'stored_expired'  => 0,
+                'expired_qty'     => 0,
+                'raw_model'       => $sfp,
+            ]);
+        }
+
         foreach ($allFG as $fg) {
             $sold = (float) ($fgUsage30[$fg->id] ?? 0);
             $unified->push((object) [
@@ -956,9 +1064,14 @@ public function destroy($id)
         //  FILTERS
         // ══════════════════════════════════════════════
         if ($type !== 'all') {
-            $unified = $unified->filter(fn($i) => $type === 'bahan'
-                ? $i->model_type === 'stock'
-                : $i->model_type === 'product_variant');
+            if ($type === 'bahan') {
+                $unified = $unified->filter(fn($i) => $i->model_type === 'stock');
+            } elseif ($type === 'setengah') {
+                $unified = $unified->filter(fn($i) => $i->model_type === 'semi_finished');
+            } else {
+                // default to produk (product variants)
+                $unified = $unified->filter(fn($i) => $i->model_type === 'product_variant');
+            }
         }
 
         if ($request->filled('search')) {
@@ -1058,7 +1171,13 @@ public function destroy($id)
         $fgItems  = $allItems->where('model_type', 'product_variant');
 
         $rawValue = $allRawStocks->sum(fn($s) => round((float) $s->unit_qty * (float) ($s->price_per_unit ?? 0), 2));
+        // make sure we calculate finished goods value from the unified collection as a fallback
+        // in case some variants slip through the filtering logic above.
         $fgHppValue = $allFG->sum(fn($fg) => $fg->computed_inv_value ?? 0);
+        $fallbackFgValue = $allItems->where('model_type','product_variant')->sum('inventory_value');
+        if($fallbackFgValue > 0 && $fgHppValue == 0) {
+            $fgHppValue = $fallbackFgValue;
+        }
         $fgSellingValue = $allFG->sum(fn($fg) => round((float) $fg->quantity * (float) ($fg->price ?? 0), 2));
 
         // Slow movers: items with turnover < 0.3x in 30 days and qty > 0
@@ -1087,7 +1206,8 @@ public function destroy($id)
             'low_stock'      => $allItems->filter(fn($i) => $i->status === 'Low Stock')->count(),
             'out_of_stock'   => $allItems->filter(fn($i) => in_array($i->status, ['Out of Stock', 'Habis']))->count(),
             'reorder'        => $allItems->filter(fn($i) => $i->needs_reorder)->count(),
-            'total_value'    => $allItems->sum('inventory_value'),
+            'total_value'    => $rawValue + max($fgHppValue, $fgSellingValue),
+            // raw and fg values also available separately
             'raw_value'      => $rawValue,
             'fg_value'       => $fgHppValue,
             'fg_selling_value' => $fgSellingValue,
@@ -1226,11 +1346,121 @@ public function destroy($id)
             $allCategories->push((object)['id' => $c->id, 'name' => $c->category_name, 'group' => 'Produk Jadi']);
         }
 
+        // ══════════════════════════════════════════════
+        //  SMART RECOMMENDATIONS (AI-style Decision Support)
+        // ══════════════════════════════════════════════
+        $recommendations = collect();
+
+        // 1. Out-of-stock items → urgent purchase
+        $unified->filter(fn($i) => in_array($i->status, ['Out of Stock', 'Habis']) && $i->model_type === 'stock')->take(5)->each(function ($item) use (&$recommendations) {
+            $recommendations->push((object)[
+                'type' => 'critical',
+                'icon' => 'alert-triangle',
+                'title' => $item->name . ' sudah habis',
+                'message' => 'Rekomendasi: lakukan pembelian dalam 1–2 hari untuk menghindari gangguan produksi.',
+                'action_url' => $item->batch_url,
+                'action_label' => 'Beli Sekarang',
+            ]);
+        });
+
+        // 2. Near-expired items → flash sale / promo
+        $unified->filter(fn($i) => ($i->model_type === 'stock' && $i->almost_expired > 0) || ($i->freshness ?? '') === 'Hampir Expired')->take(3)->each(function ($item) use (&$recommendations) {
+            $days = $item->days_left ?? '?';
+            $recommendations->push((object)[
+                'type' => 'warning',
+                'icon' => 'clock',
+                'title' => $item->name . " expired dalam {$days} hari",
+                'message' => 'Rekomendasi: ' . ($item->model_type === 'product_variant' ? 'buat flash sale atau promo bundling.' : 'prioritaskan penggunaan untuk produksi.'),
+                'action_url' => null,
+                'action_label' => null,
+            ]);
+        });
+
+        // 3. Slow movers → diskon bundling / evaluasi
+        $slowMoversList = $unified->filter(fn($i) => $i->quantity > 0 && $i->turnover_rate < 0.3 && $i->usage_30d > 0)->sortBy('turnover_rate')->take(5)->values();
+        $slowMoversList->each(function ($item) use (&$recommendations) {
+            $days = $item->turnover_rate > 0 ? round(30 / $item->turnover_rate) : 999;
+            $recommendations->push((object)[
+                'type' => 'info',
+                'icon' => 'trending-down',
+                'title' => $item->name . " perputaran lambat ({$days} hari)",
+                'message' => 'Rekomendasi: pertimbangkan diskon bundling atau evaluasi kebutuhan.',
+                'action_url' => null,
+                'action_label' => null,
+            ]);
+        });
+
+        // 4. Dead stock → no movement 30 days
+        $deadStockList = $unified->filter(fn($i) => $i->quantity > 0 && $i->usage_30d == 0)->take(5)->values();
+        if ($deadStockList->count() > 0) {
+            $names = $deadStockList->pluck('name')->take(3)->implode(', ');
+            $extra = $deadStockList->count() > 3 ? ' +' . ($deadStockList->count() - 3) . ' lainnya' : '';
+            $recommendations->push((object)[
+                'type' => 'info',
+                'icon' => 'package',
+                'title' => $deadStockList->count() . ' produk tidak bergerak 30 hari',
+                'message' => "{$names}{$extra} — evaluasi promosi, gunakan untuk R&D, atau pertimbangkan penghapusan.",
+                'action_url' => null,
+                'action_label' => null,
+            ]);
+        }
+
+        // 5. Overstock detection (qty > 5× average monthly usage)
+        $unified->filter(fn($i) => $i->quantity > 0 && $i->usage_30d > 0 && $i->quantity > $i->usage_30d * 5)->take(3)->each(function ($item) use (&$recommendations) {
+            $months = round($item->quantity / max($item->usage_30d, 1), 1);
+            $recommendations->push((object)[
+                'type' => 'info',
+                'icon' => 'archive',
+                'title' => $item->name . " overstock (stok {$months} bulan)",
+                'message' => 'Rekomendasi: kurangi frekuensi pembelian atau redistribusi ke outlet lain.',
+                'action_url' => null,
+                'action_label' => null,
+            ]);
+        });
+
+        // ══════════════════════════════════════════════
+        //  MOVEMENT CHART DATA (30 days)
+        // ══════════════════════════════════════════════
+        $movementChartData = StockMovement::where('store_id', $selected_store_id)
+            ->where('created_at', '>=', $thirtyDaysAgo)
+            ->selectRaw("strftime('%Y-%m-%d', created_at) as date, movement_type, SUM(ABS(quantity)) as total_qty")
+            ->groupBy('date', 'movement_type')
+            ->orderBy('date')
+            ->get();
+
+        $chartDays = collect();
+        for ($i = 29; $i >= 0; $i--) {
+            $chartDays->push(now()->subDays($i)->format('Y-m-d'));
+        }
+
+        $chartIn = $chartDays->map(fn($d) => $movementChartData->where('date', $d)
+            ->whereIn('movement_type', [StockMovement::PURCHASE_IN, StockMovement::PRODUCTION_IN, StockMovement::SALE_RETURN])
+            ->sum('total_qty')
+        )->values();
+
+        $chartOut = $chartDays->map(fn($d) => $movementChartData->where('date', $d)
+            ->whereIn('movement_type', [StockMovement::PRODUCTION_OUT, StockMovement::SALE_OUT, StockMovement::EXPIRED_OUT, StockMovement::WASTE_OUT, StockMovement::RND_OUT])
+            ->sum('total_qty')
+        )->values();
+
+        $movementChart = [
+            'labels' => $chartDays->map(fn($d) => Carbon::parse($d)->format('d/m'))->values(),
+            'in'     => $chartIn,
+            'out'    => $chartOut,
+        ];
+
+        // ══════════════════════════════════════════════
+        //  FAST & SLOW MOVERS (Top 5 each)
+        // ══════════════════════════════════════════════
+        $fastMovers = $unified->filter(fn($i) => $i->usage_30d > 0)->sortByDesc('turnover_rate')->take(5)->values();
+        $topSlowMovers = $unified->filter(fn($i) => $i->quantity > 0 && $i->turnover_rate < 0.5)->sortBy('turnover_rate')->take(5)->values();
+
         return view('handai-manager.inventory.stock', compact(
             'selected_store', 'inventoryItems', 'stats', 'pageTotals',
             'type', 'stockCategories', 'productCategories', 'allCategories',
             'approvedProjects', 'suppliers', 'expiredBatchesMap',
-            'storedExpiredStocks', 'financeData', 'actionItems'
+            'storedExpiredStocks', 'financeData', 'actionItems',
+            'recommendations', 'movementChart', 'fastMovers', 'topSlowMovers'
         ));
     }
 
@@ -1295,6 +1525,171 @@ public function destroy($id)
     }
 
     /**
+     * Stock detail API for drawer (AJAX).
+     */
+    public function stockDetailApi(Request $request, $type, $id)
+    {
+        $storeId = session('selected_store');
+
+        if ($type === 'stock') {
+            $stock = Stock::with(['category', 'unit', 'batches.unit', 'defaultSupplier', 'movements' => function ($q) {
+                $q->orderByDesc('created_at')->limit(20);
+            }, 'movements.stock'])->where('store_id', $storeId)->findOrFail($id);
+
+            $this->calculateStockMetrics($stock, 3);
+
+            // Recent movements
+            $movements = $stock->movements->map(fn($m) => [
+                'date' => $m->created_at->format('d/m/Y H:i'),
+                'type' => $m->movement_type,
+                'qty'  => $m->quantity,
+                'unit' => $m->unit->symbol ?? $stock->unit->symbol ?? '',
+                'cost' => (float) $m->total_cost,
+                'notes' => $m->notes,
+            ]);
+
+            // Sales relation (from POS via production)
+            $salesCount = StockMovement::where('stock_id', $id)
+                ->where('movement_type', StockMovement::PRODUCTION_OUT)
+                ->where('created_at', '>=', now()->subDays(30))
+                ->count();
+
+            // Batches
+            $batches = $stock->batches->sortByDesc('buy_date')->take(10)->map(fn($b) => [
+                'id' => $b->id,
+                'buy_date' => $b->buy_date->format('d/m/Y'),
+                'qty' => (float) $b->unit_qty,
+                'unit' => $b->unit->symbol ?? '',
+                'cost' => (float) $b->cost,
+                'supplier' => $b->supplier_name ?? $b->supplier->name ?? '-',
+            ])->values();
+
+            return response()->json([
+                'id' => $stock->id,
+                'type' => 'stock',
+                'name' => $stock->name,
+                'category' => $stock->category->name ?? '-',
+                'supplier' => $stock->defaultSupplier->name ?? '-',
+                'unit' => $stock->unit->symbol ?? '',
+                'quantity' => (float) $stock->unit_qty,
+                'min_stock' => (float) ($stock->min_stock ?? 0),
+                'reorder_point' => (float) ($stock->reorder_point ?? 0),
+                'hpp' => (float) ($stock->price_per_unit ?? 0),
+                'inventory_value' => round((float) $stock->unit_qty * (float) ($stock->price_per_unit ?? 0), 2),
+                'status' => $stock->calculated_status ?? $stock->status,
+                'expired_duration' => $stock->expired_duration,
+                'almost_expired' => (float) ($stock->almost_expired ?? 0),
+                'movements' => $movements,
+                'batches' => $batches,
+                'sales_30d' => $salesCount,
+                'edit_url' => route('manager.inventory.stock.edit', $stock->id),
+                'batch_url' => route('manager.inventory.stock.batch.create', $stock->id),
+            ]);
+        }
+
+        if ($type === 'product_variant') {
+            $fg = ProductVariants::with(['product.category', 'options.attribute', 'productionHistories'])
+                ->whereHas('product', fn($q) => $q->where('store_id', $storeId))
+                ->findOrFail($id);
+
+            $movements = StockMovement::where('product_variant_id', $id)
+                ->orderByDesc('created_at')->limit(20)->get()
+                ->map(fn($m) => [
+                    'date' => $m->created_at->format('d/m/Y H:i'),
+                    'type' => $m->movement_type,
+                    'qty'  => $m->quantity,
+                    'unit' => 'pcs',
+                    'cost' => (float) $m->total_cost,
+                    'notes' => $m->notes,
+                ]);
+
+            $salesCount = StockMovement::where('product_variant_id', $id)
+                ->where('movement_type', StockMovement::SALE_OUT)
+                ->where('created_at', '>=', now()->subDays(30))
+                ->count();
+
+            return response()->json([
+                'id' => $fg->id,
+                'type' => 'product_variant',
+                'name' => ($fg->product->name ?? '-') . ($fg->variantSummary() ? ' · ' . $fg->variantSummary() : ''),
+                'category' => $fg->product->category->category_name ?? '-',
+                'supplier' => '-',
+                'unit' => 'pcs',
+                'quantity' => (float) $fg->quantity,
+                'min_stock' => (float) ($fg->min_stock ?? 0),
+                'reorder_point' => 0,
+                'hpp' => (float) ($fg->hpp ?? 0),
+                'selling_price' => (float) ($fg->price ?? 0),
+                'margin' => $fg->margin_percent,
+                'inventory_value' => $fg->inventory_value ?? 0,
+                'status' => $fg->fg_status ?? 'Ready',
+                'freshness' => $fg->freshness_status,
+                'days_left' => $fg->days_until_expiry,
+                'movements' => $movements,
+                'batches' => collect(),
+                'sales_30d' => $salesCount,
+                'edit_url' => null,
+                'batch_url' => null,
+            ]);
+        }
+
+        abort(404);
+    }
+
+    /**
+     * Export stock data as CSV.
+     */
+    public function exportStock(Request $request)
+    {
+        $storeId = session('selected_store');
+        $stocks = Stock::with(['category', 'unit', 'defaultSupplier'])
+            ->where('store_id', $storeId)
+            ->where('is_active', true)
+            ->get();
+
+        $variants = ProductVariants::with(['product.category'])
+            ->whereHas('product', fn($q) => $q->where('store_id', $storeId))
+            ->get();
+
+        $filename = 'inventory_' . now()->format('Y-m-d_His') . '.csv';
+        $headers = [
+            'Content-Type' => 'text/csv; charset=utf-8',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+        ];
+
+        $callback = function () use ($stocks, $variants) {
+            $file = fopen('php://output', 'w');
+            fprintf($file, chr(0xEF) . chr(0xBB) . chr(0xBF)); // UTF-8 BOM
+            fputcsv($file, ['Nama', 'Tipe', 'Kategori', 'Supplier', 'Stok', 'Satuan', 'Min Stok', 'HPP', 'Harga Jual', 'Nilai Stok', 'Status']);
+
+            foreach ($stocks as $s) {
+                $status = $s->unit_qty <= 0 ? 'Habis' : ($s->unit_qty <= ($s->min_stock ?? 0) ? 'Low Stock' : 'Ready');
+                fputcsv($file, [
+                    $s->name, 'Bahan Baku', $s->category->name ?? '-', $s->defaultSupplier->name ?? '-',
+                    $s->unit_qty, $s->unit->symbol ?? '', $s->min_stock ?? 0,
+                    $s->price_per_unit ?? 0, '-',
+                    round($s->unit_qty * ($s->price_per_unit ?? 0), 2),
+                    $status,
+                ]);
+            }
+
+            foreach ($variants as $v) {
+                fputcsv($file, [
+                    ($v->product->name ?? '-') . ($v->variantSummary() ? ' - ' . $v->variantSummary() : ''),
+                    'Produk Jadi', $v->product->category->category_name ?? '-', '-',
+                    $v->quantity, 'pcs', $v->min_stock ?? 0,
+                    $v->hpp ?? 0, $v->price ?? 0,
+                    round($v->quantity * ($v->hpp ?? 0), 2),
+                    $v->fg_status ?? 'Ready',
+                ]);
+            }
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    /**
      * Quick-create a stock item via AJAX (from purchase form).
      */
     public function quickCreateStock(Request $request)
@@ -1309,7 +1704,7 @@ public function destroy($id)
         $storeId = session('selected_store');
 
         // Prevent duplicates in the same store
-        $exists = Stock::where('store_id', $storeId)
+        $exists = Stock::forStore($storeId)
             ->where('name', $request->name)
             ->first();
 
@@ -1499,7 +1894,7 @@ public function destroy($id)
 
     public function createRecipe()
     {
-        $products = Product::with('sizePrices')->where('store_id', session('selected_store'))->get();
+        $products = Product::with('sizePrices')->forStore(session('selected_store'))->get();
         $stocks = Stock::where('store_id', session('selected_store'))->get();
 
         return view('handai-manager.recipes.create', compact('products', 'stocks'));
@@ -1526,12 +1921,14 @@ public function destroy($id)
             'due_date'                    => 'nullable|required_if:payment_method,hutang|date|after_or_equal:buy_date',
             'discount'                    => 'nullable|numeric|min:0',
             'tax'                         => 'nullable|numeric|min:0',
+            'additional_cost'             => 'nullable|numeric|min:0',
             'purchase_notes'              => 'nullable|string|max:1000',
             'nota'                        => 'nullable|file|mimes:jpg,jpeg,png,webp,pdf|max:4096',
             'items'                       => 'required|array|min:1',
             'items.*.stock_id'            => 'required|exists:stock,id',
             'items.*.unit_id'             => 'required|exists:units,id',
             'items.*.unit_qty'            => 'required|numeric|min:0.001',
+            'items.*.unit_price'          => 'required|numeric|min:0.01',
             'items.*.cost'                => 'required|numeric|min:0',
         ]);
 
@@ -1555,9 +1952,11 @@ public function destroy($id)
             $items         = $request->input('items');
             $discount      = floatval($request->input('discount', 0));
             $tax           = floatval($request->input('tax', 0));
+            $additional    = floatval($request->input('additional_cost', 0));
             $itemCount     = count($items);
             $discountEach  = $itemCount > 0 ? round($discount / $itemCount, 2) : 0;
             $taxEach       = $itemCount > 0 ? round($tax / $itemCount, 2) : 0;
+            $additionalEach= $itemCount > 0 ? round($additional / $itemCount, 2) : 0;
 
             $affectedStockIds = [];
 
@@ -1583,9 +1982,10 @@ public function destroy($id)
                     'invoice_ref'    => $request->invoice_ref,
                     'payment_method' => $request->payment_method,
                     'due_date'       => $request->due_date,
-                    'discount'       => $discountEach,
-                    'tax'            => $taxEach,
-                    'purchase_notes'   => $request->purchase_notes,
+                    'discount'           => $discountEach,
+                    'tax'                => $taxEach,
+                    'additional_cost'    => $additionalEach,
+                    'purchase_notes'     => $request->purchase_notes,
                     'expired_duration' => $stock->expired_duration ?? 30,
                     'paid_at'          => in_array($request->payment_method, ['cash', 'transfer']) ? now() : null,
                 ]);

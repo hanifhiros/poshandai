@@ -4,8 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+use App\Models\Traits\ForStoreScope;
+
 class WasteLog extends Model
 {
+    use ForStoreScope;
     protected $table = 'waste_logs';
 
     protected $fillable = [

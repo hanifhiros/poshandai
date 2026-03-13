@@ -20,6 +20,9 @@ class CekRole
     {
         if (!Session::has('user_role')) {
             Log::warning('CekRole: Role tidak ditemukan di session.');
+            if ($request->expectsJson()) {
+                return response()->json(['message' => 'Silakan pilih role terlebih dahulu.', 'redirect' => url('/')], 403);
+            }
             return redirect('/')->withErrors(['role' => 'Silakan pilih role terlebih dahulu.']);
         }
 

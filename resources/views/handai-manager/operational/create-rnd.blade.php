@@ -80,12 +80,21 @@
 
         {{-- Card: Bahan --}}
         <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
-            <h2 class="text-[13px] font-bold text-gray-700 flex items-center gap-2 mb-4">
-                <span class="w-5 h-5 rounded-md bg-amber-100 inline-flex items-center justify-center">
-                    <svg class="w-3 h-3 text-amber-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
-                </span>
-                Bahan yang Dibutuhkan
-            </h2>
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-[13px] font-bold text-gray-700 flex items-center gap-2">
+                    <span class="w-5 h-5 rounded-md bg-amber-100 inline-flex items-center justify-center">
+                        <svg class="w-3 h-3 text-amber-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+                    </span>
+                    Bahan yang Dibutuhkan
+                </h2>
+                <button type="button" onclick="addStockRow()"
+                        class="h-9 px-3.5 inline-flex items-center gap-2 text-sm font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-lg border border-transparent hover:border-emerald-200 transition">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    Tambah Bahan
+                </button>
+            </div>
 
             <div id="rnd-stock-list" class="space-y-3">
                 <div class="bg-gray-50 rounded-lg p-3">
@@ -125,20 +134,18 @@
                 </div>
             </div>
 
-            <button type="button" onclick="addStockRow()"
-                    class="mt-3 inline-flex items-center gap-1 text-[12px] font-semibold text-emerald-600 hover:text-emerald-700 cursor-pointer">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                Tambah Bahan
-            </button>
+
         </div>
 
         {{-- Submit --}}
-        <div class="flex items-center gap-3 pt-2">
-            <button type="submit" class="h-10 px-6 text-[13px] font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg transition shadow-sm cursor-pointer inline-flex items-center gap-2">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                Simpan R&D
-            </button>
-            <a href="{{ route('manager.operational.rnd') }}" class="h-10 px-5 text-[13px] font-medium text-gray-400 hover:text-gray-600 bg-white border border-gray-200 hover:border-gray-300 rounded-lg transition inline-flex items-center">Batal</a>
+        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6">
+            <div class="flex items-center justify-between gap-3">
+                <a href="{{ route('manager.operational.rnd') }}" class="h-10 px-5 text-[13px] font-medium text-gray-400 hover:text-gray-600 bg-white border border-gray-200 hover:border-gray-300 hover:bg-gray-100 rounded-lg transition inline-flex items-center">Batal</a>
+                <button type="submit" class="h-10 px-6 text-[13px] font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg transition shadow-sm cursor-pointer inline-flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                    Simpan R&D
+                </button>
+            </div>
         </div>
     </form>
 </div>

@@ -6,8 +6,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Carbon\Carbon;
 
+use App\Models\Traits\ForStoreScope;
+
 class ProductVariants extends Model
 {
+    use ForStoreScope;
     use HasFactory;
     protected $table = 'product_variants';
 

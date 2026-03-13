@@ -17,6 +17,9 @@
     {{-- Alpine.js --}}
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 
+    {{-- LocalForage for offline persistence (IndexedDB) --}}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/localforage/1.10.0/localforage.min.js"></script>
+
     {{-- Vite Assets --}}
     @vite('resources/js/app.js')
     @vite('resources/css/app.css')
@@ -88,10 +91,42 @@
         .safe-area-bottom {
             padding-bottom: env(safe-area-inset-bottom, 0);
         }
+        
+        /* Focus-visible outlines for accessibility */
+        /* Correct selector and include product cards and skip links */
+        :where(button, a, [role="button"]):focus-visible,
+        .pos-focusable:focus-visible,
+        .prod-card:focus-visible,
+        .prod-card-list:focus-visible,
+        .skip-links a:focus-visible {
+            outline: none;
+            box-shadow: 0 0 0 4px rgba(12,144,68,0.14);
+            border-radius: 8px;
+        }
+        /* Additional focused controls */
+        .prod-badge-fav:focus-visible {
+            box-shadow: 0 0 0 4px rgba(12,144,68,0.14);
+            transform: scale(1.03);
+            outline: none;
+        }
+        .mobile-cart-fab:focus-visible,
+        .checkout-btn:focus-visible {
+            box-shadow: 0 6px 24px rgba(12,144,68,0.22), 0 0 0 6px rgba(12,144,68,0.08);
+            transform: translateY(-2px) scale(1.02);
+            outline: none;
+        }
+        /* Buttons inside dialogs */
+        [role="dialog"] button:focus-visible {
+            box-shadow: 0 0 0 6px rgba(12,144,68,0.12);
+            border-radius: 8px;
+            outline: none;
+        }
     </style>
 </head>
 
 <body class="bg-slate-50 text-slate-800 antialiased">
+    <!-- Skip links removed (keyboard navigation handled via focus traps and explicit tabindex) -->
+
     <div class="flex h-screen w-screen overflow-hidden" x-data="posApp()" x-cloak @keydown.window="handleGlobalShortcut($event)">
 
         {{-- Sidebar --}}
@@ -136,6 +171,8 @@
 
     {{-- Toast Container --}}
     <div id="toast-container" class="fixed top-4 right-4 z-[9999] flex flex-col gap-2 pointer-events-none"></div>
+    {{-- ARIA live region for screen readers (toasts announced here) --}}
+    <div id="a11y-live" aria-live="polite" aria-atomic="true" class="sr-only"></div>
 
     @yield('page-script')
 
@@ -186,7 +223,7 @@
                 available: 'Tersedia', sold_out: 'Stok Habis', shift_open: 'Shift Aktif', shift_closed: 'Shift Tutup',
                 sound: 'Sound', shortcut: 'Shortcut', outlet: 'Outlet', cashier: 'Kasir',
                 no_products: 'Tidak ada produk ditemukan', show_all: 'Tampilkan semua produk',
-                item_removed: 'Item dihapus dari keranjang', cart_cleared: 'Keranjang berhasil dikosongkan',
+                item_removed: 'Item dihapus dari keranjang', item_restored: 'dikembalikan', undo: 'Urungkan', cart_cleared: 'Keranjang berhasil dikosongkan',
                 added_to_cart: 'ditambahkan ke keranjang', add_failed: 'Gagal menambahkan ke keranjang',
                 cart_empty_warning: 'Keranjang masih kosong',
             },
@@ -201,7 +238,7 @@
                 available: 'Available', sold_out: 'Sold Out', shift_open: 'Shift Active', shift_closed: 'Shift Closed',
                 sound: 'Sound', shortcut: 'Shortcut', outlet: 'Outlet', cashier: 'Cashier',
                 no_products: 'No products found', show_all: 'Show all products',
-                item_removed: 'Item removed from cart', cart_cleared: 'Cart cleared successfully',
+                item_removed: 'Item removed from cart', item_restored: 'restored', undo: 'Undo', cart_cleared: 'Cart cleared successfully',
                 added_to_cart: 'added to cart', add_failed: 'Failed to add to cart',
                 cart_empty_warning: 'Cart is empty',
             }
@@ -216,8 +253,10 @@
         }
 
         // Global toast function
-        function showToast(message, type = 'success', duration = 2500) {
+        function showToast(message, type = 'success', duration = 3000) {
             const container = document.getElementById('toast-container');
+            // announce to screen readers
+            try { document.getElementById('a11y-live').textContent = message; } catch(e){}
             const toast = document.createElement('div');
 
             const icons = {
@@ -243,6 +282,45 @@
                 toast.classList.add('toast-leave');
                 setTimeout(() => toast.remove(), 300);
             }, duration);
+        }
+
+        // Toast with Undo action
+        function showUndoToast(message, undoCallback, duration = 7000) {
+            const container = document.getElementById('toast-container');
+            try { document.getElementById('a11y-live').textContent = message; } catch(e){}
+            const toast = document.createElement('div');
+
+            const icons = {
+                success: 'ti-circle-check',
+                error: 'ti-alert-circle',
+                warning: 'ti-alert-triangle',
+                info: 'ti-info-circle'
+            };
+            const isDark = document.documentElement.getAttribute('data-theme') === 'posdark';
+            const colors = {
+                success: 'bg-[#0C9044]',
+                error: 'bg-red-500',
+                warning: 'bg-amber-500',
+                info: isDark ? 'bg-[#30363d]' : 'bg-[#3A3A3A]'
+            };
+
+            toast.className = `pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg text-white text-sm font-medium ${colors.info} toast-enter`;
+            toast.innerHTML = `<i class="ti ${icons.info} text-lg"></i><span class="flex-1">${message}</span><button class="ml-2 text-xs font-semibold underline undo-btn">${t('undo')}</button>`;
+            container.appendChild(toast);
+
+            const btn = toast.querySelector('.undo-btn');
+            const remove = () => {
+                toast.classList.remove('toast-enter');
+                toast.classList.add('toast-leave');
+                setTimeout(() => toast.remove(), 300);
+            };
+
+            btn.addEventListener('click', (e) => {
+                try { undoCallback && undoCallback(); } catch (err) { console.error(err); }
+                remove();
+            });
+
+            setTimeout(() => remove(), duration);
         }
 
         // Main POS app state (sidebar + dark mode)

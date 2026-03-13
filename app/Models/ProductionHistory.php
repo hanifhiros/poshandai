@@ -20,6 +20,7 @@ class ProductionHistory extends Model
         'production_date',
         'pic_id',
         'product_variants_id',
+        'semi_finished_product_id',
         'store_id',
         'product_name',
         'variant_option_summary',
@@ -71,6 +72,11 @@ class ProductionHistory extends Model
     public function pic()
     {
         return $this->belongsTo(Employee::class, 'pic_id');
+    }
+
+    public function semiFinishedProduct()
+    {
+        return $this->belongsTo(\App\Models\SemiFinishedProduct::class, 'semi_finished_product_id');
     }
 
 }

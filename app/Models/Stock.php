@@ -9,8 +9,11 @@ use App\Helpers\ConversionHelper;
 
 use Carbon\Carbon;
 
+use App\Models\Traits\ForStoreScope;
+
 class Stock extends Model
 {
+    use ForStoreScope;
     // The attributes that are mass assignable
     protected $fillable = [
         'name',

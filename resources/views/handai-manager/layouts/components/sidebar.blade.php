@@ -52,17 +52,14 @@
       </div>
 
       <!-- Dashboard Button -->
-      <a :href="'{{ route('manager.dashboard') }}'" class="relative flex h-15 w-full items-center rounded-md transition-colors ">
-          <button type="button" @click="selected = 'All Products'" 
-                  :class="selected === 'All Products' ? 'bg-green-600/10 text-green-800' : 'text-slate-500 hover:bg-slate-100'"
-                  class="relative flex h-15 w-full items-center rounded-md transition-colors cursor-pointer">
-              <div class="grid h-full w-16 place-content-center">
-                  <i :class="selected === 'All Products' ? 'ti ti-category-filled' : 'ti ti-category'"></i>
-              </div>
-              <span x-show="open" x-transition class="absolute ml-16 text font-medium text-nowrap">
-                  Dashboard
-              </span>
-          </button>
+      <a href="{{ route('manager.dashboard') }}"
+        class="relative flex h-15 w-full items-center rounded-md transition-colors {{ request()->is('manager/dashboard') ? 'bg-green-600/10 text-green-800' : 'text-slate-500 hover:bg-slate-100' }}">
+          <div class="grid h-full w-16 place-content-center">
+              <i class="ti ti-device-desktop text-base"></i>
+          </div>
+          <span x-show="open" x-transition class="absolute ml-16 text font-medium text-nowrap">
+              Dashboard
+          </span>
       </a>
 
       
@@ -108,6 +105,13 @@
 
 
   <div x-show="dropdowns.operational" x-transition class="pl-10 mt-1 space-y-0.5 text-sm text-slate-600">
+
+    @if (RoleHelper::hasAnyRoleIncludingDescendants(['Manager-Operational']))
+      <a href="{{ route('manager.operational.dashboard') }}"
+        class="flex items-center gap-2 px-4 py-1.5 rounded hover:bg-green-50/50 transition mt-2 {{ request()->is('manager/operational/dashboard') ? 'bg-green-50/50 text-green-700 font-semibold' : '' }}">
+        <i class="ti ti-chart-line text-base"></i> <span>Op. Dashboard</span>
+      </a>
+    @endif
 
     {{-- ═══ SUPPLY CHAIN ═══ --}}
     <p class="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 pt-2 pb-1 px-4" x-show="open">
@@ -215,6 +219,49 @@
         <i class="ti ti-receipt text-base"></i> <span>Riwayat Pesanan</span>
       </a>
     @endif
+
+    {{-- ═══ RETUR & REFUND ═══ --}}
+    <a href="{{ route('manager.operational.returns.index') }}"
+      class="flex items-center gap-2 px-4 py-1.5 rounded hover:bg-green-50/50 transition {{ request()->is('manager/operational/returns*') ? 'bg-green-50/50 text-green-700 font-semibold' : '' }}">
+      <i class="ti ti-receipt-refund text-base"></i> <span>Retur & Refund</span>
+    </a>
+
+
+
+    {{-- ═══ MONITORING ═══ --}}
+    <p class="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 pt-3 pb-1 px-4" x-show="open">
+      <i class="ti ti-activity text-xs"></i> Monitoring
+    </p>
+
+    <a href="{{ route('manager.operational.stock-alerts.index') }}"
+      class="flex items-center gap-2 px-4 py-1.5 rounded hover:bg-green-50/50 transition {{ request()->is('manager/operational/stock-alerts*') ? 'bg-green-50/50 text-green-700 font-semibold' : '' }}">
+      <i class="ti ti-bell-ringing text-base"></i> <span>Stok Alert</span>
+    </a>
+
+    <a href="{{ route('manager.operational.kpi') }}"
+      class="flex items-center gap-2 px-4 py-1.5 rounded hover:bg-green-50/50 transition {{ request()->is('manager/operational/kpi*') ? 'bg-green-50/50 text-green-700 font-semibold' : '' }}">
+      <i class="ti ti-chart-dots text-base"></i> <span>KPI Dashboard</span>
+    </a>
+
+    {{-- ═══ SDM & ASET ═══ --}}
+    <p class="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 pt-3 pb-1 px-4" x-show="open">
+      <i class="ti ti-users text-xs"></i> SDM & Aset
+    </p>
+
+    <a href="{{ route('manager.operational.shifts.index') }}"
+      class="flex items-center gap-2 px-4 py-1.5 rounded hover:bg-green-50/50 transition {{ request()->is('manager/operational/shifts*') ? 'bg-green-50/50 text-green-700 font-semibold' : '' }}">
+      <i class="ti ti-clock text-base"></i> <span>Shift</span>
+    </a>
+
+    <a href="{{ route('manager.operational.attendance.index') }}"
+      class="flex items-center gap-2 px-4 py-1.5 rounded hover:bg-green-50/50 transition {{ request()->is('manager/operational/attendance*') ? 'bg-green-50/50 text-green-700 font-semibold' : '' }}">
+      <i class="ti ti-fingerprint text-base"></i> <span>Kehadiran</span>
+    </a>
+
+    <a href="{{ route('manager.operational.maintenance.dashboard') }}"
+      class="flex items-center gap-2 px-4 py-1.5 rounded hover:bg-green-50/50 transition {{ request()->is('manager/operational/maintenance*') ? 'bg-green-50/50 text-green-700 font-semibold' : '' }}">
+      <i class="ti ti-tool text-base"></i> <span>Maintenance</span>
+    </a>
 
   </div>
 </div>
@@ -331,6 +378,42 @@
 
   <!-- Submenu -->
   <div x-show="dropdowns.finance" x-transition class="pl-12 mt-1 space-y-1 text-sm text-slate-600">
+
+    {{-- ── Dashboard Finance ── --}}
+    <a href="{{ route('manager.finance.dashboard.index') }}"
+       class="block text-sm px-4 py-1.5 rounded hover:text-green-600 font-semibold {{ request()->is('manager/finance/dashboard') ? 'text-green-600 bg-green-50' : '' }}">
+       <i class="ti ti-dashboard mr-1 text-xs"></i> Dashboard Finance
+    </a>
+
+    {{-- ── Revenue & Expense ── --}}
+    <p class="text-[10px] uppercase tracking-widest text-gray-400 font-bold px-4 pt-3 pb-0.5">Revenue & Expense</p>
+    <a href="{{ route('manager.finance.revenue.index') }}"
+       class="block text-sm px-4 py-1 rounded hover:text-green-600 {{ request()->is('manager/finance/revenue*') ? 'text-green-600 font-semibold' : '' }}">
+       Revenue
+    </a>
+    <a href="{{ route('manager.finance.expenses.index') }}"
+       class="block text-sm px-4 py-1 rounded hover:text-green-600 {{ request()->is('manager/finance/expenses*') ? 'text-green-600 font-semibold' : '' }}">
+       Pengeluaran
+    </a>
+    <a href="{{ route('manager.finance.profit-loss.index') }}"
+       class="block text-sm px-4 py-1 rounded hover:text-green-600 {{ request()->is('manager/finance/profit-loss*') ? 'text-green-600 font-semibold' : '' }}">
+       Profit & Loss
+    </a>
+    <a href="{{ route('manager.finance.cashflow.index') }}"
+       class="block text-sm px-4 py-1 rounded hover:text-green-600 {{ request()->is('manager/finance/cashflow*') ? 'text-green-600 font-semibold' : '' }}">
+       Cashflow
+    </a>
+
+    {{-- ── Hutang & Piutang ── --}}
+    <p class="text-[10px] uppercase tracking-widest text-gray-400 font-bold px-4 pt-3 pb-0.5">Hutang & Piutang</p>
+    <a href="{{ route('manager.finance.ap.index') }}"
+       class="block text-sm px-4 py-1 rounded hover:text-green-600 {{ request()->is('manager/finance/accounts-payable*') ? 'text-green-600 font-semibold' : '' }}">
+       Hutang (AP)
+    </a>
+    <a href="{{ route('manager.finance.ar.index') }}"
+       class="block text-sm px-4 py-1 rounded hover:text-green-600 {{ request()->is('manager/finance/accounts-receivable*') ? 'text-green-600 font-semibold' : '' }}">
+       Piutang (AR)
+    </a>
 
     {{-- ── Akuntansi ── --}}
     <p class="text-[10px] uppercase tracking-widest text-gray-400 font-bold px-4 pt-2 pb-0.5">Akuntansi</p>

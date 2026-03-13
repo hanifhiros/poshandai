@@ -547,7 +547,7 @@
     const form = document.getElementById('wizard-checkout-form');
     const formData = new FormData(form);
 
-    fetch("{{ route('customerOrder.cart.checkout') }}", {
+    fetch('{{ route("customerOrder.cart.checkout", [], false) }}', {
         method: "POST",
         headers: {
             "X-CSRF-TOKEN": "{{ csrf_token() }}",
@@ -582,7 +582,7 @@
         let newQty = currentQty + change;
         if (newQty < 1) newQty = 1;
 
-        fetch('{{ route("customerOrder.cart.update") }}', {
+        fetch('{{ route("customerOrder.cart.update", [], false) }}', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -641,7 +641,7 @@
        
         if (!promoCode) return alert('Masukkan promo code terlebih dahulu.');
     
-        fetch('{{ route("customerOrder.cart.applyPromo") }}', {
+        fetch('{{ route("customerOrder.cart.applyPromo", [], false) }}', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -675,7 +675,7 @@
     }
 
     function removePromo() {
-        fetch('{{ route("customerOrder.cart.removePromo") }}', {
+        fetch('{{ route("customerOrder.cart.removePromo", [], false) }}', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -700,7 +700,7 @@
     function removeItem(productId, variantId) {
     if (!confirm("Yakin ingin menghapus item ini dari keranjang?")) return;
 
-    fetch('{{ route("customerOrder.cart.removeItem") }}', {
+    fetch('{{ route("customerOrder.cart.removeItem", [], false) }}', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',

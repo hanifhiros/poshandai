@@ -473,4 +473,35 @@ class InventoryService
             'created_by'         => Auth::id(),
         ]);
     }
+
+    // ══════════════════════════════════════════════════════════
+    //  SEMI-FINISHED PRODUCT FLOW
+    //  Called when producing semi-finished products
+    // ══════════════════════════════════════════════════════════
+
+    /**
+     * Record raw material consumption for semi-finished product production.
+     */
+    public static function recordSemiFinishedConsumption(
+        int $storeId,
+        Stock $stock,
+        float $usedQtyInStockUnit,
+        int $semiFinishedProductionId
+    ): StockMovement {
+        return StockMovement::create([
+            'store_id'           => $storeId,
+            'stock_id'           => $stock->id,
+            'product_variant_id' => null,
+            'movement_type'      => StockMovement::SEMI_FINISHED_OUT,
+            'quantity'           => -abs($usedQtyInStockUnit),
+            'unit_id'            => $stock->unit_id,
+            'cost_per_unit'      => $stock->price_per_unit,
+            'total_cost'         => $usedQtyInStockUnit * $stock->price_per_unit,
+            'reference_type'     => 'semi_finished_production',
+            'reference_id'       => $semiFinishedProductionId,
+            'notes'              => "Bahan '{$stock->name}' digunakan untuk produksi setengah jadi #{$semiFinishedProductionId}",
+            'created_by'         => Auth::id(),
+        ]);
+    }
 }
+

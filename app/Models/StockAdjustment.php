@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+use App\Models\Traits\ForStoreScope;
+
 class StockAdjustment extends Model
 {
     protected $table = 'stock_adjustments';

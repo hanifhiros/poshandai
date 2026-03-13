@@ -37,7 +37,24 @@
     @endif
 
     {{-- Form --}}
-    <form method="POST" action="{{ route('manager.operational.produksi.store') }}" class="space-y-5">
+    <form method="POST" action="{{ route('manager.operational.produksi.store') }}" class="space-y-5" x-data="{
+        type: '{{ old('prod_type','finished') }}',
+        selectedVariant: '{{ old('product_variants_id','') }}',
+        selectedSfp: '{{ old('semi_finished_product_id','') }}',
+        qtyProduced: {{ old('quantity_produced', 0) }},
+        wageMap: @json($wageMap ?? []),
+        sfpWageMap: @json($sfpWageMap ?? []),
+        get wagePerUnit() {
+            if (this.type === 'semi') {
+                const sfp = this.sfpWageMap[this.selectedSfp];
+                return sfp ? parseFloat(sfp.labor_cost_per_unit) || 0 : 0;
+            }
+            return parseFloat(this.wageMap[this.selectedVariant]) || 0;
+        },
+        get totalWage() {
+            return Math.round(this.wagePerUnit * (parseFloat(this.qtyProduced) || 0));
+        }
+    }">
         @csrf
 
         {{-- Card: Info Utama --}}
@@ -65,24 +82,50 @@
                 </div>
             </div>
 
-            <div>
-                <label class="cpd-label">Produk + Varian</label>
-                <select name="product_variants_id" class="cpd-select" required>
-                    <option value="">— Pilih Produk Varian —</option>
-                    @foreach ($productVariants as $variant)
-                    <option value="{{ $variant->id }}" {{ old('product_variants_id') == $variant->id ? 'selected' : '' }}>
-                        {{ $variant->product->name }} — {{ $variant->options->pluck('name')->join(', ') }}
-                    </option>
-                    @endforeach
-                </select>
+            <div class="space-y-4">
+                <div>
+                    <label class="cpd-label">Jenis</label>
+                    <div class="flex items-center gap-6">
+                        <label class="inline-flex items-center gap-1">
+                            <input type="radio" name="prod_type" value="finished" x-model="type" class="form-radio" checked>
+                            <span class="text-sm">Produk Jadi</span>
+                        </label>
+                        <label class="inline-flex items-center gap-1">
+                            <input type="radio" name="prod_type" value="semi" x-model="type" class="form-radio">
+                            <span class="text-sm">Setengah Jadi</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div x-show="type === 'finished'" x-cloak>
+                    <label class="cpd-label">Produk + Varian</label>
+                    <select name="product_variants_id" class="cpd-select" x-model="selectedVariant">
+                        <option value="">— Pilih Produk Varian —</option>
+                        @foreach ($productVariants as $variant)
+                        <option value="{{ $variant->id }}" {{ old('product_variants_id') == $variant->id ? 'selected' : '' }}>
+                            {{ $variant->product->name }} — {{ $variant->options->pluck('name')->join(', ') }}
+                        </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div x-show="type === 'semi'" x-cloak>
+                    <label class="cpd-label">Produk Setengah Jadi</label>
+                    <select name="semi_finished_product_id" class="cpd-select" x-model="selectedSfp">
+                        <option value="">— Pilih Setengah Jadi —</option>
+                        @foreach(\App\Models\SemiFinishedProduct::where('store_id', session('selected_store'))->get() as $sfp)
+                        <option value="{{ $sfp->id }}" {{ old('semi_finished_product_id') == $sfp->id ? 'selected' : '' }}>{{ $sfp->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                     <label class="cpd-label">Jumlah Diproduksi</label>
-                    <input type="number" name="quantity_produced" value="{{ old('quantity_produced') }}" min="1" class="cpd-input" placeholder="0" required>
+                    <input type="number" name="quantity_produced" x-model.number="qtyProduced" min="1" class="cpd-input" placeholder="0" required>
                 </div>
-                <div>
+                <div x-show="type==='finished'" x-cloak>
                     <label class="cpd-label">Pengurangan Stok</label>
                     <select name="use_bom" class="cpd-select" id="use-bom-select" required>
                         <option value="yes" {{ old('use_bom', 'yes') === 'yes' ? 'selected' : '' }}>Otomatis (Resep/BOM)</option>
@@ -90,6 +133,31 @@
                     </select>
                 </div>
             </div>
+        </div>
+
+        {{-- Card: Upah Produksi --}}
+        <div x-show="wagePerUnit > 0" x-cloak class="bg-white rounded-xl border border-indigo-100 shadow-sm p-5">
+            <h2 class="text-[13px] font-bold text-gray-700 flex items-center gap-2 mb-3">
+                <span class="w-5 h-5 rounded-md bg-indigo-100 inline-flex items-center justify-center">
+                    <svg class="w-3 h-3 text-indigo-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2z"/></svg>
+                </span>
+                Upah Produksi
+            </h2>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div class="bg-indigo-50/50 rounded-lg p-3">
+                    <p class="text-[10px] uppercase tracking-wide text-gray-400 mb-1">Upah / unit</p>
+                    <p class="text-sm font-bold text-indigo-700 font-mono" x-text="'Rp ' + wagePerUnit.toLocaleString('id-ID')"></p>
+                </div>
+                <div class="bg-indigo-50/50 rounded-lg p-3">
+                    <p class="text-[10px] uppercase tracking-wide text-gray-400 mb-1">Jumlah Produksi</p>
+                    <p class="text-sm font-bold text-gray-700 font-mono" x-text="qtyProduced || 0"></p>
+                </div>
+                <div class="bg-indigo-50/50 rounded-lg p-3">
+                    <p class="text-[10px] uppercase tracking-wide text-gray-400 mb-1">Total Upah</p>
+                    <p class="text-sm font-bold text-indigo-700 font-mono" x-text="'Rp ' + totalWage.toLocaleString('id-ID')"></p>
+                </div>
+            </div>
+            <p class="text-[11px] text-gray-400 mt-2">* Upah akan otomatis dicatat ke jurnal keuangan saat produksi disimpan.</p>
         </div>
 
         {{-- Card: Manual Bahan --}}
@@ -136,12 +204,14 @@
         </div>
 
         {{-- Submit --}}
-        <div class="flex items-center gap-3 pt-2">
-            <button type="submit" class="h-10 px-6 text-[13px] font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg transition shadow-sm cursor-pointer inline-flex items-center gap-2">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                Simpan Produksi
-            </button>
-            <a href="{{ route('manager.operational.produksi') }}" class="h-10 px-5 text-[13px] font-medium text-gray-400 hover:text-gray-600 bg-white border border-gray-200 hover:border-gray-300 rounded-lg transition inline-flex items-center">Batal</a>
+        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6">
+            <div class="flex items-center justify-between gap-3">
+                <a href="{{ route('manager.operational.produksi') }}" class="h-10 px-5 text-[13px] font-medium text-gray-400 hover:text-gray-600 bg-white border border-gray-200 hover:border-gray-300 hover:bg-gray-100 rounded-lg transition inline-flex items-center">← Batal</a>
+                <button type="submit" class="h-10 px-6 text-[13px] font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg transition shadow-sm cursor-pointer inline-flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                    Simpan Produksi
+                </button>
+            </div>
         </div>
     </form>
 </div>
@@ -166,7 +236,8 @@
     const manualSection = document.getElementById('manual-stock-section');
 
     function toggleManual() {
-        if (bomSelect.value === 'no') {
+        const type = document.querySelector('input[name=prod_type]:checked')?.value;
+        if (bomSelect.value === 'no' && type !== 'semi') {
             manualSection.classList.remove('hidden');
         } else {
             manualSection.classList.add('hidden');
@@ -174,6 +245,9 @@
     }
     toggleManual();
     bomSelect.addEventListener('change', toggleManual);
+    document.querySelectorAll('input[name=prod_type]').forEach(radio => {
+        radio.addEventListener('change', toggleManual);
+    });
   });
 
   let ingredientIndex = 1;

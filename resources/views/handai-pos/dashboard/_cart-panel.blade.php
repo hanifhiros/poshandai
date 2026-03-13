@@ -47,7 +47,7 @@
 </div>
 
 {{-- Cart Items --}}
-<div class="flex-1 overflow-y-auto pos-scroll px-4 py-4 relative" x-ref="cartList">
+<div class="cart-items flex-1 px-4 py-4 relative" x-ref="cartList">
     {{-- Empty cart --}}
     <div x-show="cartItems.length === 0" class="flex flex-col items-center justify-center h-full text-center py-10">
         <div class="w-16 h-16 rounded-full bg-slate-50 flex items-center justify-center mb-3">
@@ -79,7 +79,8 @@
                     </div>
 
                     {{-- Remove --}}
-                    <button @click="removeCartItem(item)"
+                        <button @click="removeCartItem(item)"
+                            aria-label="Hapus item"
                             class="opacity-0 group-hover:opacity-100 w-7 h-7 rounded-lg flex items-center justify-center text-slate-300 hover:text-red-500 hover:bg-red-50 transition cursor-pointer">
                         <i class="ti ti-x text-sm"></i>
                     </button>
@@ -89,7 +90,11 @@
                 <div class="flex items-center justify-between mt-2.5 pt-2.5 border-t border-slate-50">
                     <div class="flex items-center gap-1.5">
                         <button @click="decreaseQty(item)" :disabled="item.quantity <= 1"
-                                class="qty-btn w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-500 cursor-pointer">
+                            @pointerdown.prevent="$event.currentTarget.classList.add('qty-press')"
+                            @pointerup.prevent="$event.currentTarget.classList.remove('qty-press')"
+                            @pointercancel.prevent="$event.currentTarget.classList.remove('qty-press')"
+                            class="qty-btn w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-500 cursor-pointer"
+                            aria-label="Kurangi jumlah">
                             <i class="ti ti-minus text-xs"></i>
                         </button>
                         {{-- Click to edit qty --}}
@@ -107,7 +112,11 @@
                                class="w-12 h-8 text-center text-sm font-bold text-slate-700 border border-[#0C9044] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0C9044]/20"
                                :x-ref="'qtyInput' + idx" />
                         <button @click="increaseQty(item)"
-                                class="qty-btn w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-500 cursor-pointer">
+                            @pointerdown.prevent="$event.currentTarget.classList.add('qty-press')"
+                            @pointerup.prevent="$event.currentTarget.classList.remove('qty-press')"
+                            @pointercancel.prevent="$event.currentTarget.classList.remove('qty-press')"
+                            class="qty-btn w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-500 cursor-pointer"
+                            aria-label="Tambah jumlah">
                             <i class="ti ti-plus text-xs"></i>
                         </button>
                     </div>
@@ -120,7 +129,7 @@
 </div>
 
 {{-- Cart Summary & Checkout --}}
-<div class="border-t border-slate-200 bg-white px-5 py-5 shrink-0 space-y-3.5">
+<div class="cart-summary border-t border-slate-200 bg-white px-5 py-5 shrink-0 space-y-3.5">
     {{-- Summary rows --}}
     <div class="space-y-2">
         <div class="flex items-center justify-between">
@@ -143,10 +152,18 @@
     </div>
 
     {{-- Checkout Button --}}
-    <a :href="cartItems.length > 0 ? '{{ route('pos.checkout') }}' : '#'"
-       @click.prevent="if (cartItems.length > 0) { PosSound.checkout(); window.location.href = '{{ route('pos.checkout') }}'; } else { PosSound.error(); showToast(t('cart_empty_warning'), 'warning'); }"
-       class="checkout-btn w-full h-12 rounded-xl flex items-center justify-center gap-2 text-sm font-bold text-white cursor-pointer"
-       :class="cartItems.length > 0 ? 'bg-[#0C9044] hover:bg-green-700' : 'bg-slate-300 cursor-not-allowed'">
+     <a href="{{ route('pos.checkout') }}"
+         @click="
+             console.debug('cart-panel checkout clicked, length=', cartItems.length);
+             if (cartItems.length === 0) {
+                 typeof PosSound !== 'undefined' && PosSound.error();
+                 showToast(t('cart_empty_warning'), 'warning');
+                 return false; // prevent navigation when empty
+             }
+             // otherwise let the anchor work normally
+         "
+         class="checkout-btn w-full h-12 rounded-xl flex items-center justify-center gap-2 text-sm font-bold text-white cursor-pointer"
+         :class="(cartItems.length > 0 ? 'bg-[#0C9044] hover:bg-green-700' : 'bg-slate-300 cursor-not-allowed') + (checkoutPulse ? ' checkout-pulse' : '')">
         <i class="ti ti-arrow-right text-lg"></i>
         <span x-text="t('checkout')"></span>
         <span x-show="cartItems.length > 0" class="ml-1 px-2 py-0.5 rounded-md bg-white/20 text-xs"

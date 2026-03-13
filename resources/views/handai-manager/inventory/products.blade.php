@@ -1,8 +1,9 @@
 @extends('handai-manager.layouts.master')
 
-@section('title', 'Produk Jadi')
+@section('title', 'Produk')
 
 @section('content')
+@php $tab = $tab ?? 'produk_jadi'; @endphp
 <style>
     [x-cloak] { display: none !important; }
     .prd-table th { position: sticky; top: 0; z-index: 5; }
@@ -14,32 +15,46 @@
     .prd-input { width: 100%; height: 36px; padding: 0 12px; font-size: 13px; border: 1px solid #e2e8f0; border-radius: 8px; background: #f8fafc; outline: none; transition: all 0.15s; }
     .prd-input:focus { background: #fff; border-color: #10b981; box-shadow: 0 0 0 3px rgba(16,185,129,0.08); }
     .prd-card-stat { background: #fff; border: 1px solid #f1f5f9; border-radius: 12px; padding: 16px 18px; box-shadow: 0 1px 2px rgba(0,0,0,0.03); }
+    .tab-btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 18px; font-size: 13px; font-weight: 600; border-radius: 10px; border: 1.5px solid #e2e8f0; background: #fff; color: #6b7280; cursor: pointer; transition: all .15s; text-decoration: none; }
+    .tab-btn:hover { background: #f8fafc; border-color: #cbd5e1; }
+    .tab-btn.active { background: #ecfdf5; border-color: #10b981; color: #059669; }
+    .tab-btn.active-purple { background: #f5f3ff; border-color: #8b5cf6; color: #7c3aed; }
 </style>
 
 <div class="py-5 px-4 sm:px-6 lg:px-8 max-w-[1360px] mx-auto"
      x-data="{
+        @if($tab === 'produk_jadi')
         showFilter: {{ request()->hasAny(['search','status','category','expired_range']) ? 'true' : 'false' }},
         showExpiredModal: false, expiredBatches: [],
-        expiredData: @js($variants->pluck('nearly_expired_batches', 'id')),
+        expiredData: @js(isset($variants) ? $variants->pluck('nearly_expired_batches', 'id') : []),
         openExpired(id) {
             this.expiredBatches = this.expiredData[id] || [];
             this.showExpiredModal = true;
         }
+        @else
+        showFilter: {{ request()->hasAny(['search','status']) ? 'true' : 'false' }}
+        @endif
      }">
 
     {{-- ── FLASH MESSAGES ── --}}
     @if(session('success'))
-    <div class="mb-4 p-3 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl text-[13px] flex items-center gap-2">
+    <div class="mb-4 p-3 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl text-[13px] flex items-center gap-2" x-data x-init="setTimeout(() => $el.remove(), 4000)">
         <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
         {{ session('success') }}
+    </div>
+    @endif
+    @if($errors->any())
+    <div class="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-xl text-[13px] flex items-center gap-2">
+        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        {{ $errors->first() }}
     </div>
     @endif
 
     {{-- ── HEADER ── --}}
     <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-5">
         <div>
-            <h1 class="text-[19px] font-bold text-gray-800 leading-tight">Produk Jadi</h1>
-            <p class="text-[13px] text-gray-400 mt-0.5">Monitoring varian produk & stok</p>
+            <h1 class="text-[19px] font-bold text-gray-800 leading-tight">Produk</h1>
+            <p class="text-[13px] text-gray-400 mt-0.5">Monitoring produk jadi & produk setengah jadi</p>
         </div>
         <div class="flex items-center gap-2">
             <button type="button" @click="showFilter = !showFilter"
@@ -51,13 +66,41 @@
                 <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                 @endif
             </button>
+            @if($tab === 'produk_jadi')
+            @include('handai-manager.partials.import-export-modal', ['type' => 'product', 'label' => 'Produk Jadi'])
             <a href="{{ route('manager.products.create') }}"
                class="h-9 inline-flex items-center gap-1.5 px-4 text-[13px] font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg transition shadow-sm">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
                 Tambah Produk
             </a>
+            @else
+            <a href="{{ route('manager.inventory.semi-finished.create') }}"
+               class="h-9 inline-flex items-center gap-1.5 px-4 text-[13px] font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg transition shadow-sm">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                Tambah Setengah Jadi
+            </a>
+            @endif
         </div>
     </div>
+
+    {{-- ── TAB TOGGLE ── --}}
+    <div class="flex items-center gap-2 mb-5">
+        <a href="{{ route('manager.inventory.products', ['tab' => 'produk_jadi']) }}"
+           class="tab-btn {{ $tab === 'produk_jadi' ? 'active' : '' }}">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+            Produk Jadi
+        </a>
+        <a href="{{ route('manager.inventory.products', ['tab' => 'setengah_jadi']) }}"
+           class="tab-btn {{ $tab === 'setengah_jadi' ? 'active-purple' : '' }}">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9"/></svg>
+            Produk Setengah Jadi
+        </a>
+    </div>
+
+    {{-- ═══════════════════════════════════════════════════════════════
+         TAB: PRODUK JADI
+         ═══════════════════════════════════════════════════════════════ --}}
+    @if($tab === 'produk_jadi')
 
     {{-- ── STAT CARDS ── --}}
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
@@ -136,6 +179,7 @@
                 <thead>
                     <tr class="bg-gray-50/80 border-b border-gray-100">
                         <th class="text-left py-2.5 px-5 text-[10.5px] font-semibold text-gray-400 uppercase tracking-wider">Produk</th>
+                        <th class="text-center py-2.5 px-4 text-[10.5px] font-semibold text-gray-400 uppercase tracking-wider">Tipe</th>
                         <th class="text-left py-2.5 px-4 text-[10.5px] font-semibold text-gray-400 uppercase tracking-wider">Varian</th>
                         <th class="text-right py-2.5 px-4 text-[10.5px] font-semibold text-gray-400 uppercase tracking-wider">Stok</th>
                         <th class="text-right py-2.5 px-4 text-[10.5px] font-semibold text-gray-400 uppercase tracking-wider">Harga</th>
@@ -161,6 +205,12 @@
                         <td class="py-3 px-5">
                             <p class="font-medium text-gray-800 leading-snug">{{ $variant->product->name }}</p>
                             <p class="text-[11px] text-gray-400 mt-0.5 leading-none">{{ $variant->product->category->category_name ?? 'Uncategorized' }}</p>
+                        </td>
+                        {{-- Type --}}
+                        <td class="py-3 px-4 text-center">
+                            <span class="prd-badge bg-emerald-50 text-emerald-600">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>Produk Jadi
+                            </span>
                         </td>
                         {{-- Variant --}}
                         <td class="py-3 px-4">
@@ -222,7 +272,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="8" class="py-20 text-center">
+                        <td colspan="9" class="py-20 text-center">
                             <svg class="w-10 h-10 mx-auto mb-3 text-gray-200" fill="none" stroke="currentColor" stroke-width="1.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
                             <p class="text-sm text-gray-400 font-medium">Belum ada data produk</p>
                             <p class="text-xs text-gray-300 mt-0.5">Tambahkan produk untuk memulai.</p>
@@ -432,6 +482,296 @@
             </div>
         </div>
     </div>
+
+    @endif {{-- end tab produk_jadi --}}
+
+    {{-- ═══════════════════════════════════════════════════════════════
+         TAB: PRODUK SETENGAH JADI
+         ═══════════════════════════════════════════════════════════════ --}}
+    @if($tab === 'setengah_jadi')
+
+    {{-- ── STAT CARDS ── --}}
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
+        <div class="prd-card-stat">
+            <p class="text-[11px] font-medium text-gray-400 uppercase tracking-wider leading-none">Total Produk</p>
+            <p class="text-xl font-bold text-gray-800 mt-1.5 leading-none tabular-nums">{{ number_format($sfpStats->total ?? 0) }}</p>
+        </div>
+        <div class="prd-card-stat">
+            <p class="text-[11px] font-medium text-emerald-500 uppercase tracking-wider leading-none">Ready</p>
+            <p class="text-xl font-bold text-emerald-600 mt-1.5 leading-none tabular-nums">{{ number_format($sfpStats->ready ?? 0) }}</p>
+        </div>
+        <div class="prd-card-stat">
+            <p class="text-[11px] font-medium text-amber-500 uppercase tracking-wider leading-none">Hampir Habis</p>
+            <p class="text-xl font-bold text-amber-600 mt-1.5 leading-none tabular-nums">{{ number_format($sfpStats->low_stock ?? 0) }}</p>
+        </div>
+        <div class="prd-card-stat">
+            <p class="text-[11px] font-medium text-red-400 uppercase tracking-wider leading-none">Habis</p>
+            <p class="text-xl font-bold text-red-500 mt-1.5 leading-none tabular-nums">{{ number_format($sfpStats->out_of_stock ?? 0) }}</p>
+        </div>
+    </div>
+
+    {{-- ── FILTER ── --}}
+    <div x-show="showFilter" x-collapse x-cloak class="mb-5">
+        <form method="GET" action="{{ route('manager.inventory.products') }}"
+              class="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
+            <input type="hidden" name="tab" value="setengah_jadi" />
+            <div class="flex flex-wrap items-end gap-3">
+                <div class="flex-1 min-w-[180px]">
+                    <label class="block text-[11px] font-medium text-gray-400 uppercase tracking-wider mb-1">Cari</label>
+                    <div class="relative">
+                        <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                        <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari produk setengah jadi..."
+                               class="prd-input !pl-9" />
+                    </div>
+                </div>
+                <div class="min-w-[130px]">
+                    <label class="block text-[11px] font-medium text-gray-400 uppercase tracking-wider mb-1">Status</label>
+                    <select name="status" class="prd-input appearance-none cursor-pointer">
+                        <option value="">Semua</option>
+                        <option value="Ready" {{ request('status')==='Ready'?'selected':'' }}>Ready</option>
+                        <option value="Low Stock" {{ request('status')==='Low Stock'?'selected':'' }}>Hampir Habis</option>
+                        <option value="Out of Stock" {{ request('status')==='Out of Stock'?'selected':'' }}>Habis</option>
+                    </select>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button type="submit" class="h-9 px-4 text-[13px] font-medium text-white bg-violet-600 hover:bg-violet-700 rounded-lg transition cursor-pointer">Terapkan</button>
+                    <a href="{{ route('manager.inventory.products', ['tab' => 'setengah_jadi']) }}" class="h-9 px-3 text-[13px] font-medium text-gray-400 hover:text-gray-600 bg-white border border-gray-200 hover:border-gray-300 rounded-lg transition inline-flex items-center">Reset</a>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    {{-- ── MAIN TABLE ── --}}
+    <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+
+        {{-- Info bar --}}
+        <div class="px-5 py-2.5 border-b border-gray-50 flex items-center justify-between">
+            <p class="text-[12px] text-gray-400">
+                <span class="font-medium text-gray-500">{{ $semiFinishedProducts->firstItem() ?? 0 }}–{{ $semiFinishedProducts->lastItem() ?? 0 }}</span> dari {{ $semiFinishedProducts->total() }} produk
+            </p>
+            @if(request()->hasAny(['search','status']))
+            <a href="{{ route('manager.inventory.products', ['tab' => 'setengah_jadi']) }}" class="text-[11px] text-violet-600 hover:text-violet-700 font-medium inline-flex items-center gap-1">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                Hapus filter
+            </a>
+            @endif
+        </div>
+
+        {{-- Desktop table --}}
+        <div class="hidden md:block overflow-x-auto">
+            <table class="w-full text-[13px] prd-table">
+                <thead>
+                    <tr class="bg-gray-50/80 border-b border-gray-100">
+                        <th class="text-left py-2.5 px-5 text-[10.5px] font-semibold text-gray-400 uppercase tracking-wider">Nama</th>
+                        <th class="text-center py-2.5 px-4 text-[10.5px] font-semibold text-gray-400 uppercase tracking-wider">Tipe</th>
+                        <th class="text-left py-2.5 px-4 text-[10.5px] font-semibold text-gray-400 uppercase tracking-wider">Satuan</th>
+                        <th class="text-right py-2.5 px-4 text-[10.5px] font-semibold text-gray-400 uppercase tracking-wider">Stok</th>
+                        <th class="text-right py-2.5 px-4 text-[10.5px] font-semibold text-gray-400 uppercase tracking-wider hidden lg:table-cell">Min Stok</th>
+                        <th class="text-right py-2.5 px-4 text-[10.5px] font-semibold text-gray-400 uppercase tracking-wider hidden lg:table-cell">HPP/Unit</th>
+                        <th class="text-right py-2.5 px-4 text-[10.5px] font-semibold text-gray-400 uppercase tracking-wider hidden lg:table-cell">Upah/Batch</th>
+                        <th class="text-right py-2.5 px-4 text-[10.5px] font-semibold text-gray-400 uppercase tracking-wider hidden lg:table-cell">Output/Batch</th>
+                        <th class="text-center py-2.5 px-4 text-[10.5px] font-semibold text-gray-400 uppercase tracking-wider hidden lg:table-cell">Bahan</th>
+                        <th class="text-center py-2.5 px-4 text-[10.5px] font-semibold text-gray-400 uppercase tracking-wider">Status</th>
+                        <th class="text-center py-2.5 px-3 text-[10.5px] font-semibold text-gray-400 uppercase tracking-wider w-[100px]"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($semiFinishedProducts as $idx => $sfp)
+                    @php
+                        $status = $sfp->stock_status; // 'Tersedia', 'Hampir Habis', 'Habis'
+                        $isOut  = $status === 'Habis';
+                        $isLow  = $status === 'Hampir Habis';
+                        $stripe = $idx % 2 === 0 ? '' : 'bg-gray-50/40';
+                        $rowBg  = $isOut ? 'bg-red-50/30' : ($isLow ? 'bg-amber-50/20' : $stripe);
+                    @endphp
+                    <tr class="prd-row {{ $rowBg }} border-b border-gray-50 last:border-b-0">
+                        {{-- Name --}}
+                        <td class="py-3 px-5">
+                            <p class="font-medium text-gray-800 leading-snug">{{ $sfp->name }}</p>
+                            @if($sfp->description)
+                            <p class="text-[11px] text-gray-400 mt-0.5 leading-none truncate max-w-[250px]">{{ $sfp->description }}</p>
+                            @endif
+                        </td>
+                        {{-- Type badge --}}
+                        <td class="py-3 px-4 text-center">
+                            <span class="prd-badge bg-violet-50 text-violet-600">
+                                <span class="w-1.5 h-1.5 rounded-full bg-violet-400"></span>Setengah Jadi
+                            </span>
+                        </td>
+                        {{-- Unit --}}
+                        <td class="py-3 px-4 text-gray-600">{{ $sfp->unit?->symbol ?? '-' }}</td>
+                        {{-- Stock --}}
+                        <td class="py-3 px-4 text-right">
+                            <span class="font-semibold tabular-nums {{ $isOut ? 'text-red-600' : ($isLow ? 'text-amber-600' : 'text-gray-700') }}">
+                                {{ number_format($sfp->current_qty, 1) }}
+                            </span>
+                            <span class="text-[10px] text-gray-400 ml-0.5">{{ $sfp->unit?->symbol ?? '' }}</span>
+                        </td>
+                        {{-- Min Stock --}}
+                        <td class="py-3 px-4 text-right tabular-nums text-[12px] hidden lg:table-cell">
+                            @if($sfp->min_stock > 0)
+                            <span class="{{ $sfp->current_qty <= $sfp->min_stock ? 'text-red-500 font-semibold' : 'text-gray-500' }}">{{ number_format($sfp->min_stock, 1) }}</span>
+                            @else
+                            <span class="text-gray-300">—</span>
+                            @endif
+                        </td>
+                        {{-- HPP/Unit --}}
+                        <td class="py-3 px-4 text-right tabular-nums font-semibold text-emerald-700 hidden lg:table-cell">Rp{{ number_format($sfp->price_per_unit, 0, ',', '.') }}</td>
+                        {{-- Labor/Batch --}}
+                        <td class="py-3 px-4 text-right tabular-nums text-gray-600 hidden lg:table-cell">Rp{{ number_format($sfp->labor_cost, 0, ',', '.') }}</td>
+                        {{-- Output/Batch --}}
+                        <td class="py-3 px-4 text-right tabular-nums text-gray-600 hidden lg:table-cell">{{ number_format($sfp->output_qty, 1) }}</td>
+                        {{-- Materials count --}}
+                        <td class="py-3 px-4 text-center">
+                            <span class="inline-flex items-center gap-1 text-xs text-gray-500">
+                                <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                                {{ $sfp->materials->count() }}
+                            </span>
+                        </td>
+                        {{-- Status --}}
+                        <td class="py-3 px-4 text-center">
+                            @if($isOut)
+                            <span class="prd-badge bg-red-50 text-red-600"><span class="w-1.5 h-1.5 rounded-full bg-red-400"></span>Habis</span>
+                            @elseif($isLow)
+                            <span class="prd-badge bg-amber-50 text-amber-600"><span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>Low</span>
+                            @else
+                            <span class="prd-badge bg-emerald-50 text-emerald-600"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>Ready</span>
+                            @endif
+                        </td>
+                        {{-- Actions --}}
+                        <td class="py-3 px-3">
+                            <div class="prd-actions flex items-center justify-center gap-0.5">
+                                {{-- Produce --}}
+                                <a href="{{ route('manager.inventory.semi-finished.produce', $sfp->id) }}"
+                                   class="w-7 h-7 rounded-md inline-flex items-center justify-center text-gray-400 hover:text-amber-500 hover:bg-amber-50 transition" title="Produksi">
+                                    <svg class="w-[15px] h-[15px]" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 010 1.972l-11.54 6.347a1.125 1.125 0 01-1.667-.986V5.653z"/></svg>
+                                </a>
+                                {{-- Edit --}}
+                                <a href="{{ route('manager.inventory.semi-finished.edit', $sfp->id) }}"
+                                   class="w-7 h-7 rounded-md inline-flex items-center justify-center text-gray-400 hover:text-blue-500 hover:bg-blue-50 transition" title="Edit">
+                                    <svg class="w-[15px] h-[15px]" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                </a>
+                                {{-- Delete --}}
+                                <form action="{{ route('manager.inventory.semi-finished.destroy', $sfp->id) }}" method="POST" class="inline" onsubmit="return confirm('Hapus produk setengah jadi ini?')">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit"
+                                            class="w-7 h-7 rounded-md inline-flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 transition cursor-pointer" title="Hapus">
+                                        <svg class="w-[15px] h-[15px]" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="11" class="py-20 text-center">
+                            <svg class="w-10 h-10 mx-auto mb-3 text-gray-200" fill="none" stroke="currentColor" stroke-width="1.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9"/></svg>
+                            <p class="text-sm text-gray-400 font-medium">Belum ada produk setengah jadi</p>
+                            <p class="text-xs text-gray-300 mt-0.5">Tambahkan produk setengah jadi untuk memulai.</p>
+                        </td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+
+        {{-- Mobile cards --}}
+        <div class="md:hidden divide-y divide-gray-50">
+            @forelse($semiFinishedProducts as $sfp)
+            @php
+                $status = $sfp->stock_status;
+                $isOut  = $status === 'Habis';
+                $isLow  = $status === 'Hampir Habis';
+                $accent = $isOut ? 'border-l-red-400' : ($isLow ? 'border-l-amber-400' : 'border-l-violet-400');
+            @endphp
+            <div class="p-4 border-l-[3px] {{ $accent }} {{ $isOut ? 'bg-red-50/20' : '' }}">
+                <div class="flex items-start justify-between gap-2 mb-2">
+                    <div class="min-w-0 flex-1">
+                        <div class="flex items-center gap-2">
+                            <span class="prd-badge bg-violet-50 text-violet-600 text-[9px]">PSJ</span>
+                            <p class="font-semibold text-gray-800 text-[13px] leading-snug truncate">{{ $sfp->name }}</p>
+                        </div>
+                        @if($sfp->description)
+                        <p class="text-[11px] text-gray-400 truncate mt-0.5">{{ $sfp->description }}</p>
+                        @endif
+                    </div>
+                    @if($isOut)
+                    <span class="prd-badge bg-red-50 text-red-600 shrink-0"><span class="w-1.5 h-1.5 rounded-full bg-red-400"></span>Habis</span>
+                    @elseif($isLow)
+                    <span class="prd-badge bg-amber-50 text-amber-600 shrink-0"><span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>Low</span>
+                    @else
+                    <span class="prd-badge bg-emerald-50 text-emerald-600 shrink-0"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>Ready</span>
+                    @endif
+                </div>
+                <div class="grid grid-cols-2 gap-x-4 gap-y-1.5 text-[12px]">
+                    <div><span class="text-gray-400">Stok:</span> <span class="font-semibold text-gray-700">{{ number_format($sfp->current_qty, 1) }} {{ $sfp->unit?->symbol ?? '' }}</span></div>
+                    <div><span class="text-gray-400">HPP:</span> <span class="font-semibold text-emerald-700">Rp{{ number_format($sfp->price_per_unit, 0, ',', '.') }}</span></div>
+                    <div><span class="text-gray-400">Min Stok:</span> <span class="text-gray-600">{{ $sfp->min_stock > 0 ? number_format($sfp->min_stock, 1) : '—' }}</span></div>
+                    <div><span class="text-gray-400">Bahan:</span> <span class="text-gray-600">{{ $sfp->materials->count() }} item</span></div>
+                </div>
+                <div class="flex items-center justify-end gap-3 mt-3 pt-2.5 border-t border-gray-100">
+                    <a href="{{ route('manager.inventory.semi-finished.produce', $sfp->id) }}" class="text-[11px] text-amber-500 hover:text-amber-600 font-medium inline-flex items-center gap-1">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 010 1.972l-11.54 6.347a1.125 1.125 0 01-1.667-.986V5.653z"/></svg>
+                        Produksi
+                    </a>
+                    <a href="{{ route('manager.inventory.semi-finished.edit', $sfp->id) }}" class="text-[11px] text-blue-500 hover:text-blue-600 font-medium inline-flex items-center gap-1">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                        Edit
+                    </a>
+                    <form action="{{ route('manager.inventory.semi-finished.destroy', $sfp->id) }}" method="POST" class="inline" onsubmit="return confirm('Hapus?')">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="text-[11px] text-red-400 hover:text-red-600 font-medium inline-flex items-center gap-1 cursor-pointer">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                            Hapus
+                        </button>
+                    </form>
+                </div>
+            </div>
+            @empty
+            <div class="py-16 text-center">
+                <p class="text-sm text-gray-400">Belum ada produk setengah jadi.</p>
+            </div>
+            @endforelse
+        </div>
+
+        {{-- Pagination --}}
+        @if($semiFinishedProducts->hasPages())
+        <div class="px-5 py-3 border-t border-gray-50 flex items-center justify-between">
+            <p class="text-[11px] text-gray-400 hidden sm:block">Hal. {{ $semiFinishedProducts->currentPage() }} / {{ $semiFinishedProducts->lastPage() }}</p>
+            <div class="flex items-center gap-1 mx-auto sm:mx-0">
+                @if($semiFinishedProducts->onFirstPage())
+                <span class="w-8 h-8 rounded-lg inline-flex items-center justify-center text-gray-300">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+                </span>
+                @else
+                <a href="{{ $semiFinishedProducts->appends(['tab' => 'setengah_jadi'])->previousPageUrl() }}" class="w-8 h-8 rounded-lg inline-flex items-center justify-center text-gray-500 hover:bg-gray-100 transition">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+                </a>
+                @endif
+                @foreach($semiFinishedProducts->appends(['tab' => 'setengah_jadi'])->getUrlRange(max(1, $semiFinishedProducts->currentPage()-2), min($semiFinishedProducts->lastPage(), $semiFinishedProducts->currentPage()+2)) as $page => $url)
+                    @if($page == $semiFinishedProducts->currentPage())
+                    <span class="w-8 h-8 rounded-lg inline-flex items-center justify-center text-[12px] font-semibold bg-violet-600 text-white">{{ $page }}</span>
+                    @else
+                    <a href="{{ $url }}" class="w-8 h-8 rounded-lg inline-flex items-center justify-center text-[12px] font-medium text-gray-500 hover:bg-gray-100 transition">{{ $page }}</a>
+                    @endif
+                @endforeach
+                @if($semiFinishedProducts->hasMorePages())
+                <a href="{{ $semiFinishedProducts->appends(['tab' => 'setengah_jadi'])->nextPageUrl() }}" class="w-8 h-8 rounded-lg inline-flex items-center justify-center text-gray-500 hover:bg-gray-100 transition">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                </a>
+                @else
+                <span class="w-8 h-8 rounded-lg inline-flex items-center justify-center text-gray-300">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                </span>
+                @endif
+            </div>
+        </div>
+        @endif
+    </div>
+
+    @endif {{-- end tab setengah_jadi --}}
 
 </div>
 @endsection

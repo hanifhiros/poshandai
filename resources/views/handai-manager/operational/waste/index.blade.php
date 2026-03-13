@@ -27,10 +27,13 @@
             </h1>
             <p class="text-sm text-gray-500 mt-0.5">Catat bahan atau produk yang terbuang, rusak, atau expired</p>
         </div>
-        <a href="{{ route('manager.operational.waste.create') }}"
-           class="inline-flex items-center gap-2 px-4 py-2.5 bg-red-600 text-white rounded-xl text-sm font-medium hover:bg-red-700 transition shadow-sm">
-            <i class="ti ti-plus text-base"></i> Catat Waste
-        </a>
+        <div class="flex items-center gap-2">
+            @include('handai-manager.partials.import-export-modal', ['type' => 'waste', 'label' => 'Waste / Basi'])
+            <a href="{{ route('manager.operational.waste.create') }}"
+               class="inline-flex items-center gap-2 px-4 py-2.5 bg-red-600 text-white rounded-xl text-sm font-medium hover:bg-red-700 transition shadow-sm">
+                <i class="ti ti-plus text-base"></i> Catat Waste
+            </a>
+        </div>
     </div>
 
     {{-- Stats --}}
