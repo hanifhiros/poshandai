@@ -153,32 +153,18 @@
                         <label class="block text-xs font-medium text-slate-600 mb-2">
                             Metode Pembayaran <span class="text-red-400">*</span>
                         </label>
-                        <div x-data="{ open: false, options: [
-                                { value: 'cash', label: 'Cash' },
-                                { value: 'transfer', label: 'Transfer Bank' },
-                                { value: 'hutang', label: 'Hutang (Kredit)' }
-                            ] }"
-                             @click.away="open = false" class="relative">
-                            <button type="button"
-                                    @click="open = !open"
-                                    :class="errors.payment_method ? 'border-red-400 ring-2 ring-red-100' : ''"
-                                    class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 text-left flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400 transition">
-                                <span x-text="options.find(o => o.value === form.payment_method)?.label || '-- Pilih --'"></span>
-                                <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                            </button>
-                            <input type="hidden" name="payment_method" x-model="form.payment_method">
-
-                            <div x-show="open" x-transition
-                                 class="absolute z-50 mt-1 w-full bg-white border border-slate-200 rounded-xl shadow-lg max-h-52 overflow-y-auto">
-                                <template x-for="opt in options" :key="opt.value">
-                                    <button type="button"
-                                            @click="form.payment_method = opt.value; open = false; clearError('payment_method')"
-                                            :class="form.payment_method === opt.value ? 'bg-emerald-50 text-emerald-700 font-medium' : 'hover:bg-slate-50'"
-                                            class="w-full text-left px-3 py-2 text-sm transition flex items-center">
-                                        <span x-text="opt.label"></span>
-                                    </button>
-                                </template>
-                            </div>
+                        <div class="relative">
+                            <select
+                                name="payment_method"
+                                x-model="form.payment_method"
+                                @change="clearError('payment_method')"
+                                :class="errors.payment_method ? 'border-red-400 ring-2 ring-red-100' : ''"
+                                class="stock-select w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400 transition">
+                                <option value="">-- Pilih Metode Pembayaran --</option>
+                                <option value="cash">Cash</option>
+                                <option value="transfer">Transfer Bank</option>
+                                <option value="hutang">Hutang (Kredit)</option>
+                            </select>
                         </div>
                         <div x-show="errors.payment_method" data-error-field class="text-xs text-red-500 mt-1 flex items-center gap-1">
                             <svg class="w-3 h-3 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
