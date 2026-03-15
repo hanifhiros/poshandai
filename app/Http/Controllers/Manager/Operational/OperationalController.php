@@ -133,24 +133,35 @@ public function produksiStore(Request $request)
 {
     $request->validate([
         'production_date' => 'required|date',
-        'pic_id' => 'required|exists:employee,id',
-        'prod_type' => 'required|in:finished,semi',
-        'product_variants_id' => 'required_if:prod_type,finished|exists:product_variants,id',
-        'semi_finished_product_id' => 'required_if:prod_type,semi|exists:semi_finished_products,id',
-        'quantity_produced' => 'required|numeric|min:0.001',
-        'use_bom' => 'required_if:prod_type,finished|in:yes,no',
+            'pic_ids' => 'required|array|min:1',
+            'pic_ids.*' => 'required|exists:employee,id',
+            'production_lines' => 'required|array|min:1',
+            'production_lines.*.type' => 'required|in:finished,semi',
+            'production_lines.*.quantity_produced' => 'required|numeric|min:0.001',
+            'production_lines.*.use_bom' => 'required_if:production_lines.*.type,finished|in:yes,no',
+            'production_lines.*.product_variants_id' => 'required_if:production_lines.*.type,finished|exists:product_variants,id',
+            'production_lines.*.semi_finished_product_id' => 'required_if:production_lines.*.type,semi|exists:semi_finished_products,id',
     ]);
 
     DB::beginTransaction();
     try {
-        $type = $request->prod_type; // 'finished' or 'semi'
-        $qtyProduced = $request->quantity_produced;
+        $storeId = session('selected_store');
+        $picIds = $request->input('pic_ids', []);
+        $productionLines = $request->input('production_lines', []);
+
+        // legacy support: use first line as basis (TODO: support multiple lines)
+        $firstLine = $productionLines[0] ?? [];
+        $type = $firstLine['type'] ?? null;
+        $qtyProduced = (float) ($firstLine['quantity_produced'] ?? 0);
+        $productVariantId = $firstLine['product_variants_id'] ?? null;
+        $semiFinishedProductId = $firstLine['semi_finished_product_id'] ?? null;
+        $picId = $picIds[0] ?? null;
 
         // handle semi finished product production
         if ($type === 'semi') {
             $sfp = \App\Models\SemiFinishedProduct::with('materials.stock')
                 ->where('store_id', session('selected_store'))
-                ->findOrFail($request->semi_finished_product_id);
+                ->findOrFail($semiFinishedProductId);
 
             ConversionHelper::preloadAll();
             $multiplier = $qtyProduced / $sfp->output_qty;
@@ -228,7 +239,7 @@ public function produksiStore(Request $request)
                 \App\Models\ProductionWage::create([
                     'store_id'              => session('selected_store'),
                     'production_history_id' => $production->id,
-                    'employee_id'           => $request->pic_id,
+                    'employee_id'           => $picId,
                     'recipe_sfp_id'         => $sfp->id,
                     'production_quantity'    => $qtyProduced,
                     'wage_per_unit'         => $sfpWagePerUnit,
@@ -243,12 +254,12 @@ public function produksiStore(Request $request)
         }
 
         // finished goods path
-        $productVariantId = $request->product_variants_id;
+        $productVariantId = $productVariantId;
 
         $prodVar = ProductVariants::find($productVariantId);
         $production = ProductionHistory::create([
             'production_date' => $request->production_date,
-            'pic_id' => $request->pic_id,
+            'pic_id' => $picId,
             'product_variants_id' => $productVariantId,
             'quantity_produced' => $qtyProduced,
             'store_id'=>session('selected_store'),

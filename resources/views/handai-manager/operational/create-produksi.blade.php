@@ -9,6 +9,66 @@
     .cpd-label { display: block; font-size: 11px; font-weight: 600; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
     .cpd-select { width: 100%; height: 40px; padding: 0 12px; font-size: 13px; border: 1px solid #e2e8f0; border-radius: 8px; background: #f8fafc; outline: none; transition: all 0.15s; appearance: none; cursor: pointer; }
     .cpd-select:focus { background: #fff; border-color: #10b981; box-shadow: 0 0 0 3px rgba(16,185,129,0.08); }
+
+    /* Choices.js multi-select styling */
+    .choices__inner {
+        min-height: 40px;
+        border-radius: 8px;
+        border: 1px solid #e2e8f0;
+        background: #f8fafc;
+        position: relative;
+    }
+    .choices__inner::after {
+        content: '';
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 0;
+        height: 0;
+        border-left: 5px solid transparent;
+        border-right: 5px solid transparent;
+        border-top: 6px solid #94a3b8;
+        pointer-events: none;
+    }
+    .choices.is-open .choices__inner::after {
+        transform: translateY(-50%) rotate(180deg);
+    }
+    .choices__inner.is-focused { border-color: #10b981; box-shadow: 0 0 0 3px rgba(16,185,129,0.08); }
+    .choices__list--multiple { padding: 4px 8px; }
+    .choices__list--multiple .choices__item {
+        background: rgba(16, 185, 129, 0.15);
+        border: 1px solid rgba(16, 185, 129, 0.4);
+        color: #064e3b;
+        border-radius: 999px;
+        padding: 4px 10px 4px 10px;
+        margin: 4px 4px 4px 0;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition: background 0.15s, border-color 0.15s;
+    }
+    .choices__list--multiple .choices__item:hover {
+        background: rgba(16, 185, 129, 0.25);
+        border-color: rgba(16, 185, 129, 0.55);
+    }
+    .choices__list--multiple .choices__button {
+        color: #064e3b;
+        width: 18px;
+        height: 18px;
+        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0.7;
+        transition: opacity 0.15s, background 0.15s;
+    }
+    .choices__list--multiple .choices__button:hover {
+        opacity: 1;
+        background: rgba(0, 0, 0, 0.08);
+    }
+    .choices__input { min-height: 36px; margin: 0; }
 </style>
 
 <div class="py-5 px-4 sm:px-6 lg:px-8 max-w-[720px] mx-auto">
@@ -37,24 +97,17 @@
     @endif
 
     {{-- Form --}}
-    <form method="POST" action="{{ route('manager.operational.produksi.store') }}" class="space-y-5" x-data="{
-        type: '{{ old('prod_type','finished') }}',
-        selectedVariant: '{{ old('product_variants_id','') }}',
-        selectedSfp: '{{ old('semi_finished_product_id','') }}',
-        qtyProduced: {{ old('quantity_produced', 0) }},
-        wageMap: @json($wageMap ?? []),
-        sfpWageMap: @json($sfpWageMap ?? []),
-        get wagePerUnit() {
-            if (this.type === 'semi') {
-                const sfp = this.sfpWageMap[this.selectedSfp];
-                return sfp ? parseFloat(sfp.labor_cost_per_unit) || 0 : 0;
-            }
-            return parseFloat(this.wageMap[this.selectedVariant]) || 0;
-        },
-        get totalWage() {
-            return Math.round(this.wagePerUnit * (parseFloat(this.qtyProduced) || 0));
-        }
-    }">
+    @php
+        $initialProductionLines = old('production_lines', [[
+            'type' => 'finished',
+            'product_variants_id' => old('product_variants_id', ''),
+            'semi_finished_product_id' => old('semi_finished_product_id', ''),
+            'quantity_produced' => old('quantity_produced', 0),
+            'use_bom' => old('use_bom', 'yes'),
+        ]]);
+    @endphp
+
+    <form method="POST" action="{{ route('manager.operational.produksi.store') }}" class="space-y-5" x-data="produksiForm()">
         @csrf
 
         {{-- Card: Info Utama --}}
@@ -71,72 +124,108 @@
                     <label class="cpd-label">Tanggal Produksi</label>
                     <input type="date" name="production_date" value="{{ old('production_date', now()->toDateString()) }}" class="cpd-input" required>
                 </div>
-                <div>
-                    <label class="cpd-label">PIC (Penanggung Jawab)</label>
-                    <select name="pic_id" class="cpd-select" required>
-                        <option value="">— Pilih PIC —</option>
-                        @foreach ($employees as $employee)
-                        <option value="{{ $employee->id }}" {{ old('pic_id') == $employee->id ? 'selected' : '' }}>{{ $employee->name }}</option>
-                        @endforeach
-                    </select>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                        <label class="cpd-label">Pilih Nama</label>
+                        <div class="flex items-center gap-2">
+                            <select x-model="selectedPic" class="cpd-select flex-1">
+                                <option value="">— Pilih PIC —</option>
+                                <template x-for="emp in employees" :key="emp.id">
+                                    <option :value="emp.id" x-text="emp.name"></option>
+                                </template>
+                            </select>
+                            <button type="button" @click="addPic" class="h-9 px-3.5 inline-flex items-center gap-2 text-sm font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-lg border border-transparent hover:border-emerald-200 transition">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                                Tambah
+                            </button>
+                        </div>
+                        <p class="text-[11px] text-gray-400 mt-1">Pilih satu per satu, lalu tekan Tambah untuk menambahkan ke daftar.</p>
+                    </div>
+
+                    <div>
+                        <label class="cpd-label">PIC Terpilih</label>
+                        <div class="flex flex-wrap gap-2">
+                            <template x-for="(id, idx) in picIds" :key="id">
+                                <div class="flex items-center gap-1 px-3 py-2 rounded-full bg-emerald-50 border border-emerald-100 text-sm text-emerald-700">
+                                    <span x-text="employees.find(e => e.id == id)?.name || '—'" class="truncate"></span>
+                                    <button type="button" @click="removePic(idx)" class="w-6 h-6 rounded-full flex items-center justify-center text-red-600 hover:bg-red-100" aria-label="Hapus PIC">
+                                        <svg class="w-3 h-3" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 7L14 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M9 7V5a2 2 0 012-2h2a2 2 0 012 2v2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M8 11v7a2 2 0 002 2h4a2 2 0 002-2v-7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M10 15v-3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M14 15v-3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                                    </button>
+                                    <input type="hidden" name="pic_ids[]" :value="id" />
+                                </div>
+                            </template>
+                            <div x-show="picIds.length === 0" class="text-[12px] text-gray-400">Belum ada PIC. Tambahkan di samping.</div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
             <div class="space-y-4">
                 <div>
-                    <label class="cpd-label">Jenis</label>
-                    <div class="flex items-center gap-6">
-                        <label class="inline-flex items-center gap-1">
-                            <input type="radio" name="prod_type" value="finished" x-model="type" class="form-radio" checked>
-                            <span class="text-sm">Produk Jadi</span>
-                        </label>
-                        <label class="inline-flex items-center gap-1">
-                            <input type="radio" name="prod_type" value="semi" x-model="type" class="form-radio">
-                            <span class="text-sm">Setengah Jadi</span>
-                        </label>
-                    </div>
-                </div>
+                    <h3 class="text-sm font-semibold text-gray-700 mb-2">Rincian Produk</h3>
 
-                <div x-show="type === 'finished'" x-cloak>
-                    <label class="cpd-label">Produk + Varian</label>
-                    <select name="product_variants_id" class="cpd-select" x-model="selectedVariant">
-                        <option value="">— Pilih Produk Varian —</option>
-                        @foreach ($productVariants as $variant)
-                        <option value="{{ $variant->id }}" {{ old('product_variants_id') == $variant->id ? 'selected' : '' }}>
-                            {{ $variant->product->name }} — {{ $variant->options->pluck('name')->join(', ') }}
-                        </option>
-                        @endforeach
-                    </select>
-                </div>
+                    <template x-for="(line, index) in lines" :key="index">
+                        <div class="border border-gray-100 rounded-xl p-4 mb-3">
+                            <div class="flex items-start justify-between gap-3">
+                                <p class="text-sm font-medium text-gray-700">Item <span x-text="index + 1"></span></p>
+                                <button type="button" class="text-xs text-red-600 hover:text-red-800" @click="removeLine(index)" x-show="lines.length > 1">Hapus</button>
+                            </div>
 
-                <div x-show="type === 'semi'" x-cloak>
-                    <label class="cpd-label">Produk Setengah Jadi</label>
-                    <select name="semi_finished_product_id" class="cpd-select" x-model="selectedSfp">
-                        <option value="">— Pilih Setengah Jadi —</option>
-                        @foreach(\App\Models\SemiFinishedProduct::where('store_id', session('selected_store'))->get() as $sfp)
-                        <option value="{{ $sfp->id }}" {{ old('semi_finished_product_id') == $sfp->id ? 'selected' : '' }}>{{ $sfp->name }}</option>
-                        @endforeach
-                    </select>
-                </div>
-            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-3">
+                                <div>
+                                    <label class="cpd-label">Jenis</label>
+                                    <select :name="`production_lines[${index}][type]`" x-model="line.type" @change="onLineTypeChange(line)" class="cpd-select">
+                                        <option value="finished">Produk Jadi</option>
+                                        <option value="semi">Setengah Jadi</option>
+                                    </select>
+                                </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                    <label class="cpd-label">Jumlah Diproduksi</label>
-                    <input type="number" name="quantity_produced" x-model.number="qtyProduced" min="1" class="cpd-input" placeholder="0" required>
-                </div>
-                <div x-show="type==='finished'" x-cloak>
-                    <label class="cpd-label">Pengurangan Stok</label>
-                    <select name="use_bom" class="cpd-select" id="use-bom-select" required>
-                        <option value="yes" {{ old('use_bom', 'yes') === 'yes' ? 'selected' : '' }}>Otomatis (Resep/BOM)</option>
-                        <option value="no" {{ old('use_bom') === 'no' ? 'selected' : '' }}>Manual</option>
-                    </select>
+                                <div x-show="line.type === 'finished'" x-cloak>
+                                    <label class="cpd-label">Produk + Varian</label>
+                                    <select :name="`production_lines[${index}][product_variants_id]`" x-model="line.product_variants_id" class="cpd-select" :disabled="line.type !== 'finished'">
+                                        <option value="">— Pilih Produk Varian —</option>
+                                        @foreach ($productVariants as $variant)
+                                        <option value="{{ $variant->id }}">{{ $variant->product->name }} — {{ $variant->options->pluck('name')->join(', ') }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+
+                                <div x-show="line.type === 'semi'" x-cloak>
+                                    <label class="cpd-label">Produk Setengah Jadi</label>
+                                    <select :name="`production_lines[${index}][semi_finished_product_id]`" x-model="line.semi_finished_product_id" class="cpd-select" :disabled="line.type !== 'semi'">
+                                        <option value="">— Pilih Setengah Jadi —</option>
+                                        @foreach(\App\Models\SemiFinishedProduct::where('store_id', session('selected_store'))->get() as $sfp)
+                                        <option value="{{ $sfp->id }}">{{ $sfp->name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label class="cpd-label">Jumlah Diproduksi</label>
+                                    <input :name="`production_lines[${index}][quantity_produced]`" type="number" x-model.number="line.quantity_produced" min="1" class="cpd-input" placeholder="0" required>
+                                </div>
+
+                                <div x-show="line.type === 'finished'" x-cloak>
+                                    <label class="cpd-label">Pengurangan Stok</label>
+                                    <select :name="`production_lines[${index}][use_bom]`" x-model="line.use_bom" class="cpd-select" required>
+                                        <option value="yes">Otomatis (Resep/BOM)</option>
+                                        <option value="no">Manual</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+
+                    <button type="button" @click="addLine" class="h-9 px-3.5 inline-flex items-center gap-2 text-sm font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-lg border border-transparent hover:border-emerald-200 transition">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                        Tambah Produk
+                    </button>
                 </div>
             </div>
         </div>
 
         {{-- Card: Upah Produksi --}}
-        <div x-show="wagePerUnit > 0" x-cloak class="bg-white rounded-xl border border-indigo-100 shadow-sm p-5">
+        <div x-show="totalWage > 0" x-cloak class="bg-white rounded-xl border border-indigo-100 shadow-sm p-5">
             <h2 class="text-[13px] font-bold text-gray-700 flex items-center gap-2 mb-3">
                 <span class="w-5 h-5 rounded-md bg-indigo-100 inline-flex items-center justify-center">
                     <svg class="w-3 h-3 text-indigo-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2z"/></svg>
@@ -145,23 +234,23 @@
             </h2>
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div class="bg-indigo-50/50 rounded-lg p-3">
-                    <p class="text-[10px] uppercase tracking-wide text-gray-400 mb-1">Upah / unit</p>
-                    <p class="text-sm font-bold text-indigo-700 font-mono" x-text="'Rp ' + wagePerUnit.toLocaleString('id-ID')"></p>
-                </div>
-                <div class="bg-indigo-50/50 rounded-lg p-3">
-                    <p class="text-[10px] uppercase tracking-wide text-gray-400 mb-1">Jumlah Produksi</p>
-                    <p class="text-sm font-bold text-gray-700 font-mono" x-text="qtyProduced || 0"></p>
+                    <p class="text-[10px] uppercase tracking-wide text-gray-400 mb-1">Total Produksi</p>
+                    <p class="text-sm font-bold text-gray-700 font-mono" x-text="totalQuantity.toLocaleString('id-ID')"></p>
                 </div>
                 <div class="bg-indigo-50/50 rounded-lg p-3">
                     <p class="text-[10px] uppercase tracking-wide text-gray-400 mb-1">Total Upah</p>
                     <p class="text-sm font-bold text-indigo-700 font-mono" x-text="'Rp ' + totalWage.toLocaleString('id-ID')"></p>
+                </div>
+                <div class="bg-indigo-50/50 rounded-lg p-3">
+                    <p class="text-[10px] uppercase tracking-wide text-gray-400 mb-1">Upah per PIC</p>
+                    <p class="text-sm font-bold text-indigo-700 font-mono" x-text="'Rp ' + wagePerPic.toLocaleString('id-ID')"></p>
                 </div>
             </div>
             <p class="text-[11px] text-gray-400 mt-2">* Upah akan otomatis dicatat ke jurnal keuangan saat produksi disimpan.</p>
         </div>
 
         {{-- Card: Manual Bahan --}}
-        <div id="manual-stock-section" class="hidden bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+        <div x-show="lines.some(line => line.type === 'finished' && line.use_bom === 'no')" x-cloak class="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
             <h2 class="text-[13px] font-bold text-gray-700 flex items-center gap-2 mb-4">
                 <span class="w-5 h-5 rounded-md bg-amber-100 inline-flex items-center justify-center">
                     <svg class="w-3 h-3 text-amber-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
@@ -219,6 +308,68 @@
 
 @push('scripts')
 <script>
+function produksiForm() {
+    return {
+        picIds: @json(old('pic_ids', [])),
+        selectedPic: '',
+        employees: @json($employees->map(fn($e) => ['id' => $e->id, 'name' => $e->name])),
+        lines: @json($initialProductionLines),
+        wageMap: @json($wageMap ?? []),
+        sfpWageMap: @json($sfpWageMap ?? []),
+
+        selectedPic: '',
+        addPic() {
+            const id = this.selectedPic;
+            if (!id) return;
+            if (!this.picIds.includes(id)) {
+                this.picIds.push(id);
+            }
+            this.selectedPic = '';
+        },
+        removePic(index) {
+            this.picIds.splice(index, 1);
+        },
+        onLineTypeChange(line) {
+            if (line.type === 'finished') {
+                line.semi_finished_product_id = '';
+            } else if (line.type === 'semi') {
+                line.product_variants_id = '';
+                line.use_bom = 'yes';
+            }
+        },
+
+        getLineWage(line) {
+            const qty = parseFloat(line.quantity_produced) || 0;
+            if (qty <= 0) return 0;
+            if (line.type === 'semi') {
+                const sfp = this.sfpWageMap[line.semi_finished_product_id];
+                const wage = sfp ? parseFloat(sfp.labor_cost_per_unit) || 0 : 0;
+                return Math.round(wage * qty);
+            }
+            const wage = parseFloat(this.wageMap[line.product_variants_id]) || 0;
+            return Math.round(wage * qty);
+        },
+        get totalWage() {
+            if (!Array.isArray(this.lines) || this.lines.length === 0) return 0;
+            return this.lines.reduce((sum, line) => sum + this.getLineWage(line), 0);
+        },
+        get totalQuantity() {
+            if (!Array.isArray(this.lines) || this.lines.length === 0) return 0;
+            return this.lines.reduce((sum, line) => sum + (parseFloat(line.quantity_produced) || 0), 0);
+        },
+        get wagePerPic() {
+            if (!this.picIds || !this.picIds.length) return 0;
+            return Math.round(this.totalWage / this.picIds.length);
+        },
+        addLine() {
+            this.lines.push({ type: 'finished', product_variants_id: '', semi_finished_product_id: '', quantity_produced: 0, use_bom: 'yes' });
+        },
+        removeLine(index) {
+            this.lines.splice(index, 1);
+        }
+    };
+}
+
   function updateUnitOptions(selectEl, index) {
     const selectedOption = selectEl.options[selectEl.selectedIndex];
     const stockUnitType = selectedOption.getAttribute('data-unit-type');
@@ -230,25 +381,6 @@
     });
     unitSelect.selectedIndex = 0;
   }
-
-  document.addEventListener('DOMContentLoaded', function () {
-    const bomSelect = document.getElementById('use-bom-select');
-    const manualSection = document.getElementById('manual-stock-section');
-
-    function toggleManual() {
-        const type = document.querySelector('input[name=prod_type]:checked')?.value;
-        if (bomSelect.value === 'no' && type !== 'semi') {
-            manualSection.classList.remove('hidden');
-        } else {
-            manualSection.classList.add('hidden');
-        }
-    }
-    toggleManual();
-    bomSelect.addEventListener('change', toggleManual);
-    document.querySelectorAll('input[name=prod_type]').forEach(radio => {
-        radio.addEventListener('change', toggleManual);
-    });
-  });
 
   let ingredientIndex = 1;
   document.getElementById('add-ingredient').addEventListener('click', function () {

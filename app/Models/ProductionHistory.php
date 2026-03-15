@@ -13,12 +13,14 @@ class ProductionHistory extends Model
     protected $casts = [
         'quantity_produced' => 'integer',
         'production_date'   => 'date',
+        'pic_ids'           => 'array',
     ];
 
     protected $fillable = [
         'quantity_produced',
         'production_date',
         'pic_id',
+        'pic_ids',
         'product_variants_id',
         'semi_finished_product_id',
         'store_id',

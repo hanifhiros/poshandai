@@ -5,9 +5,33 @@
 @section('content')
 <style>
     [x-cloak] { display: none !important; }
-    .mv-badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 10px; border-radius: 9999px; font-size: 11px; font-weight: 500; line-height: 1.4; }
-    .mv-input { width: 100%; height: 36px; padding: 0 12px; font-size: 13px; border: 1px solid #e2e8f0; border-radius: 8px; background: #f8fafc; outline: none; transition: all 0.15s; }
-    .mv-input:focus { background: #fff; border-color: #10b981; box-shadow: 0 0 0 3px rgba(16,185,129,0.08); }
+    .mv-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 10px;
+        border-radius: 9999px;
+        font-size: 11px;
+        font-weight: 600;
+        line-height: 1.3;
+    }
+
+    .mv-input {
+        width: 100%;
+        height: 38px;
+        padding: 0 12px;
+        font-size: 13px;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        background: #ffffff;
+        transition: border-color .15s, box-shadow .15s;
+    }
+
+    .mv-input:focus {
+        outline: none;
+        border-color: #34d399;
+        box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.18);
+    }
 </style>
 
 <div class="py-5 px-4 sm:px-6 lg:px-8 max-w-[1440px] mx-auto">
@@ -25,25 +49,25 @@
 
     {{-- Stats --}}
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <div class="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
+        <div class="bg-white rounded-lg border border-gray-200 p-4">
             <p class="text-xs text-gray-500 uppercase tracking-wide">Pembelian (IN)</p>
-            <p class="text-xl font-bold text-green-600 mt-1">Rp {{ number_format($purchaseInMonth, 0, ',', '.') }}</p>
-            <p class="text-[10px] text-gray-400 mt-0.5">Bulan ini</p>
+            <p class="text-2xl font-semibold text-green-700 mt-1">Rp {{ number_format($purchaseInMonth, 0, ',', '.') }}</p>
+            <p class="text-[10px] text-gray-400 mt-1">Bulan ini</p>
         </div>
-        <div class="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
+        <div class="bg-white rounded-lg border border-gray-200 p-4">
             <p class="text-xs text-gray-500 uppercase tracking-wide">Produksi (OUT)</p>
-            <p class="text-xl font-bold text-orange-600 mt-1">Rp {{ number_format($productionOutMonth, 0, ',', '.') }}</p>
-            <p class="text-[10px] text-gray-400 mt-0.5">Bulan ini</p>
+            <p class="text-2xl font-semibold text-orange-700 mt-1">Rp {{ number_format($productionOutMonth, 0, ',', '.') }}</p>
+            <p class="text-[10px] text-gray-400 mt-1">Bulan ini</p>
         </div>
-        <div class="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
+        <div class="bg-white rounded-lg border border-gray-200 p-4">
             <p class="text-xs text-gray-500 uppercase tracking-wide">Penjualan (OUT)</p>
-            <p class="text-xl font-bold text-blue-600 mt-1">Rp {{ number_format($saleOutMonth, 0, ',', '.') }}</p>
-            <p class="text-[10px] text-gray-400 mt-0.5">Bulan ini</p>
+            <p class="text-2xl font-semibold text-blue-700 mt-1">Rp {{ number_format($saleOutMonth, 0, ',', '.') }}</p>
+            <p class="text-[10px] text-gray-400 mt-1">Bulan ini</p>
         </div>
-        <div class="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
+        <div class="bg-white rounded-lg border border-gray-200 p-4">
             <p class="text-xs text-gray-500 uppercase tracking-wide">Total Pergerakan</p>
-            <p class="text-xl font-bold text-gray-900 mt-1">{{ number_format($totalMovementsMonth) }}</p>
-            <p class="text-[10px] text-gray-400 mt-0.5">Bulan ini</p>
+            <p class="text-2xl font-semibold text-gray-900 mt-1">{{ number_format($totalMovementsMonth) }}</p>
+            <p class="text-[10px] text-gray-400 mt-1">Bulan ini</p>
         </div>
     </div>
 
@@ -73,21 +97,20 @@
 
     {{-- Table --}}
     <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-        <div class="overflow-x-auto">
-            <table class="w-full text-sm">
-                <thead>
-                    <tr class="bg-gray-50 text-left text-xs uppercase tracking-wider text-gray-500">
-                        <th class="px-4 py-3">Waktu</th>
-                        <th class="px-4 py-3">Tipe</th>
-                        <th class="px-4 py-3">Item</th>
-                        <th class="px-4 py-3 text-right">Qty</th>
-                        <th class="px-4 py-3 text-right">Biaya/Unit</th>
-                        <th class="px-4 py-3 text-right">Total</th>
-                        <th class="px-4 py-3">Referensi</th>
-                        <th class="px-4 py-3">Catatan</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-100">
+        <table class="w-full text-sm table-auto">
+            <thead>
+                <tr class="border-b border-gray-200 text-left text-xs uppercase tracking-wider text-gray-500">
+                    <th class="px-3 py-2 whitespace-nowrap">Waktu</th>
+                    <th class="px-3 py-2 whitespace-nowrap">Tipe</th>
+                    <th class="px-3 py-2 whitespace-nowrap">Item</th>
+                    <th class="px-3 py-2 text-right whitespace-nowrap">Qty</th>
+                    <th class="px-3 py-2 text-right whitespace-nowrap">Biaya/Unit</th>
+                    <th class="px-3 py-2 text-right whitespace-nowrap">Total</th>
+                    <th class="px-3 py-2 whitespace-nowrap">Referensi</th>
+                    <th class="px-3 py-2 whitespace-nowrap">Catatan</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
                     @forelse($movements as $mv)
                     @php
                         $isIn = str_contains($mv->movement_type, '_IN') || str_contains($mv->movement_type, 'RETURN');
@@ -104,36 +127,36 @@
                         $colorClass = $typeColors[$mv->movement_type] ?? 'bg-gray-100 text-gray-600';
                     @endphp
                     <tr class="hover:bg-gray-50/50 transition">
-                        <td class="px-4 py-3 text-gray-500 text-xs whitespace-nowrap">
+                        <td class="px-3 py-2 text-gray-500 text-xs whitespace-nowrap">
                             {{ $mv->created_at->format('d M Y') }}<br>
                             <span class="text-gray-400">{{ $mv->created_at->format('H:i') }}</span>
                         </td>
-                        <td class="px-4 py-3">
+                        <td class="px-3 py-2">
                             <span class="mv-badge {{ $colorClass }}">
                                 <i class="ti {{ $isIn ? 'ti-arrow-down-left' : 'ti-arrow-up-right' }} text-[10px]"></i>
                                 {{ str_replace('_', ' ', $mv->movement_type) }}
                             </span>
                         </td>
-                        <td class="px-4 py-3">
+                        <td class="px-3 py-2">
                             <p class="font-medium text-gray-900">
                                 {{ $mv->stock->name ?? ($mv->productVariant->product->name ?? '-') }}
                             </p>
                         </td>
-                        <td class="px-4 py-3 text-right font-medium {{ $isIn ? 'text-green-600' : 'text-red-600' }}">
+                        <td class="px-3 py-2 text-right font-medium {{ $isIn ? 'text-green-600' : 'text-red-600' }}">
                             {{ $isIn ? '+' : '-' }}{{ number_format($mv->quantity, 2) }}
                             <span class="text-gray-400 text-xs">{{ $mv->unit->name ?? '' }}</span>
                         </td>
-                        <td class="px-4 py-3 text-right text-gray-600">
+                        <td class="px-3 py-2 text-right text-gray-600">
                             {{ number_format($mv->cost_per_unit, 0, ',', '.') }}
                         </td>
-                        <td class="px-4 py-3 text-right font-medium text-gray-800">
+                        <td class="px-3 py-2 text-right font-medium text-gray-800">
                             Rp {{ number_format($mv->total_cost, 0, ',', '.') }}
                         </td>
-                        <td class="px-4 py-3 text-xs text-gray-500">
+                        <td class="px-3 py-2 text-xs text-gray-500 whitespace-normal">
                             {{ $mv->reference_type ?? '-' }}
                             @if($mv->reference_id) #{{ $mv->reference_id }} @endif
                         </td>
-                        <td class="px-4 py-3 text-xs text-gray-400 max-w-[150px] truncate">
+                        <td class="px-3 py-2 text-xs text-gray-400 max-w-[180px] truncate">
                             {{ $mv->notes ?? '-' }}
                         </td>
                     </tr>
