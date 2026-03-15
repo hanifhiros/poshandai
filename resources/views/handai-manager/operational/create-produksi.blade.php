@@ -107,7 +107,7 @@
         ]]);
     @endphp
 
-    <form method="POST" action="{{ route('manager.operational.produksi.store') }}" class="space-y-5" x-data="produksiForm()">
+    <form method="POST" action="{{ route('manager.operational.produksi.store') }}" class="space-y-5" x-data="produksiForm()" @submit="ensureSelectedPicIsAdded()">
         @csrf
 
         {{-- Card: Info Utama --}}
@@ -317,7 +317,13 @@ function produksiForm() {
         wageMap: @json($wageMap ?? []),
         sfpWageMap: @json($sfpWageMap ?? []),
 
-        selectedPic: '',
+        ensureSelectedPicIsAdded() {
+            if (this.selectedPic && !this.picIds.includes(this.selectedPic)) {
+                this.picIds.push(this.selectedPic);
+                this.selectedPic = '';
+            }
+        },
+
         addPic() {
             const id = this.selectedPic;
             if (!id) return;

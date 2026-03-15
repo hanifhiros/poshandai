@@ -149,7 +149,7 @@
                     <tr class="pdk-row {{ $stripe }} border-b border-gray-50 last:border-b-0 cursor-pointer hover:bg-emerald-50/30"
                         @click="openDetail({
                             date: '{{ \Carbon\Carbon::parse($production->production_date)->format('d M Y') }}',
-                            pic: '{{ addslashes($production->pic->name ?? '-') }}',
+                            pic: '{{ addslashes(collect($production->pic_ids ?? [])->map(fn($id) => $employeeMap[$id] ?? null)->filter()->values()->join(', ')) }}',
                             type: '{{ $production->semi_finished_product_id ? 'setengah' : 'jadi' }}',
                             product: '{{ addslashes($production->semi_finished_product_id ? ($production->semiFinishedProduct->name ?? '-') : ($production->product_name ?? $production->productVariants->product->name ?? '-')) }}',
                             variant: '{{ addslashes($production->semi_finished_product_id ? '' : ($production->variant_option_summary ?? $production->productVariants->options->pluck('name')->join(', '))) }}',
@@ -163,7 +163,21 @@
                         })">
                         <td class="py-3 px-5 text-gray-500 tabular-nums whitespace-nowrap">{{ \Carbon\Carbon::parse($production->production_date)->format('d/m/Y') }}</td>
                         <td class="py-3 px-4">
-                            <span class="pdk-badge bg-blue-50 text-blue-600">{{ $production->pic->name ?? '-' }}</span>
+                            @php
+                                $picNames = collect($production->pic_ids ?? [])->map(fn($id) => $employeeMap[$id] ?? null)->filter()->values();
+                            @endphp
+                            @if($picNames->isEmpty())
+                                <span class="pdk-badge bg-gray-100 text-gray-500">-</span>
+                            @else
+                                <div class="flex flex-wrap gap-1">
+                                    @foreach($picNames->take(2) as $picName)
+                                        <span class="pdk-badge bg-blue-50 text-blue-600">{{ $picName }}</span>
+                                    @endforeach
+                                    @if($picNames->count() > 2)
+                                        <span class="pdk-badge bg-blue-100 text-blue-600">+{{ $picNames->count() - 2 }}</span>
+                                    @endif
+                                </div>
+                            @endif
                         </td>
                         <td class="py-3 px-4 text-center">
                             @if($production->semi_finished_product_id)
@@ -216,7 +230,7 @@
             <div class="p-4 border-l-[3px] border-l-emerald-400"
                  @click="openDetail({
                     date: '{{ \Carbon\Carbon::parse($production->production_date)->format('d M Y') }}',
-                    pic: '{{ addslashes($production->pic->name ?? '-') }}',
+                    pic: '{{ addslashes(collect($production->pic_ids ?? [])->map(fn($id) => $employeeMap[$id] ?? null)->filter()->values()->join(', ')) }}',
                     product: '{{ addslashes($production->product_name ?? $production->productVariants->product->name ?? '-') }}',
                     variant: '{{ addslashes($production->variant_option_summary ?? $production->productVariants->options->pluck('name')->join(', ') ?? '-') }}',
                     sku: '{{ $production->productVariants->sku->sku_code ?? '-' }}',
@@ -236,7 +250,7 @@
                 </div>
                 <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-[12px]">
                     <div><span class="text-gray-400">Tanggal:</span> <span class="text-gray-600">{{ \Carbon\Carbon::parse($production->production_date)->format('d/m/Y') }}</span></div>
-                    <div><span class="text-gray-400">PIC:</span> <span class="font-medium text-gray-700">{{ $production->pic->name ?? '-' }}</span></div>
+                    <div><span class="text-gray-400">PIC:</span> <span class="font-medium text-gray-700">{{ collect($production->pic_ids ?? [])->map(fn($id) => $employeeMap[$id] ?? null)->filter()->values()->join(', ') ?: '-' }}</span></div>
                 </div>
                 @if($production->usages->count())
                 <div class="flex flex-wrap gap-1 mt-2">
