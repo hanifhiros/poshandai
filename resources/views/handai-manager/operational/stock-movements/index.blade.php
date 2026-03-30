@@ -2,38 +2,11 @@
 
 @section('title', 'Stock Movement Log')
 
+@section('page-style')
+@vite('resources/css/handai-manager-operational-stock-movements.css')
+@endsection
+
 @section('content')
-<style>
-    [x-cloak] { display: none !important; }
-    .mv-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        padding: 4px 10px;
-        border-radius: 9999px;
-        font-size: 11px;
-        font-weight: 600;
-        line-height: 1.3;
-    }
-
-    .mv-input {
-        width: 100%;
-        height: 38px;
-        padding: 0 12px;
-        font-size: 13px;
-        border: 1px solid #e5e7eb;
-        border-radius: 12px;
-        background: #ffffff;
-        transition: border-color .15s, box-shadow .15s;
-    }
-
-    .mv-input:focus {
-        outline: none;
-        border-color: #34d399;
-        box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.18);
-    }
-</style>
-
 <div class="py-5 px-4 sm:px-6 lg:px-8 max-w-[1440px] mx-auto">
 
     {{-- Header --}}

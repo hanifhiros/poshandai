@@ -4,12 +4,7 @@
 
 @push('styles')
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
-<style>
-    /* Make the placeholder option in Choices dropdown look subtle */
-    select.stock-select option[value=""] {
-        color: #94a3b8;
-    }
-</style>
+@vite('resources/css/handai-manager-inventory-stock-create.css')
 @endpush
 
 @section('content')
@@ -68,16 +63,7 @@
           @submit.prevent="submitForm($event)"
           class="max-w-5xl mx-auto space-y-5">
         @csrf
-        @push('styles')
-        <style>
-            #purchase-info-section label { margin-bottom: .5rem; }
-            #purchase-info-section input[type=text],
-            #purchase-info-section input[type=date],
-            #purchase-info-section select {
-                padding: .75rem 1rem; /* px-4 py-3 */
-            }
-        </style>
-        @endpush
+
 
         {{-- ═══════════════════════════════════════════════════════
              SECTION 1: Informasi Pembelian

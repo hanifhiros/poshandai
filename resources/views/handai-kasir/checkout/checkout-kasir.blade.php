@@ -7,9 +7,7 @@
 @endsection
 
 @section('page-style')
-<style>
-    [x-cloak] { display: none !important; }
-</style>
+@vite('resources/css/handai-kasir-checkout.css')
 @endsection
 
 @section('content')

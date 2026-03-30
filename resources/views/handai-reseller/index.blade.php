@@ -9,17 +9,7 @@
 
 @section('page-style')
 
-    <style>
-        .ts-control {
-            border-radius: 6px;
-            border-color: #d1d5db;
-        }
-
-        .ts-dropdown .active {
-            background-color: #8b5cf6 !important;
-            color: white;
-        }
-    </style>
+    @vite('resources/css/handai-reseller-index.css')
 
 @endsection
 

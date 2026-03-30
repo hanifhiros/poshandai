@@ -1,0 +1,5 @@
+/* Finance dashboard styles extracted from Blade. */
+
+.fc { background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; box-shadow: 0 1px 3px rgba(0,0,0,.04); }
+.kpi-up { color: #16a34a; }
+.kpi-down { color: #dc2626; }

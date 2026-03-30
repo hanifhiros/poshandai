@@ -23,6 +23,7 @@
     {{-- Vite Assets --}}
     @vite('resources/js/app.js')
     @vite('resources/css/app.css')
+    @vite('resources/css/handai-pos-layout.css')
 
     {{-- Fonts --}}
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -36,92 +37,6 @@
 
     {{-- Dark Mode Styles --}}
     @include('handai-pos.layouts.components.dark-mode-styles')
-
-    <style>
-        * { font-family: 'Inter', 'Poppins', sans-serif; }
-        body { overflow: hidden; }
-
-        /* Scrollbar styling */
-        .pos-scroll::-webkit-scrollbar { width: 4px; }
-        .pos-scroll::-webkit-scrollbar-track { background: transparent; }
-        .pos-scroll::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 999px; }
-        .pos-scroll::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
-
-        /* Hide scrollbar for category pills */
-        .hide-scrollbar::-webkit-scrollbar { display: none; }
-        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-
-        /* Toast animation */
-        @keyframes slideInRight {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-        @keyframes slideOutRight {
-            from { transform: translateX(0); opacity: 1; }
-            to { transform: translateX(100%); opacity: 0; }
-        }
-        .toast-enter { animation: slideInRight 0.3s ease-out forwards; }
-        .toast-leave { animation: slideOutRight 0.25s ease-in forwards; }
-
-        /* Smooth transitions */
-        .sidebar-transition {
-            transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        /* Product card hover */
-        .product-card-pos {
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .product-card-pos:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px -5px rgba(0,0,0,0.08), 0 4px 10px -6px rgba(0,0,0,0.04);
-        }
-        .product-card-pos:active {
-            transform: translateY(0);
-        }
-
-        /* Cart item animation */
-        @keyframes cartPulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.08); }
-        }
-        .cart-pulse { animation: cartPulse 0.3s ease-in-out; }
-
-        /* Mobile safe area for bottom nav */
-        .safe-area-bottom {
-            padding-bottom: env(safe-area-inset-bottom, 0);
-        }
-        
-        /* Focus-visible outlines for accessibility */
-        /* Correct selector and include product cards and skip links */
-        :where(button, a, [role="button"]):focus-visible,
-        .pos-focusable:focus-visible,
-        .prod-card:focus-visible,
-        .prod-card-list:focus-visible,
-        .skip-links a:focus-visible {
-            outline: none;
-            box-shadow: 0 0 0 4px rgba(12,144,68,0.14);
-            border-radius: 8px;
-        }
-        /* Additional focused controls */
-        .prod-badge-fav:focus-visible {
-            box-shadow: 0 0 0 4px rgba(12,144,68,0.14);
-            transform: scale(1.03);
-            outline: none;
-        }
-        .mobile-cart-fab:focus-visible,
-        .checkout-btn:focus-visible {
-            box-shadow: 0 6px 24px rgba(12,144,68,0.22), 0 0 0 6px rgba(12,144,68,0.08);
-            transform: translateY(-2px) scale(1.02);
-            outline: none;
-        }
-        /* Buttons inside dialogs */
-        [role="dialog"] button:focus-visible {
-            box-shadow: 0 0 0 6px rgba(12,144,68,0.12);
-            border-radius: 8px;
-            outline: none;
-        }
-    </style>
 </head>
 
 <body class="bg-slate-50 text-slate-800 antialiased">
