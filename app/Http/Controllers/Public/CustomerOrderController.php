@@ -12,12 +12,19 @@ use App\Models\Promo;
 use App\Models\ResellerStore;
 use App\Models\Store;
 use App\Services\InventoryService;
+use App\Services\CartService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class CustomerOrderController extends Controller
 {
+    private CartService $cartService;
+
+    public function __construct(CartService $cartService)
+    {
+        $this->cartService = $cartService;
+    }
     public function checkout(Request $request)
     {
         if (!session('customer_id') && !session('customer_guest')) {
@@ -27,24 +34,12 @@ class CustomerOrderController extends Controller
 
         $cart = session('cart', []);
         $cartTotalItems = array_sum(array_column($cart, 'quantity'));
-
-        $subTotal = 0;
-        $cartTotalPrice = 0;
-        $discountTotal = 0;
-
-        foreach ($cart as $item) {
-            $promo = $item['price'] ?? 0;
-            $normal = $item['normal_price'] ?? $promo;
-            $qty = $item['quantity'] ?? 0;
-
-            $subTotal += $normal * $qty;
-            $cartTotalPrice += $promo * $qty;
-            $discountTotal += ($normal - $promo) * $qty;
-        }
-
-
-        $ppn = $cartTotalPrice * 0.0;
-        $grandTotal = $cartTotalPrice + $ppn;
+        $totals = $this->cartService->calculateTotals($cart);
+        $subTotal = $totals['subTotal'];
+        $cartTotalPrice = $totals['cartTotalPrice'];
+        $discountTotal = $totals['discountTotal'];
+        $ppn = $totals['ppn'];
+        $grandTotal = $totals['grandTotal'];
 
         return view('customer-order.checkout', compact(
             'cart',
@@ -86,30 +81,14 @@ class CustomerOrderController extends Controller
     public function removePromo(Request $request)
     {
         session()->forget(['promo_discount', 'promo_code']);
-
         $cart = session('cart', []);
-        $subTotal = 0;
-        $cartTotalPrice = 0;
-        $discountTotal = 0;
-
-        foreach ($cart as $item) {
-            $promo = $item['price'] ?? 0;
-            $normal = $item['normal_price'] ?? $promo;
-            $qty = $item['quantity'] ?? 0;
-
-            $subTotal += $normal * $qty;
-            $cartTotalPrice += $promo * $qty;
-            $discountTotal += ($normal - $promo) * $qty;
-        }
-
-        $ppn = $cartTotalPrice * 0.0;
-        $grandTotal = $cartTotalPrice + $ppn;
+        $totals = $this->cartService->calculateTotals($cart);
 
         return response()->json([
             'success' => true,
             'promoRemoved' => true,
             'promoDiscount' => 0,
-            'grandTotal' => number_format($grandTotal, 0, ',', '.'),
+            'grandTotal' => number_format($totals['grandTotal'], 0, ',', '.'),
         ]);
     }
 
@@ -150,7 +129,7 @@ class CustomerOrderController extends Controller
             $customerId = $customer->id;
         }
 
-        $totals = $this->calculateCartTotals();
+        $totals = $this->cartService->calculateTotals($cart);
         $promoCode = session('promo_code');
         $promoDiscount = session('promo_discount') ?? 0;
         $grossAmount = max($totals['grandTotal'] - $promoDiscount, 0);
@@ -310,37 +289,6 @@ class CustomerOrderController extends Controller
 
 
 
-    private function calculateCartTotals()
-    {
-
-        $cart = session('cart', []);
-        $subTotal = 0;
-        $cartTotalPrice = 0;
-        $discountTotal = 0;
-
-        foreach ($cart as $itm) {
-            $promo = $itm['price'] ?? 0;
-            $normal = $itm['normal_price'] ?? $promo;
-            $qty = $itm['quantity'] ?? 0;
-
-            $subTotal += $normal * $qty;
-            $cartTotalPrice += $promo * $qty;
-            $discountTotal += ($normal - $promo) * $qty;
-        }
-
-        $ppn = $cartTotalPrice * 0.0;
-        $grandTotal = $cartTotalPrice + $ppn;
-
-        return [
-            'subTotal' => $subTotal,
-            'cartTotalPrice' => $cartTotalPrice,
-            'discountTotal' => $discountTotal,
-            'ppn' => $ppn,
-            'grandTotal' => $grandTotal
-        ];
-    }
-
-
     public function applyPromo(Request $request)
     {
         $request->validate([
@@ -349,7 +297,7 @@ class CustomerOrderController extends Controller
 
         $promoCode = $request->input('promo_code');
 
-        $promo = Promo::where('Promo_Code', $promoCode)->first();
+        $promo = $this->cartService->getPromoByCode($promoCode);
 
         if (!$promo) {
             return response()->json([
@@ -374,26 +322,13 @@ class CustomerOrderController extends Controller
             ], 400);
         }
 
-        $subTotal = 0;
-        foreach ($cart as $item) {
-            $price = $item['price'] ?? 0;
-            $normal = $item['normal_price'] ?? $price;
-            $qty = $item['quantity'] ?? 0;
-            $subTotal += ($normal * $qty);
-        }
-
-        $calculatedDiscount = $subTotal * ($promo->discount_rate / 100);
-
-        if ($calculatedDiscount > $promo->max_discount_price) {
-            $calculatedDiscount = $promo->max_discount_price;
-        }
+        $totals = $this->cartService->calculateTotals($cart);
+        $calculatedDiscount = $this->cartService->calculatePromoDiscount($promo, $totals['subTotal']);
 
         session([
             'promo_code' => $promo->Promo_Code,
             'promo_discount' => $calculatedDiscount
         ]);
-
-        $totals = $this->calculateCartTotals();
 
         $grandTotalAfterPromo = $totals['grandTotal'] - $calculatedDiscount;
         if ($grandTotalAfterPromo < 0) {

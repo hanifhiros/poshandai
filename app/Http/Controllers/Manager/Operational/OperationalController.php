@@ -31,6 +31,7 @@ class OperationalController extends Controller
             'semiFinishedProduct',
             'usages.stock',
             'usages.unit',
+            'wages.employee',
         ])
         ->where('store_id', $selected_store_id);
 
@@ -46,6 +47,9 @@ class OperationalController extends Controller
             })
             ->orWhereHas('pic', function ($eq) use ($search) {
                 $eq->where('name', 'LIKE', "%{$search}%");
+            })
+            ->orWhereHas('wages.employee', function ($ew) use ($search) {
+                $ew->where('name', 'LIKE', "%{$search}%");
             });
         });
     }
@@ -65,6 +69,9 @@ class OperationalController extends Controller
             $query->whereNotNull('semi_finished_product_id');
         }
     }
+
+    // Clone the query (after filters) to calculate wage totals without affecting pagination
+    $totalsQuery = (clone $query);
 
     $productions = $query->orderBy('production_date', 'desc')->paginate(10)->appends($request->query());
 
@@ -87,6 +94,30 @@ class OperationalController extends Controller
         'total_qty' => ProductionHistory::where('store_id', $selected_store_id)->sum('quantity_produced'),
         'total_pic' => $allPicIds->count(),
     ];
+
+    // Wage totals by type (finished / semi) based on current filter
+    $totalWageFinished = 0;
+    $totalWageSemi = 0;
+    $totalWageAll = 0;
+
+    $allFiltered = $totalsQuery->get();
+    foreach ($allFiltered as $prod) {
+        if ($prod->semi_finished_product_id) {
+            $unitCost = 0;
+            if ($prod->semiFinishedProduct) {
+                $outQty = max(0.001, (float) ($prod->semiFinishedProduct->output_qty ?: 1));
+                $unitCost = round((float) ($prod->semiFinishedProduct->labor_cost ?? 0) / $outQty, 2);
+            }
+            $total = round($unitCost * $prod->quantity_produced, 2);
+            $totalWageSemi += $total;
+            $totalWageAll += $total;
+        } else {
+            $unitCost = (float) ($prod->productVariants?->product->wage_per_unit ?? 0);
+            $total = round($unitCost * $prod->quantity_produced, 2);
+            $totalWageFinished += $total;
+            $totalWageAll += $total;
+        }
+    }
 
     $employees = Employee::where('store_id', $selected_store_id)->orderBy('name')->get();
     $employeeMap = $employees->pluck('name', 'id')->toArray();
@@ -172,7 +203,7 @@ public function produksiStore(Request $request)
                 $sfp = \App\Models\SemiFinishedProduct::find($sfpId);
                 if (!$sfp) continue;
 
-                ProductionHistory::create([
+                $production = ProductionHistory::create([
                     'production_date' => $request->production_date,
                     'pic_id' => $picId,
                     'pic_ids' => $picIds,
@@ -183,6 +214,28 @@ public function produksiStore(Request $request)
                     'variant_option_summary' => '',
                 ]);
 
+                // Calculate wage for semi-finished product
+                $outQty = max(0.001, (float) ($sfp->output_qty ?: 1));
+            $laborCost = (float) ($sfp->labor_cost ?? 0);
+            if ($laborCost <= 0) {
+                // fallback: assume some % of material cost (if available) - adjust as needed
+                $laborCost = max(0, (float) ($sfp->material_cost ?? 0) * 0.1);
+            }
+            $wagePerUnit = round($laborCost / $outQty, 2);
+
+                foreach ($picIds as $pid) {
+                    \App\Models\ProductionWage::create([
+                        'store_id' => session('selected_store'),
+                        'production_history_id' => $production->id,
+                        'employee_id' => $pid,
+                        'recipe_sfp_id' => $sfp->id,
+                        'production_quantity' => $qtyProduced,
+                        'wage_per_unit' => $wagePerUnit,
+                        'total_wage' => $payPerPic,
+                        'production_date' => $request->production_date,
+                    ]);
+                }
+
                 continue;
             }
 
@@ -190,7 +243,7 @@ public function produksiStore(Request $request)
             $prodVar = ProductVariants::find($productVariantId);
             if (!$prodVar) continue;
 
-            ProductionHistory::create([
+            $production = ProductionHistory::create([
                 'production_date' => $request->production_date,
                 'pic_id' => $picId,
                 'pic_ids' => $picIds,
@@ -200,6 +253,28 @@ public function produksiStore(Request $request)
                 'product_name' => $prodVar->product->name,
                 'variant_option_summary' => $prodVar->options->pluck('name')->join(', '),
             ]);
+
+            // Calculate wage for finished product
+            $wagePerUnit = (float) ($prodVar->product->wage_per_unit ?? 0);
+            if ($wagePerUnit <= 0) {
+                // Fallback: use a percentage of HPP if wage isn't explicitly set
+                $wagePerUnit = max(0, (float) ($prodVar->product->hpp ?? 0) * 0.1);
+            }
+            $totalWage = round($wagePerUnit * $qtyProduced, 2);
+            $payPerPic = $picIds ? round($totalWage / count($picIds), 2) : 0;
+
+            foreach ($picIds as $pid) {
+                \App\Models\ProductionWage::create([
+                    'store_id' => session('selected_store'),
+                    'production_history_id' => $production->id,
+                    'employee_id' => $pid,
+                    'recipe_product_id' => $prodVar->product_id,
+                    'production_quantity' => $qtyProduced,
+                    'wage_per_unit' => $wagePerUnit,
+                    'total_wage' => $payPerPic,
+                    'production_date' => $request->production_date,
+                ]);
+            }
         }
 
         DB::commit();

@@ -81,4 +81,9 @@ class ProductionHistory extends Model
         return $this->belongsTo(\App\Models\SemiFinishedProduct::class, 'semi_finished_product_id');
     }
 
+    public function wages()
+    {
+        return $this->hasMany(\App\Models\ProductionWage::class, 'production_history_id');
+    }
+
 }

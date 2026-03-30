@@ -61,7 +61,7 @@
     </div>
 
     {{-- ── STAT CARDS ── --}}
-    <div class="grid grid-cols-2 lg:grid-cols-3 gap-3 mb-5">
+    <div class="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-5">
         <div class="pdk-card-stat">
             <p class="text-[11px] font-medium text-gray-400 uppercase tracking-wider leading-none">Total Produksi</p>
             <p class="text-xl font-bold text-gray-800 mt-1.5 leading-none tabular-nums">{{ number_format($prodStats->total ?? 0) }}</p>
@@ -69,6 +69,14 @@
         <div class="pdk-card-stat">
             <p class="text-[11px] font-medium text-emerald-500 uppercase tracking-wider leading-none">Total Qty</p>
             <p class="text-xl font-bold text-emerald-600 mt-1.5 leading-none tabular-nums">{{ number_format($prodStats->total_qty ?? 0) }}</p>
+        </div>
+        <div class="pdk-card-stat">
+            <p class="text-[11px] font-medium text-indigo-500 uppercase tracking-wider leading-none">Total Upah (Finished)</p>
+            <p class="text-xl font-bold text-indigo-700 mt-1.5 leading-none tabular-nums">Rp {{ number_format($totalWageFinished ?? 0, 0, ',', '.') }}</p>
+        </div>
+        <div class="pdk-card-stat">
+            <p class="text-[11px] font-medium text-violet-500 uppercase tracking-wider leading-none">Total Upah (Semi)</p>
+            <p class="text-xl font-bold text-violet-700 mt-1.5 leading-none tabular-nums">Rp {{ number_format($totalWageSemi ?? 0, 0, ',', '.') }}</p>
         </div>
         <div class="pdk-card-stat hidden lg:block">
             <p class="text-[11px] font-medium text-blue-500 uppercase tracking-wider leading-none">PIC Terlibat</p>
@@ -145,7 +153,21 @@
                 </thead>
                 <tbody>
                     @forelse($productions as $idx => $production)
-                    @php $stripe = $idx % 2 === 0 ? '' : 'bg-gray-50/40'; @endphp
+                    @php
+                        $stripe = $idx % 2 === 0 ? '' : 'bg-gray-50/40';
+                        $totalWage = $production->wages->sum('total_wage');
+                        if (!$totalWage) {
+                            if ($production->semi_finished_product_id) {
+                                $unitCost = (float) ($production->semiFinishedProduct?->labor_cost ?? 0) / max(0.001, (float) ($production->semiFinishedProduct?->output_qty ?: 1));
+                            } else {
+                                $unitCost = (float) ($production->productVariants?->product->wage_per_unit ?? 0);
+                                if ($unitCost <= 0) {
+                                    $unitCost = (float) ($production->productVariants?->hpp ?? 0);
+                                }
+                            }
+                            $totalWage = round($unitCost * $production->quantity_produced, 2);
+                        }
+                    @endphp
                     <tr class="pdk-row {{ $stripe }} border-b border-gray-50 last:border-b-0 cursor-pointer hover:bg-emerald-50/30"
                         @click="openDetail({
                             date: '{{ \Carbon\Carbon::parse($production->production_date)->format('d M Y') }}',
@@ -155,9 +177,15 @@
                             variant: '{{ addslashes($production->semi_finished_product_id ? '' : ($production->variant_option_summary ?? $production->productVariants->options->pluck('name')->join(', '))) }}',
                             sku: '{{ $production->semi_finished_product_id ? '-' : ($production->productVariants->sku->sku_code ?? '-') }}',
                             qty: {{ $production->quantity_produced }},
+                            totalWage: '{{ number_format($totalWage, 0, ',', '.') }}',
                             usages: [
                                 @foreach($production->usages as $u)
                                 { name: '{{ addslashes($u->stock->name ?? $u->stock_name ?? '-') }}', qty: '{{ $u->quantity }}', unit: '{{ $u->unit->symbol ?? '' }}' },
+                                @endforeach
+                            ],
+                            wages: [
+                                @foreach($production->wages as $w)
+                                { employee: '{{ addslashes($w->employee?->name ?? '-') }}', total: '{{ number_format($w->total_wage, 0, ',', '.') }}' },
                                 @endforeach
                             ]
                         })">
@@ -334,6 +362,7 @@
                         <div class="flex justify-between text-[12px]"><span class="text-gray-400">Varian</span><span class="text-gray-600" x-text="detailData.variant"></span></div>
                         <div class="flex justify-between text-[12px]"><span class="text-gray-400">SKU</span><span class="font-mono text-gray-500" x-text="detailData.sku"></span></div>
                         <div class="flex justify-between text-[12px]"><span class="text-gray-400">Qty Diproduksi</span><span class="font-bold text-emerald-600" x-text="detailData.qty"></span></div>
+                        <div class="flex justify-between text-[12px]"><span class="text-gray-400">Total Upah</span><span class="font-bold text-indigo-700" x-text="detailData.totalWage"></span></div>
                     </div>
                     <template x-if="detailData.usages && detailData.usages.length > 0">
                         <div>
@@ -343,6 +372,20 @@
                                     <div class="p-2.5 bg-gray-50 rounded-lg flex items-center justify-between text-[12px]">
                                         <span class="text-gray-700 font-medium" x-text="u.name"></span>
                                         <span class="text-gray-500"><span class="font-semibold text-gray-700" x-text="u.qty"></span> <span x-text="u.unit"></span></span>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </template>
+
+                    <template x-if="detailData.wages && detailData.wages.length > 0">
+                        <div class="mt-4">
+                            <p class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Upah Produksi</p>
+                            <div class="space-y-1.5">
+                                <template x-for="(w, i) in detailData.wages" :key="i">
+                                    <div class="p-2.5 bg-indigo-50 rounded-lg flex items-center justify-between text-[12px]">
+                                        <span class="text-indigo-700" x-text="w.employee"></span>
+                                        <span class="text-indigo-700 font-semibold" x-text="w.total"></span>
                                     </div>
                                 </template>
                             </div>

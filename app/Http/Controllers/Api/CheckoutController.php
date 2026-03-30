@@ -9,9 +9,16 @@ use Illuminate\Support\Facades\Log;
 use App\Models\{Customer, Order, Promo, ProductVariants, CustomerStore};
 use App\Services\InventoryService;
 use App\Services\AccountingService;
+use App\Services\CartService;
 
 class CheckoutController extends Controller
 {
+    private CartService $cartService;
+
+    public function __construct(CartService $cartService)
+    {
+        $this->cartService = $cartService;
+    }
     public function sessionCart(Request $request){
         
             session(['cart' => $request->input('items', [])]);
@@ -82,7 +89,7 @@ class CheckoutController extends Controller
         if (!$customer) {
             return response()->json(['success' => false, 'message' => 'Customer tidak ditemukan.'], 404);
         }
-        $totals = $this->calculateCartTotals();
+        $totals = $this->cartService->calculateTotals($cart);
         $promoCode = session('promo_code');
         $promoDiscount = session('promo_discount') ?? 0;
         $deliveryFee = floatval($request->input('delivery_fee', 0));
@@ -217,35 +224,6 @@ class CheckoutController extends Controller
             ], 500);
         }
     }
-    private function calculateCartTotals()
-    {
-        $cart = session('cart', []);
-        $subTotal = 0;
-        $cartTotalPrice = 0;
-        $discountTotal = 0;
-
-        foreach ($cart as $item) {
-            $price = $item['price'] ?? 0;
-            $quantity = $item['quantity'] ?? 0;
-
-            $normal = $item['normal_price'] ?? $price;
-
-            $subTotal += $normal * $quantity;
-            $cartTotalPrice += $price * $quantity;
-            $discountTotal += ($normal - $price) * $quantity;
-        }
-
-        $ppn = $cartTotalPrice * 0; // Bisa diganti jika ada PPN
-        $grandTotal = $cartTotalPrice + $ppn;
-
-        return [
-            'subTotal' => $subTotal,
-            'cartTotalPrice' => $cartTotalPrice,
-            'discountTotal' => $discountTotal,
-            'ppn' => $ppn,
-            'grandTotal' => $grandTotal,
-        ];
-    }
     public function applyPromo(Request $request)
     {
         $request->validate([
@@ -253,7 +231,7 @@ class CheckoutController extends Controller
         ]);
 
         $promoCode = $request->input('promo_code');
-        $promo = Promo::where('Promo_Code', $promoCode)->first();
+        $promo = $this->cartService->getPromoByCode($promoCode);
 
         if (!$promo) {
             return response()->json([
@@ -277,25 +255,14 @@ class CheckoutController extends Controller
             ], 400);
         }
 
-        $subTotal = 0;
-        foreach ($cart as $item) {
-            $price = $item['price'] ?? 0;
-            $normal = $item['normal_price'] ?? $price;
-            $qty = $item['quantity'] ?? 0;
-            $subTotal += $normal * $qty;
-        }
-
-        $calculatedDiscount = $subTotal * ($promo->discount_rate / 100);
-        if ($calculatedDiscount > $promo->max_discount_price) {
-            $calculatedDiscount = $promo->max_discount_price;
-        }
+        $totals = $this->cartService->calculateTotals($cart);
+        $calculatedDiscount = $this->cartService->calculatePromoDiscount($promo, $totals['subTotal']);
 
         session([
             'promo_code' => $promo->Promo_Code,
             'promo_discount' => $calculatedDiscount,
         ]);
 
-        $totals = $this->calculateCartTotals();
         $grandTotalAfterPromo = max($totals['grandTotal'] - $calculatedDiscount, 0);
 
         return response()->json([
