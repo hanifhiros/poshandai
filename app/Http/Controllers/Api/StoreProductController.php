@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Product;
+use App\Models\ProductVariants;
 use App\Models\Store;
 use Illuminate\Http\Request;
 
@@ -36,7 +37,7 @@ class StoreProductController extends Controller
         $productsData = $products->map(function ($product) {
             // Map setiap sizePrice ke array variant
             $variants = $product->sizePrices->map(function ($sp) {
-                $isPromo = ($sp->is_promo === 'yes');
+                $isPromo = ($sp->is_promo === ProductVariants::PROMO_YES);
                 $finalPrice = $isPromo
                     ? ($sp->price - $sp->price_discount)
                     : $sp->price;
@@ -45,7 +46,7 @@ class StoreProductController extends Controller
                     'id' => $sp->id,
                     'price' => (int) $sp->price,
                     'price_discount' => (int) $sp->price_discount,
-                    'isPromo' => $isPromo ? 'yes' : 'no',
+                    'isPromo' => $isPromo ? ProductVariants::PROMO_YES : ProductVariants::PROMO_NO,
                     'final_price' => (int) $finalPrice,
                     'stock' => (int) $sp->stock,
                     'isSoldOut' => $sp->stock <= 0,
@@ -59,20 +60,20 @@ class StoreProductController extends Controller
 
             // Hitung flags dan harga final di level product
             $isSoldOut = $variants->every(fn($v) => $v['isSoldOut']);
-            $promoVariants = $variants->filter(fn($v) => $v['isPromo'] === 'yes');
+            $promoVariants = $variants->filter(fn($v) => $v['isPromo'] === ProductVariants::PROMO_YES);
 
             if ($promoVariants->isNotEmpty()) {
                 // pilih promo termurah
                 $cheapestPromo = $promoVariants->sortBy('final_price')->first();
                 $finalPrice = $cheapestPromo['final_price'];
                 $normalPrice = $cheapestPromo['price'];
-                $isPromo = 'yes';
+                $isPromo = ProductVariants::PROMO_YES;
             } else {
                 // pilih harga normal termurah
                 $minVariant = $variants->sortBy('price')->first();
                 $finalPrice = $minVariant['price'];
                 $normalPrice = null;
-                $isPromo = 'no';
+                $isPromo = ProductVariants::PROMO_NO;
             }
 
             return [

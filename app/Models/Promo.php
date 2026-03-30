@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Promo extends Model
 {
+    public const STATUS_ACTIVE = 'Ya';
+
     protected $table = 'promo';
 
     protected $casts = [

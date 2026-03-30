@@ -52,7 +52,7 @@ class CartController extends Controller
 
     public function getPromos()
     {
-        $promos = Promo::where('is_active', 'Ya')->get();
+        $promos = Promo::where('is_active', Promo::STATUS_ACTIVE)->get();
         return response()->json([
             'success' => true,
             'promos' => $promos
@@ -230,7 +230,7 @@ class CartController extends Controller
     
         $variant = ProductVariants::with(['product', 'options.attribute'])->findOrFail($variantId);
     
-        $finalPrice = ($variant->is_promo === 'yes')
+        $finalPrice = ($variant->is_promo === ProductVariants::PROMO_YES)
             ? ($variant->price - $variant->price_discount)
             : $variant->price;
     
@@ -293,7 +293,7 @@ class CartController extends Controller
             return response()->json(['error' => 'Stok tidak mencukupi.'], 400);
         }
 
-        $finalPrice = ($size->is_promo === 'yes')
+        $finalPrice = ($size->is_promo === ProductVariants::PROMO_YES)
             ? ($size->price - $size->price_discount)
             : $size->price;
 
@@ -330,7 +330,7 @@ class CartController extends Controller
 
         if ($promoCode) {
             $promo = $this->cartService->getPromoByCode($promoCode);
-            if ($promo && $promo->is_active === 'Ya') {
+            if ($promo && $promo->is_active === Promo::STATUS_ACTIVE) {
                 $promoDiscount = $this->cartService->calculatePromoDiscount($promo, $totals['cartTotalPrice']);
             }
         }
@@ -394,7 +394,7 @@ class CartController extends Controller
             ], 404);
         }
 
-        if ($promo->is_active !== 'Ya') {
+        if ($promo->is_active !== Promo::STATUS_ACTIVE) {
             return response()->json([
                 'success' => false,
                 'error' => 'Promo is not active.'

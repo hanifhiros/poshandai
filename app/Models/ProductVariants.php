@@ -12,6 +12,10 @@ class ProductVariants extends Model
 {
     use ForStoreScope;
     use HasFactory;
+
+    public const PROMO_YES = 'yes';
+    public const PROMO_NO = 'no';
+
     protected $table = 'product_variants';
 
     protected $fillable = [

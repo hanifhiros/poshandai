@@ -240,7 +240,7 @@ class CheckoutController extends Controller
             ], 404);
         }
 
-        if ($promo->is_active !== 'Ya') {
+        if ($promo->is_active !== Promo::STATUS_ACTIVE) {
             return response()->json([
                 'success' => false,
                 'error' => 'Promo tidak aktif.'

@@ -19,6 +19,9 @@ use Illuminate\Support\Facades\Log;
 
 class CustomerOrderController extends Controller
 {
+    private const CATEGORY_PROMO = 'Promo';
+    private const CATEGORY_ALL = 'All Products';
+
     private CartService $cartService;
 
     public function __construct(CartService $cartService)
@@ -306,7 +309,7 @@ class CustomerOrderController extends Controller
             ], 404);
         }
 
-        if ($promo->is_active !== 'Ya') {
+        if ($promo->is_active !== Promo::STATUS_ACTIVE) {
             return response()->json([
                 'success' => false,
                 'error' => 'Promo is not active.'
@@ -371,7 +374,7 @@ class CustomerOrderController extends Controller
         $cartTotalPrice = array_reduce($cart, fn($carry, $item) => $carry + (($item['price'] ?? 0) * ($item['quantity'] ?? 0)), 0);
 
         $categories = ProductCategory::all();
-        $categoryName = $request->get('category', 'All Products');
+        $categoryName = $request->get('category', self::CATEGORY_ALL);
         $searchTerm = $request->get('search', '');
 
         $productsQuery = Product::where('store_id', $store_id)
@@ -381,10 +384,10 @@ class CustomerOrderController extends Controller
             $productsQuery->where('name', 'LIKE', "%{$searchTerm}%");
         }
 
-        if ($categoryName === 'Promo') {
-            $promoIDs = ProductVariants::where('is_promo', 'yes')->pluck('product_id')->unique()->toArray();
+        if ($categoryName === self::CATEGORY_PROMO) {
+            $promoIDs = ProductVariants::where('is_promo', ProductVariants::PROMO_YES)->pluck('product_id')->unique()->toArray();
             $products = $productsQuery->whereIn('id', $promoIDs)->get();
-        } elseif ($categoryName !== 'All Products') {
+        } elseif ($categoryName !== self::CATEGORY_ALL) {
             $category = ProductCategory::where('category_name', $categoryName)->first();
             $products = $category ? $productsQuery->where('category_id', $category->id)->get() : collect();
         } else {
@@ -399,9 +402,9 @@ class CustomerOrderController extends Controller
                     'stock' => $sp->stock,
                     'isSoldOut' => $sp->stock <= 0,
                     'quantity' => intval($sp->quantity),
-                    'isPromo' => $sp->is_promo === 'yes',
+                    'isPromo' => $sp->is_promo === ProductVariants::PROMO_YES,
                     'price_discount' => $sp->price_discount,
-                    'final_price' => $sp->is_promo === 'yes' ? $sp->price - $sp->price_discount : $sp->price,
+                    'final_price' => $sp->is_promo === ProductVariants::PROMO_YES ? $sp->price - $sp->price_discount : $sp->price,
                     'variant_options' => $sp->options->map(fn($opt) => $opt->attribute->name . ': ' . $opt->name)->toArray(),
                 ];
             });
@@ -414,7 +417,7 @@ class CustomerOrderController extends Controller
                 return [
                     'product' => $product,
                     'isSoldOut' => $isSoldOut,
-                    'isPromo' => 'yes',
+                    'isPromo' => ProductVariants::PROMO_YES,
                     'price' => $cheapestPromo['final_price'],
                     'normal_price' => $cheapestPromo['price'],
                     'variants' => $variants,
@@ -424,7 +427,7 @@ class CustomerOrderController extends Controller
             return [
                 'product' => $product,
                 'isSoldOut' => $isSoldOut,
-                'isPromo' => 'no',
+                'isPromo' => ProductVariants::PROMO_NO,
                 'price' => $variants->min('price'),
                 'normal_price' => null,
                 'variants' => $variants,
@@ -457,7 +460,7 @@ class CustomerOrderController extends Controller
 
         $variant = ProductVariants::with(['product', 'options.attribute'])->findOrFail($variantId);
 
-        $finalPrice = ($variant->is_promo === 'yes')
+        $finalPrice = ($variant->is_promo === ProductVariants::PROMO_YES)
             ? ($variant->price - $variant->price_discount)
             : $variant->price;
 
@@ -518,7 +521,7 @@ class CustomerOrderController extends Controller
                 return response()->json(['error' => 'Stok tidak mencukupi.'], 400);
             }
 
-            $finalPrice = ($size->is_promo === 'yes')
+            $finalPrice = ($size->is_promo === ProductVariants::PROMO_YES)
                 ? ($size->price - $size->price_discount)
                 : $size->price;
 

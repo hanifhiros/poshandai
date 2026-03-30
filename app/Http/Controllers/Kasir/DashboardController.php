@@ -11,6 +11,9 @@ use App\Models\Store;
 
 class DashboardController extends Controller
 {
+    private const CATEGORY_PROMO = 'Promo';
+    private const CATEGORY_ALL = 'All Products';
+
     public function index(Request $request)
     {
         // Ambil data cart dari session
@@ -24,7 +27,7 @@ class DashboardController extends Controller
         $selected_store_id = session('selected_store');
         $selected_store = $selected_store_id ? Store::find($selected_store_id) : null;
         $categories = ProductCategory::all();
-        $categoryName = $request->get('category', 'All Products');
+        $categoryName = $request->get('category', self::CATEGORY_ALL);
         $searchTerm = $request->get('search', '');
 
         // Query produk sesuai toko dan pencarian
@@ -35,11 +38,11 @@ class DashboardController extends Controller
             $productsQuery->where('name', 'LIKE', "%{$searchTerm}%");
         }
 
-        if ($categoryName === 'Promo') {
-            $promoIDs = ProductVariants::where('is_promo', 'yes')
+        if ($categoryName === self::CATEGORY_PROMO) {
+            $promoIDs = ProductVariants::where('is_promo', ProductVariants::PROMO_YES)
                 ->pluck('product_id')->unique()->toArray();
             $products = $productsQuery->whereIn('id', $promoIDs)->get();
-        } elseif ($categoryName !== 'All Products') {
+        } elseif ($categoryName !== self::CATEGORY_ALL) {
             $category = ProductCategory::where('category_name', $categoryName)->first();
             if ($category) {
                 $products = $productsQuery->where('category_id', $category->id)->get();
@@ -59,9 +62,9 @@ class DashboardController extends Controller
                     'stock' => $sp->stock,
                     'isSoldOut' => $sp->stock <= 0,
                     'quantity' => intval($sp->quantity),
-                    'isPromo' => $sp->is_promo === 'yes',
+                    'isPromo' => $sp->is_promo === ProductVariants::PROMO_YES,
                     'price_discount' => $sp->price_discount,
-                    'final_price' => $sp->is_promo === 'yes'
+                    'final_price' => $sp->is_promo === ProductVariants::PROMO_YES
                         ? $sp->price - $sp->price_discount
                         : $sp->price,
                     'variant_options' => $sp->options->map(function ($opt) {
@@ -77,11 +80,11 @@ class DashboardController extends Controller
                 $cheapestPromo = $promoVariants->sortBy('final_price')->first();
                 $finalPrice = $cheapestPromo['final_price'];
                 $normalPrice = $cheapestPromo['price'];
-                $isPromo = 'yes';
+                $isPromo = ProductVariants::PROMO_YES;
             } else {
                 $finalPrice = $variants->min('price');
                 $normalPrice = null;
-                $isPromo = 'no';
+                $isPromo = ProductVariants::PROMO_NO;
             }
 
             return [
