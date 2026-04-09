@@ -40,12 +40,12 @@
     <div id="global-loading"
          x-show="loading"
          x-transition.opacity
-         class="fixed inset-0 z-[9999] flex items-center justify-center bg-white">
+         class="fixed inset-0 z-[9999] flex items-center justify-center bg-white bg-opacity-80">
         <dotlottie-player
             src="{{ asset('animations/loading.json') }}"
             background="transparent"
             speed="1"
-            style="width: 200px; height: 200px"
+            style="width: 220px; height: 220px"
             loop
             autoplay>
         </dotlottie-player>
@@ -76,7 +76,6 @@
                     const MINIMUM_DURATION = 2500; // minimum durasi tampil loading
                     this.$watch('theme', val => localStorage.setItem('theme', val));
 
-    
                     const start = Date.now();
                     const finishLoading = () => {
                         const elapsed = Date.now() - start;
@@ -85,7 +84,7 @@
                             this.loading = false;
                         }, remaining);
                     };
-    
+
                     window.addEventListener('loading-start', () => this.loading = true);
                     window.addEventListener('loading-end', finishLoading);
                     window.addEventListener('beforeunload', () => this.loading = true);
@@ -94,7 +93,7 @@
                             finishLoading();
                         }
                     });
-    
+
                     // PENTING: kirim loading-end setelah Alpine sudah aktif
                     window.addEventListener('load', () => {
                         window.dispatchEvent(new Event('loading-end'));
@@ -102,10 +101,29 @@
                 }
             }));
         });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const shouldTrigger = (href, target) => {
+                return href && !href.startsWith('#') && !href.startsWith('javascript:') && target !== '_blank';
+            };
+
+            const startLoading = () => window.dispatchEvent(new Event('loading-start'));
+
+            document.querySelectorAll('a').forEach(link => {
+                link.addEventListener('click', () => {
+                    if (shouldTrigger(link.getAttribute('href'), link.target)) {
+                        startLoading();
+                    }
+                });
+            });
+
+            document.querySelectorAll('form').forEach(form => {
+                form.addEventListener('submit', () => {
+                    startLoading();
+                });
+            });
+        });
     </script>
-    
-    
-    
-    
 </body>
 </html>
+
