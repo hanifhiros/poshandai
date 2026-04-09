@@ -17,7 +17,7 @@
     <title>@yield('title')</title>
 
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.0/lottie.min.js"></script>
+    <script src="https://unpkg.com/@dotlottie/player-component@latest/dist/dotlottie-player.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
     @vite('resources/js/app.js')
@@ -37,7 +37,14 @@
          x-transition.opacity
          class="fixed inset-0 z-[9999] flex items-center justify-center bg-white bg-opacity-80"
          style="display: none">
-        <div id="lottie-loading" class="w-48 h-48"></div>
+        <dotlottie-player
+            src="{{ asset('animations/loading.json') }}"
+            background="transparent"
+            speed="1"
+            style="width: 220px; height: 220px"
+            loop
+            autoplay>
+        </dotlottie-player>
     </div>
 
     <main class="w-full min-h-screen">
@@ -66,17 +73,6 @@
 
 
         document.addEventListener("DOMContentLoaded", () => {
-            const loader = document.getElementById('lottie-loading');
-            if (loader) {
-                lottie.loadAnimation({
-                    container: loader,
-                    renderer: 'svg',
-                    loop: true,
-                    autoplay: true,
-                    path: "{{ asset('animations/loading.json') }}"
-                });
-            }
-
             // Link click triggers loading
             document.querySelectorAll('a').forEach(link => {
                 link.addEventListener('click', function () {

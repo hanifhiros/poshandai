@@ -37,10 +37,14 @@
     <!-- Global Loading Overlay -->
     <div x-show="loading" x-transition.opacity
         class="fixed inset-0 z-[9999] flex items-center justify-center bg-white/70 backdrop-blur-[2px]" style="display: none">
-        <div class="flex flex-col items-center gap-3">
-            <div class="w-10 h-10 border-[3px] border-gray-200 border-t-blue-500 rounded-full animate-spin"></div>
-            <span class="text-[13px] text-gray-400 font-medium">Memuat...</span>
-        </div>
+        <dotlottie-player
+            src="{{ asset('animations/loading.json') }}"
+            background="transparent"
+            speed="1"
+            style="width: 180px; height: 180px"
+            loop
+            autoplay>
+        </dotlottie-player>
     </div>
 
 
@@ -66,6 +70,7 @@
     @yield('page-script')
     @stack('scripts')
 
+    <script src="https://unpkg.com/@dotlottie/player-component@latest/dist/dotlottie-player.js"></script>
     <script>
         // Responsive dashboard container
         window.addEventListener('resize', () => {
