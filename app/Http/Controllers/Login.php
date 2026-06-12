@@ -93,9 +93,23 @@ class Login extends Controller
             'role.required' => 'Silakan pilih role login.',
         ]);
 
-        $role = $user->roles->first(function ($r) use ($request) {
-            return Str::startsWith(Str::lower($r->name), Str::lower($request->role));
-        });
+        $requestedRole = trim((string) $request->input('role', ''));
+        $availableRoles = $user->roles->pluck('name')->values()->all();
+
+        // If the hidden field is empty, fall back to the only role the user has.
+        if ($requestedRole === '') {
+            $role = $user->roles->count() === 1 ? $user->roles->first() : null;
+        } else {
+            $normalizedRequestedRole = Str::lower($requestedRole);
+
+            $role = $user->roles->first(function ($r) use ($normalizedRequestedRole) {
+                $normalizedRoleName = Str::lower(trim($r->name));
+
+                return $normalizedRoleName === $normalizedRequestedRole
+                    || Str::startsWith($normalizedRoleName, $normalizedRequestedRole)
+                    || Str::startsWith($normalizedRequestedRole, $normalizedRoleName);
+            });
+        }
 
         if (!$role) {
             Auth::logout();

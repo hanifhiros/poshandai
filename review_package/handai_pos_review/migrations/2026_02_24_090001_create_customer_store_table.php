@@ -1,0 +1,36 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration {
+    public function up(): void
+    {
+        Schema::create('customer_store', function (Blueprint $table) {
+            $table->id();
+
+            $table->unsignedBigInteger('customer_id');
+            $table->unsignedBigInteger('store_id');
+
+            $table->integer('total_ordered_qty')->default(0);
+            $table->integer('average_ordered_qty')->default(0);
+            $table->integer('total_orders')->default(0);
+
+            $table->timestamp('first_ordered_at')->nullable();
+            $table->timestamp('last_ordered_at')->nullable();
+
+            $table->timestamps();
+
+            $table->foreign('customer_id')->references('id')->on('customer')->cascadeOnDelete();
+            $table->foreign('store_id')->references('id')->on('store')->cascadeOnDelete();
+
+            $table->unique(['customer_id', 'store_id']);
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('customer_store');
+    }
+};

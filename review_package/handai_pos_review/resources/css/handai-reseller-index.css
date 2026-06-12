@@ -1,0 +1,11 @@
+/* Reseller dashboard styles extracted from Blade. */
+
+.ts-control {
+    border-radius: 6px;
+    border-color: #d1d5db;
+}
+
+.ts-dropdown .active {
+    background-color: #8b5cf6 !important;
+    color: white;
+}

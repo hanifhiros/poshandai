@@ -13,8 +13,8 @@ Route::group(['middleware' => ['web'], 'prefix' => '/', 'namespace' => 'App\Http
     Route::GET('login', 'Login@index')->name('login');
     Route::POST('login/exe', 'Login@exe')->middleware('throttle:5,1');
     Route::POST('logout', 'Login@logout')->name('logout');
-    Route::GET('register', 'Login@register')->name('register');
-    Route::POST('register', 'Login@store')->middleware('throttle:5,1');
+    // Route::GET('register', 'Login@register')->name('register');
+    // Route::POST('register', 'Login@store')->middleware('throttle:5,1');
 
 });
 
@@ -52,8 +52,8 @@ Route::middleware(['auth', 'role:Superadmin'])->prefix('superadmin')->name('supe
 
 Route::post('/logout-universal', [\App\Http\Controllers\LogoutController::class, 'logout'])->name('universal.logout');
 
-Route::get('/reseller/register', [\App\Http\Controllers\Public\ResellerRegisterController::class, 'showForm'])->name('reseller.register.form');
-Route::post('/reseller/register', [\App\Http\Controllers\Public\ResellerRegisterController::class, 'submitForm'])->name('reseller.register.submit');
+// Route::get('/reseller/register', [\App\Http\Controllers\Public\ResellerRegisterController::class, 'showForm'])->name('reseller.register.form');
+// Route::post('/reseller/register', [\App\Http\Controllers\Public\ResellerRegisterController::class, 'submitForm'])->name('reseller.register.submit');
 
 
 //PENGALIHAN Route

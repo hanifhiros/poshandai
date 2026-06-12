@@ -122,16 +122,6 @@
                     </button>
                         <!-- Seluruh isi hingga sebelum <p class="text-sm text-center mt-4"> -->
                     </form>
-                
-                    <p class="text-sm text-center mt-4">
-                        Belum punya akun? 
-                        <template x-if="loginType === 'reseller'">
-                            <a href="{{ route('reseller.register.form') }}" class="text-green-700 font-semibold underline">Daftar sebagai Reseller</a>
-                        </template>
-                        <template x-if="loginType === 'seller'">
-                            <a href="{{ route('register') }}" class="text-blue-600 underline">Daftar sebagai Penjual</a>
-                        </template>
-                    </p>
                 </div>
                 
 

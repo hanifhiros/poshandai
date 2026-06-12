@@ -19,7 +19,7 @@ class OperationalDashboardController extends Controller
     {
         $store_id = session('selected_store');
         if (!$store_id) {
-            return redirect()->route('manager.outlet')->withErrors(['store' => 'Silakan pilih outlet terlebih dahulu.']);
+            return redirect()->route('manager.store')->withErrors(['store' => 'Silakan pilih outlet terlebih dahulu.']);
         }
 
         $today = Carbon::today();

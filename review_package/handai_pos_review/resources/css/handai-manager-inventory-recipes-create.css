@@ -1,0 +1,14 @@
+/* Inventory recipe create styles extracted from Blade. */
+
+.rcp-input, .rcp-select {
+    height: 36px; border-radius: 8px; border: 1px solid #e2e8f0; background: #f8fafc;
+    padding: 0 12px; font-size: 13px; color: #334155; transition: border-color .15s, box-shadow .15s; width: 100%;
+}
+.rcp-select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%2394a3b8' stroke-width='2' viewBox='0 0 24 24'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19.5 8.25l-7.5 7.5-7.5-7.5'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; padding-right: 32px; }
+.rcp-input:focus, .rcp-select:focus { outline: none; border-color: #059669; box-shadow: 0 0 0 3px rgba(5,150,105,.1); }
+.variant-tab { cursor: pointer; transition: all .15s; }
+.variant-tab.active { background: #059669; color: #fff; border-color: #059669; }
+.variant-tab:not(.active):hover { background: #f0fdf4; border-color: #86efac; }
+.auto-badge { font-size: 9px; padding: 1px 5px; border-radius: 4px; background: #dbeafe; color: #2563eb; font-weight: 600; line-height: 1.4; }
+.hpp-card { background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%); }
+[x-cloak] { display: none !important; }

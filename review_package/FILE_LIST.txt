@@ -1,0 +1,26 @@
+Recommended files to review (workspace-relative paths):
+
+app/
+app/Services/StockAlertService.php
+app/Services/InventoryService.php
+app/Services/ProductionPlanningService.php
+app/Services/AccountingService.php
+app/Http/Controllers/Manager/Inventory/StockBatchController.php
+app/Http/Controllers/Manager/Operational/ProductionPlanController.php
+app/Http/Controllers/Manager/Operational/SupplierController.php
+app/Http/Controllers/Manager/Finance/EmployeeController.php
+app/Models/Stock.php
+app/Models/StockBatch.php
+app/Models/ProductionPlan.php
+app/Models/ProductionHistory.php
+app/Models/Employee.php
+routes/web_manager.php
+MIGRATION_PLAN_NEXTJS.md
+README.md
+composer.json
+package.json
+phpunit.xml
+
+Notes:
+- Exclude: vendor/ and database.sqlite files from archive for privacy and size.
+- If you want logs or DB dumps for debugging, share them separately and securely.

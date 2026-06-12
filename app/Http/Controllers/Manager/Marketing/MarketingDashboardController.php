@@ -64,7 +64,7 @@ class MarketingDashboardController extends Controller
     {
         $store_id = session('selected_store');
         if (!$store_id) {
-            return redirect()->route('manager.outlet')
+            return redirect()->route('manager.store')
                 ->withErrors(['store' => 'Silakan pilih outlet terlebih dahulu.']);
         }
 
@@ -404,7 +404,7 @@ class MarketingDashboardController extends Controller
     {
         $store_id = session('selected_store');
         if (!$store_id) {
-            return redirect()->route('manager.outlet')
+            return redirect()->route('manager.store')
                 ->withErrors(['store' => 'Silakan pilih outlet terlebih dahulu.']);
         }
 
@@ -615,7 +615,7 @@ class MarketingDashboardController extends Controller
     {
         $store_id = session('selected_store');
         if (!$store_id) {
-            return redirect()->route('manager.outlet')
+            return redirect()->route('manager.store')
                 ->withErrors(['store' => 'Silakan pilih outlet terlebih dahulu.']);
         }
 
@@ -753,7 +753,7 @@ class MarketingDashboardController extends Controller
     {
         $store_id = session('selected_store');
         if (!$store_id) {
-            return redirect()->route('manager.outlet')
+            return redirect()->route('manager.store')
                 ->withErrors(['store' => 'Silakan pilih outlet terlebih dahulu.']);
         }
 
@@ -856,7 +856,7 @@ class MarketingDashboardController extends Controller
     {
         $store_id = session('selected_store');
         if (!$store_id) {
-            return redirect()->route('manager.outlet')
+            return redirect()->route('manager.store')
                 ->withErrors(['store' => 'Silakan pilih outlet terlebih dahulu.']);
         }
 
@@ -951,7 +951,7 @@ class MarketingDashboardController extends Controller
     {
         $store_id = session('selected_store');
         if (!$store_id) {
-            return redirect()->route('manager.outlet')
+            return redirect()->route('manager.store')
                 ->withErrors(['store' => 'Silakan pilih outlet terlebih dahulu.']);
         }
 

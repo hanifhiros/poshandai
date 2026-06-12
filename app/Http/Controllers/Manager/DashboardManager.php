@@ -32,7 +32,7 @@ class DashboardManager extends Controller
         $selected_store = $store_id ? Store::find($store_id) : null;
 
         if (!$store_id || !$selected_store) {
-            return redirect()->route('manager.outlet')
+            return redirect()->route('manager.store')
                 ->withErrors(['store' => 'Silakan pilih outlet terlebih dahulu.']);
         }
 
