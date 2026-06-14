@@ -1,4 +1,4 @@
-@extends('handai-manager.layouts.master')
+﻿@extends('layouts.master')
 
 @section('title', 'Waste / Basi')
 
@@ -152,3 +152,4 @@
     </div>
 </div>
 @endsection
+

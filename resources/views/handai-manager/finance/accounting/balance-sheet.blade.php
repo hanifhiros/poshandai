@@ -1,6 +1,6 @@
-@extends('handai-manager.layouts.master')
+﻿@extends('layouts.master')
 
-@section('title', 'Neraca (Balance Sheet) — Handai Finance')
+@section('title', 'Neraca (Balance Sheet) â€” Handai Finance')
 
 @push('styles')
 <style>
@@ -211,3 +211,4 @@
     </div>
 </div>
 @endsection
+

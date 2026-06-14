@@ -1,4 +1,4 @@
-@extends('handai-manager.layouts.master')
+﻿@extends('layouts.master')
 
 @section('title', 'Produksi Setengah Jadi: ' . $sfp->name)
 
@@ -182,3 +182,4 @@ function sfpProduce() {
 }
 </script>
 @endpush
+

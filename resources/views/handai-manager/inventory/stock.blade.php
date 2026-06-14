@@ -1,4 +1,4 @@
-@extends('handai-manager.layouts.master')
+﻿@extends('layouts.master')
 @section('title', 'Inventory Control')
 
 @section('page-style')
@@ -15,8 +15,8 @@
         return request()->fullUrlWithQuery(['sort'=>$field,'dir'=>$dir,'page'=>null]);
     };
     $sortIcon = function($field) {
-        if(request('sort','name')!==$field) return '<span class="text-gray-300 ml-0.5">⇅</span>';
-        return request('dir','asc')==='asc' ? '<span class="text-blue-500 ml-0.5">↑</span>' : '<span class="text-blue-500 ml-0.5">↓</span>';
+        if(request('sort','name')!==$field) return '<span class="text-gray-300 ml-0.5">â‡…</span>';
+        return request('dir','asc')==='asc' ? '<span class="text-blue-500 ml-0.5">â†‘</span>' : '<span class="text-blue-500 ml-0.5">â†“</span>';
     };
     $typeFilter = $type ?? 'all';
     $fmtRp = fn($v) => 'Rp' . number_format((float)($v ?? 0), 0, ',', '.');
@@ -32,7 +32,7 @@
         showActions: true
      }">
 
-    {{-- ═══════════════════════ FLASH MESSAGES ═══════════════════════ --}}
+    {{-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• FLASH MESSAGES â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
     @if(session('success'))
     <div class="mb-5 p-4 bg-emerald-50 border border-emerald-200 text-emerald-700 text-[13px] flex items-center gap-2.5" style="border-radius:var(--inv-radius)" x-data x-init="setTimeout(()=>$el.remove(),5000)">
         <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
@@ -46,7 +46,7 @@
     </div>
     @endif
 
-    {{-- ═══════════════════════ A. HEADER ═══════════════════════ --}}
+    {{-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• A. HEADER â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 fade-in-up">
         <div>
             <h1 class="text-2xl font-bold tracking-tight flex items-center gap-2.5" style="color:var(--inv-text);letter-spacing:-0.02em">
@@ -66,7 +66,7 @@
         </div>
     </div>
 
-    {{-- ═══════════════════════ B. KPI CARDS ═══════════════════════ --}}
+    {{-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• B. KPI CARDS â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
     <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-6 fade-in-up fade-delay-1">
         {{-- B1. Bahan Baku --}}
         <div class="inv-card-hover p-5">
@@ -122,7 +122,7 @@
         </div>
     </div>
 
-    {{-- ═══════════════════════ C. STATUS OVERVIEW ═══════════════════════ --}}
+    {{-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• C. STATUS OVERVIEW â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
     {{-- two-row status grid --}}
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 fade-in-up fade-delay-2">
         <div class="stat-card">
@@ -158,7 +158,7 @@
         </div>
     </div>
 
-    {{-- ═══════════════════════ D. ACTION ITEMS (Operational Insights) ═══════════════════════ --}}
+    {{-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• D. ACTION ITEMS (Operational Insights) â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
     @if($actionItems->count() > 0)
     <div class="inv-card mb-6 overflow-hidden fade-in-up fade-delay-3" x-data="{open:true}">
         <button @click="open=!open" class="w-full flex items-center justify-between px-5 py-3.5 border-b border-[var(--inv-border)] cursor-pointer hover:bg-gray-50/50 transition">
@@ -205,7 +205,7 @@
     </div>
     @endif
 
-    {{-- ═══════════════════════ D2. SMART RECOMMENDATIONS ═══════════════════════ --}}
+    {{-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• D2. SMART RECOMMENDATIONS â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
     @if($recommendations->count() > 0)
     <div class="inv-card mb-6 overflow-hidden fade-in-up fade-delay-4" x-data="{openRec:false}">
         <button @click="openRec=!openRec" class="w-full flex items-center justify-between px-5 py-3.5 border-b border-[var(--inv-border)] cursor-pointer hover:bg-gray-50/50 transition">
@@ -249,7 +249,7 @@
     </div>
     @endif
 
-    {{-- ═══════════════════════ E. FINANCE INTEGRATION ═══════════════════════ --}}
+    {{-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• E. FINANCE INTEGRATION â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
     @if($financeData->available ?? false)
     <div class="inv-card mb-6 overflow-hidden fade-in-up fade-delay-5">
         <button @click="showFinance=!showFinance" class="w-full flex items-center justify-between px-5 py-3.5 border-b border-[var(--inv-border)] cursor-pointer hover:bg-gray-50/50 transition">
@@ -314,7 +314,7 @@
     </div>
     @endif
 
-    {{-- ═══════════════════════ F. FILTER BAR ═══════════════════════ --}}
+    {{-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• F. FILTER BAR â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
     <form method="GET" action="{{ route('manager.inventory.stock') }}" id="filterForm" class="inv-card p-5 mb-5 fade-in-up">
         <div class="flex flex-wrap items-end gap-3">
             {{-- Search --}}
@@ -365,12 +365,12 @@
             <div class="min-w-[140px]">
                 <select name="status" class="inv-input appearance-none cursor-pointer" onchange="document.getElementById('filterForm').submit()">
                     <option value="">Semua Status</option>
-                    <option value="ready" {{ request('status')==='ready'?'selected':'' }}>✅ Ready</option>
-                    <option value="low_stock" {{ request('status')==='low_stock'?'selected':'' }}>⚠️ Hampir Habis</option>
-                    <option value="out_of_stock" {{ request('status')==='out_of_stock'?'selected':'' }}>🚫 Habis</option>
-                    <option value="reorder" {{ request('status')==='reorder'?'selected':'' }}>🔄 Perlu Reorder</option>
-                    <option value="almost_expired" {{ request('status')==='almost_expired'?'selected':'' }}>⏰ Hampir Expired</option>
-                    <option value="expired" {{ request('status')==='expired'?'selected':'' }}>☠️ Expired</option>
+                    <option value="ready" {{ request('status')==='ready'?'selected':'' }}>âœ… Ready</option>
+                    <option value="low_stock" {{ request('status')==='low_stock'?'selected':'' }}>âš ï¸ Hampir Habis</option>
+                    <option value="out_of_stock" {{ request('status')==='out_of_stock'?'selected':'' }}>ðŸš« Habis</option>
+                    <option value="reorder" {{ request('status')==='reorder'?'selected':'' }}>ðŸ”„ Perlu Reorder</option>
+                    <option value="almost_expired" {{ request('status')==='almost_expired'?'selected':'' }}>â° Hampir Expired</option>
+                    <option value="expired" {{ request('status')==='expired'?'selected':'' }}>â˜ ï¸ Expired</option>
                 </select>
             </div>
 
@@ -423,12 +423,12 @@
         @endif
     </form>
 
-    {{-- ═══════════════════════ G. DATA TABLE ═══════════════════════ --}}
+    {{-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• G. DATA TABLE â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
     <div class="inv-card overflow-hidden fade-in-up">
         {{-- Toolbar --}}
         <div class="px-5 py-3 border-b border-[var(--inv-border)] flex items-center justify-between gap-4">
             <p class="text-[12px] text-[var(--inv-muted)]">
-                <span class="font-semibold text-[var(--inv-text)]">{{ $inventoryItems->firstItem() ?? 0 }}–{{ $inventoryItems->lastItem() ?? 0 }}</span>
+                <span class="font-semibold text-[var(--inv-text)]">{{ $inventoryItems->firstItem() ?? 0 }}â€“{{ $inventoryItems->lastItem() ?? 0 }}</span>
                 dari {{ number_format($inventoryItems->total()) }} item
                 @if(($stats->inactive ?? 0) > 0)
                 <span class="mx-1 text-gray-300">&middot;</span>{{ $stats->inactive }} nonaktif
@@ -436,7 +436,7 @@
             </p>
         </div>
 
-        {{-- ── Desktop Table ── --}}
+        {{-- â”€â”€ Desktop Table â”€â”€ --}}
         <div class="hidden md:block w-full">
             <table class="inv-table table-fixed">
                 <thead>
@@ -615,7 +615,7 @@
             </table>
         </div>
 
-        {{-- ── Mobile Cards ── --}}
+        {{-- â”€â”€ Mobile Cards â”€â”€ --}}
         <div class="md:hidden">
             @forelse($inventoryItems as $item)
             @php
@@ -713,7 +713,7 @@
             @endforelse
         </div>
 
-        {{-- ── Pagination ── --}}
+        {{-- â”€â”€ Pagination â”€â”€ --}}
         @if($inventoryItems->hasPages())
         <div class="px-5 py-3 border-t border-[var(--inv-border)] flex items-center justify-between">
             <p class="text-[11px] text-[var(--inv-muted)] hidden sm:block">Halaman {{ $inventoryItems->currentPage() }} dari {{ $inventoryItems->lastPage() }}</p>
@@ -748,7 +748,7 @@
         @endif
     </div>
 
-    {{-- ═══════════════════════ G2. INSIGHT VISUALS ═══════════════════════ --}}
+    {{-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• G2. INSIGHT VISUALS â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
     <div class="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-5 mb-6 fade-in-up">
         {{-- Movement Chart --}}
         <div class="lg:col-span-2 inv-card p-6">
@@ -761,7 +761,7 @@
             <div class="section-title mb-3"><div class="bar" style="background:var(--inv-accent)"></div><h2>Fast & Slow Movers</h2></div>
 
             {{-- Fast Movers --}}
-            <p class="text-[10px] font-bold text-emerald-500 uppercase tracking-wider mb-2">🚀 Fast Movers</p>
+            <p class="text-[10px] font-bold text-emerald-500 uppercase tracking-wider mb-2">ðŸš€ Fast Movers</p>
             @forelse($fastMovers as $fm)
             <div class="flex items-center justify-between py-1.5 border-b border-gray-50 last:border-0">
                 <div class="flex items-center gap-2 min-w-0 flex-1">
@@ -780,7 +780,7 @@
             <div class="my-3 border-t border-gray-100"></div>
 
             {{-- Slow Movers --}}
-            <p class="text-[10px] font-bold text-red-400 uppercase tracking-wider mb-2">🐢 Slow Movers</p>
+            <p class="text-[10px] font-bold text-red-400 uppercase tracking-wider mb-2">ðŸ¢ Slow Movers</p>
             @forelse($topSlowMovers as $sm)
             <div class="flex items-center justify-between py-1.5 border-b border-gray-50 last:border-0">
                 <div class="flex items-center gap-2 min-w-0 flex-1">
@@ -798,7 +798,7 @@
         </div>
     </div>
 
-    {{-- ═══════════════════════ H. R&D APPROVED ═══════════════════════ --}}
+    {{-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• H. R&D APPROVED â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
     @if($approvedProjects->isNotEmpty())
     <div class="mt-6 fade-in-up">
         <div class="section-title"><div class="bar" style="background:var(--inv-accent)"></div><h2>R&D Disetujui</h2></div>
@@ -842,7 +842,7 @@
     </div>
     @endif
 
-    {{-- ═══════════════════════ I. EXPIRED STORED ═══════════════════════ --}}
+    {{-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• I. EXPIRED STORED â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
     @if($storedExpiredStocks->count() > 0)
     <div class="mt-6 fade-in-up">
         <div class="section-title"><div class="bar bg-red-500"></div><h2 class="!text-red-700">Stok Expired Masih Disimpan</h2></div>
@@ -877,7 +877,7 @@
     </div>
     @endif
 
-    {{-- ═══════════════════════ DELETE MODAL ═══════════════════════ --}}
+    {{-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• DELETE MODAL â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
     <div x-show="showDeleteModal" x-cloak
          x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
          x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
@@ -895,7 +895,7 @@
                 <span class="font-semibold text-gray-600" x-text="deleteName"></span> akan dihapus permanen.
             </p>
             <div class="flex gap-3">
-                <button @click="showDeleteModal=false" class="flex-1 h-10 rounded-lg border border-[var(--inv-border)] text-[13px] font-medium text-gray-500 hover:bg-gray-50 hover:bg-gray-100 transition cursor-pointer">← Batal</button>
+                <button @click="showDeleteModal=false" class="flex-1 h-10 rounded-lg border border-[var(--inv-border)] text-[13px] font-medium text-gray-500 hover:bg-gray-50 hover:bg-gray-100 transition cursor-pointer">â† Batal</button>
                 <form :action="'/manager/inventory/stock/' + deleteId" method="POST" class="flex-1">
                     @csrf @method('DELETE')
                     <button type="submit" class="w-full h-10 rounded-lg bg-red-500 hover:bg-red-600 text-white text-[13px] font-semibold transition cursor-pointer">Ya, Hapus</button>
@@ -904,7 +904,7 @@
         </div>
     </div>
 
-    {{-- ═══════════════════════ EXPIRED BATCH MODAL ═══════════════════════ --}}
+    {{-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• EXPIRED BATCH MODAL â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
     <div x-show="showExpiredModal" x-cloak
          x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
          x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
@@ -943,7 +943,7 @@
         </div>
     </div>
 
-    {{-- ═══════════════════════ J. DETAIL DRAWER ═══════════════════════ --}}
+    {{-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• J. DETAIL DRAWER â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
     <div x-data="detailDrawer()" @open-detail.window="openDetail($event.detail.type, $event.detail.id)">
         {{-- Overlay --}}
         <div x-show="open" x-cloak
@@ -1074,7 +1074,7 @@
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
 <script>
-// ── Detail Drawer Component ──
+// â”€â”€ Detail Drawer Component â”€â”€
 document.addEventListener('alpine:init', () => {
     Alpine.data('detailDrawer', () => ({
         open: false,
@@ -1106,7 +1106,7 @@ document.addEventListener('alpine:init', () => {
     }));
 });
 
-// ── Listen for drawer open from table row clicks ──
+// â”€â”€ Listen for drawer open from table row clicks â”€â”€
 window.openStockDetail = function(type, id) {
     const drawerEl = document.querySelector('[x-data*="detailDrawer"]');
     if (drawerEl && drawerEl.__x) {
@@ -1117,7 +1117,7 @@ window.openStockDetail = function(type, id) {
     }
 };
 
-// ── Movement Chart ──
+// â”€â”€ Movement Chart â”€â”€
 document.addEventListener('DOMContentLoaded', function() {
     const mvCtx = document.getElementById('movementChart');
     if (!mvCtx) return;
@@ -1174,3 +1174,4 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 @endpush
 @endsection
+

@@ -1,4 +1,4 @@
-@extends('handai-manager.layouts.master')
+﻿@extends('layouts.master')
 
 @section('title', 'Catat Non-Conformance')
 
@@ -93,3 +93,4 @@
     </form>
 </div>
 @endsection
+

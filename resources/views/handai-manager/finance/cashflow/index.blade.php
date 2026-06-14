@@ -1,6 +1,6 @@
-@extends('handai-manager.layouts.master')
+﻿@extends('layouts.master')
 
-@section('title', 'Cashflow — Handai Finance')
+@section('title', 'Cashflow â€” Handai Finance')
 
 @section('page-style')
 <style>
@@ -13,7 +13,7 @@
 
     <div class="mb-6">
         <h1 class="text-2xl font-bold text-gray-800">Cashflow</h1>
-        <p class="text-sm text-gray-500 mt-1">{{ $store->name }} — Monitoring arus kas</p>
+        <p class="text-sm text-gray-500 mt-1">{{ $store->name }} â€” Monitoring arus kas</p>
     </div>
 
     {{-- KPI Cards --}}
@@ -105,7 +105,7 @@
                         <div class="flex items-center justify-between py-1.5 {{ !$loop->last ? 'border-b border-gray-50' : '' }}">
                             <div>
                                 <p class="text-sm text-gray-700">{{ Str::limit($tx->description, 35) }}</p>
-                                <p class="text-xs text-gray-400">{{ \Carbon\Carbon::parse($tx->journal_date)->format('d/m/Y') }} · {{ $tx->source }}</p>
+                                <p class="text-xs text-gray-400">{{ \Carbon\Carbon::parse($tx->journal_date)->format('d/m/Y') }} Â· {{ $tx->source }}</p>
                             </div>
                             @if ($tx->debit > 0)
                                 <span class="text-sm font-semibold text-green-600">+Rp{{ number_format($tx->debit, 0, ',', '.') }}</span>
@@ -150,3 +150,4 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 @endsection
+

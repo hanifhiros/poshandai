@@ -25,8 +25,8 @@ return new class extends Migration
 
             $table->foreign('production_plan_id')->references('id')->on('production_plans')->cascadeOnDelete();
             $table->foreign('production_plan_item_id')->references('id')->on('production_plan_items')->cascadeOnDelete();
-            $table->foreign('store_id')->references('id')->on('stores')->cascadeOnDelete();
-            $table->foreign('stock_id')->references('id')->on('stocks')->nullOnDelete();
+            $table->foreign('store_id')->references('id')->on('store')->cascadeOnDelete();
+            $table->foreign('stock_id')->references('id')->on('stock')->nullOnDelete();
             $table->foreign('semi_finished_product_id')->references('id')->on('semi_finished_products')->nullOnDelete();
             $table->foreign('unit_id')->references('id')->on('units')->nullOnDelete();
         });

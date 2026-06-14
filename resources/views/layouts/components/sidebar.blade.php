@@ -5,80 +5,95 @@
       <div class="flex items-center justify-between">
         <!-- Kiri: Logo + Teks -->
         <div class="flex items-center ">
-          <div class="ms-2 grid w-16 h-10 shrink-0 place-content-center">
-            <img src="{{ asset('assets/svg/handai-logo.svg') }}" alt="Handai Logo" width="32" height="auto"
+          <div class="ms-2 grid w-16 h-16 shrink-0 place-content-center">
+            <img src="{{ asset('assets/svg/handai-logo.svg') }}" alt="Handai Logo" width="38" height="auto"
               class="object-contain" />
           </div>
 
           <div>
-            <h1 x-show="open" x-transition class="font-poppins  text-2xl tracking-tighter text-nowrap">
+            <p x-show="open && !open" x-transition class=" font-bold text-3xl  tracking-tighter text-nowrap">
+              Handai Coffee
+            </p>
+            <h1 x-show="open  && open" x-transition class=" font-bold text-2xl tracking-tighter text-nowrap">
               Handai Coffee
             </h1>
           </div>
         </div>
 
         <!-- Kanan: Tombol "X" (Mobile) -->
-        <div x-show="isMobile && open" x-transition>
-          <button @click="open = false" class="text-white hover:text-gray-100 transition-colors">
+        <div x-show="isMobile && open" x-transition class="cursor-pointer">
+          <!-- <a @click="open = false" class="text-white hover:text-gray-100 transition-colors">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
               stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="4" d="M6 18L18 6M6 6l12 12" />
             </svg>
-          </button>
+          </a> -->
         </div>
       </div>
     </div>
 
 
     <!-- ISI SIDEBAR -->
-    <div class="flex-1 overflow-y-auto space-y-1 p-3">
-      <button type="button" @click="selected = 'Dashboard'" :class="selected === 'Dashboard' ? 'bg-green-100 text-green-800 border-l-4 border-green-600' : 'text-slate-500 hover:bg-slate-100'"
-        class="relative flex h-10 w-full items-center rounded-md transition-colors">
-        <div class="grid h-full w-16 place-content-center ">
-          <!-- Ganti icon berdasarkan state 'selected' -->
-          <i :class="selected === 'Dashboard' ? 'ti ti-home-filled ps-5' : 'ti ti-home ps-0'"></i>
-        </div>
-        <span x-show="open" x-transition class="absolute ml-16 font-medium text-nowrap">
-          Dashboard
-        </span>
-      </button>
+        @php use App\Helpers\RoleHelper; @endphp
+      @if (RoleHelper::hasRole('Superadmin'))
+      <a href="{{ route('superadmin.dashboard') }}"
+         @click="selected = 'Superadmin Dashboard'"
+         :class="selected === 'Superadmin Dashboard' ? 'bg-green-600/10 text-green-800' : 'text-slate-500 hover:bg-slate-100'"
+         class="relative flex h-15 w-full items-center rounded-md transition-colors cursor-pointer space-y-1 p-3 mt-3 ">
+          <div class="grid h-full w-16 place-content-center">
+              <i :class="selected === 'Superadmin Dashboard' ? 'ti ti-device-desktop-filled' : 'ti ti-device-desktop'"></i>
+          </div>
+          <span x-show="open" x-transition class="absolute ml-16 text font-medium ">
+              Superadmin Dashboard
+          </span>
+      </a>
+      @endif
+    <div x-data="{ selected: '{{ $categoryName ?? '' }}' }" class="flex-1 overflow-y-auto space-y-1 p-3">
+      <div class="h-3 mt-3 flex items-center">
+          <p x-show="open" x-transition class="text-slate-600 ps-6 text-sm">Menu</p>
+          <hr x-show="!open" x-transition class="border-t border-slate-300 w-full" />
+      </div>
 
+      <!-- All Products Button -->
+      <a :href="'/pos/products?category=All Products'" class="relative flex h-15 w-full items-center rounded-md transition-colors ">
+          <button type="button" @click="selected = 'All Products'" 
+                  :class="selected === 'All Products' ? 'bg-green-600/10 text-green-800' : 'text-slate-500 hover:bg-slate-100'"
+                  class="relative flex h-15 w-full items-center rounded-md transition-colors cursor-pointer">
+              <div class="grid h-full w-16 place-content-center">
+                  <i :class="selected === 'All Products' ? 'ti ti-category-filled' : 'ti ti-category'"></i>
+              </div>
+              <span x-show="open" x-transition class="absolute ml-16 text font-medium text-nowrap">
+                  All Products
+              </span>
+          </button>
+      </a>
 
-      <button type="button" @click="selected = 'Sales'" :class="selected === 'Sales' ? 'bg-green-600/10 text-green-800' : 'text-slate-500 hover:bg-slate-100'"
-        class="relative flex h-10 w-full items-center rounded-md transition-colors">
-        <div class="grid h-full w-16 place-content-center ">
-          <i :class="selected === 'Sales' ? 'ti ti-rosette-discount-filled ' : 'ti ti-rosette-discount '"></i>
-        </div>
-        <span x-show="open" x-transition class="absolute ml-16 text font-medium  text-nowrap">Sales</span>
-
-      </button>
-
-      <button type="button" @click="selected = 'View Site'" :class="selected === 'View Site' ? 'bg-green-600/10 text-green-800' : 'text-slate-500 hover:bg-slate-100'"
-        class="relative flex h-10 w-full items-center rounded-md transition-colors">
-        <div class="grid h-full w-16 place-content-center ">
-          <i :class="selected === 'View Site' ? 'ti ti-salad-filled ' : 'ti ti-salad '"></i>
-        </div>
-        <span x-show="open" x-transition class="absolute ml-16 text font-medium  text-nowrap">View Site</span>
-      </button>
-
-      <button type="button" @click="selected = 'Products'" :class="selected === 'Products' ? 'bg-green-600/10 text-green-800' : 'text-slate-500 hover:bg-slate-100'"
-        class="relative flex h-10 w-full items-center rounded-md transition-colors">
-        <div class="grid h-full w-16 place-content-center ">
-          <i :class="selected === 'Products' ? 'ti ti-bottle-filled ' : 'ti ti-bottle '"></i>
-        </div>
-        <span x-show="open" x-transition class="absolute ml-16 text font-medium  text-nowrap">Products</span>
-      </button>
-
-
-
-
-    </div>
+      <!-- Categories Loop -->
+        @foreach (($categories ?? []) as $category)
+          <a :href="'/pos/products?category=' + '{{ $category->category_name ?? '' }}'" class="relative flex h-15 w-full items-center rounded-md transition-colors">
+              <button type="button" 
+                @click="selected = '{{ $category->category_name ?? '' }}'"
+                      :class="{
+                  'bg-green-600/10 text-green-800': selected === '{{ $category->category_name ?? '' }}',
+                  'text-slate-500 hover:bg-slate-100': selected !== '{{ $category->category_name ?? '' }}'
+                      }"
+                      class="relative flex h-15 w-full items-center rounded-md transition-colors cursor-pointer">
+                  <div class="grid h-full w-16 place-content-center">
+                <i :class="selected === '{{ $category->category_name ?? '' }}' ? '{{ $category->category_icon ?? '' }}-filled' : '{{ $category->category_icon ?? '' }}'"></i>
+                  </div>
+                  <span x-show="open" x-transition class="absolute ml-16 text font-medium text-nowrap">
+                {{ $category->category_name ?? '' }}
+                  </span>
+              </button>
+          </a>
+      @endforeach
+  </div>
 
     <!-- BUTTON COLLAPSE -->
-    <div class="relative flex border-t border-slate-300 ">
+    <div class="relative flex border-t border-slate-300">
       <div
         class="relative flex w-full  cursor-pointer items-center justify-between  transition-colors hover:bg-slate-100">
-        <button type="button" @click="toggleSidebar()" class="w-full flex items-center m-2 transition-colors">
+        <a type="button" @click="toggleSidebar()" class="w-full flex items-center m-2 transition-colors">
           <div class="flex items-center ms-3 p-2">
             <div class="grid place-content-center ">
               <i class="ti ti-square-chevrons-right  transition-transform duration-300"
@@ -88,9 +103,27 @@
               Hide
             </span>
           </div>
-        </button>
+        </a>
       </div>
     </div>
+     <!-- tambahin button logout -->
+     <div class="relative ">
+      <div class="relative flex w-full cursor-pointer text-red-600 items-center justify-between transition-colors hover:bg-red-100">
+        <form id="logout-form" action="{{ route('universal.logout') }}" method="POST" class="w-full">
+          @csrf
+          <button type="submit"
+            class="w-full flex items-center text-red-600 hover:bg-red-100 transition-colors m-2 p-2">
+            <div class="grid place-content-center me-2">
+              <i class="ti ti-logout"></i>
+            </div>
+            <span x-show="open" x-transition>Logout</span>
+          </button>
+        </form>
+      </div>
+    </div>
+
+  
+    
   </nav>
 
   <button x-show="isMobile && !open" class="fixed top-1/2 right-0 transform -translate-y-1/2
@@ -141,8 +174,8 @@
             : "relative sticky top-0 h-screen shrink-0 border-r border-slate-300 bg-white transition-[width] duration-300 ease-in-out overflow-hidden flex flex-col w-20";
         } else {
           return this.open
-            ? "fixed inset-y-0 left-0 w-[225px] bg-white border-r border-slate-300 z-50 transform transition-transform duration-300 ease-in-out flex flex-col"
-            : "fixed inset-y-0 left-0 w-[225px] bg-white border-r border-slate-300 z-50 transform -translate-x-full flex flex-col ";
+            ? "fixed inset-y-0 left-0 w-[300px] bg-white border-r border-slate-300 z-50 transform transition-transform duration-300 ease-in-out flex flex-col"
+            : "fixed inset-y-0 left-0 w-[300px] bg-white border-r border-slate-300 z-50 transform -translate-x-full flex flex-col ";
         }
       }
     }

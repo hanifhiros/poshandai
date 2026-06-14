@@ -1,4 +1,4 @@
-@extends('handai-manager.layouts.master')
+﻿@extends('layouts.master')
 
 @section('title', 'Jadwal Shift')
 
@@ -17,7 +17,7 @@
             <h1 class="text-xl font-bold text-gray-900 flex items-center gap-2">
                 <i class="ti ti-calendar text-indigo-500"></i> Jadwal Shift Mingguan
             </h1>
-            <p class="text-sm text-gray-500 mt-0.5">{{ $weekStart->format('d M Y') }} — {{ $weekEnd->format('d M Y') }}</p>
+            <p class="text-sm text-gray-500 mt-0.5">{{ $weekStart->format('d M Y') }} â€” {{ $weekEnd->format('d M Y') }}</p>
         </div>
         <div class="flex items-center gap-2">
             <a href="{{ route('manager.operational.attendance.schedule', ['week_start' => $weekStart->copy()->subWeek()->format('Y-m-d')]) }}"
@@ -61,7 +61,7 @@
                                 <input type="hidden" name="schedules[{{ $idx }}][employee_id]" value="{{ $emp->id }}">
                                 <input type="hidden" name="schedules[{{ $idx }}][date]" value="{{ $date->format('Y-m-d') }}">
                                 <select name="schedules[{{ $idx }}][shift_id]" class="w-full h-8 px-2 text-xs border border-gray-200 rounded-lg outline-none focus:border-indigo-400">
-                                    <option value="">—</option>
+                                    <option value="">â€”</option>
                                     @foreach($shifts as $shift)
                                     <option value="{{ $shift->id }}" {{ $existing && $existing->shift_id == $shift->id ? 'selected' : '' }}>
                                         {{ $shift->name }}
@@ -85,3 +85,4 @@
     </form>
 </div>
 @endsection
+

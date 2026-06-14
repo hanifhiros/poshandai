@@ -1,6 +1,6 @@
-@extends('handai-manager.layouts.master')
+﻿@extends('layouts.master')
 
-@section('title', 'Laporan Laba Rugi — Handai Finance')
+@section('title', 'Laporan Laba Rugi â€” Handai Finance')
 
 @section('content')
 <style>
@@ -46,7 +46,7 @@
             <button type="submit" class="h-9 px-4 text-[13px] font-medium text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg transition cursor-pointer">Tampilkan</button>
         </div>
         <p class="text-[11px] text-gray-400 mt-2">
-            Periode: {{ \Carbon\Carbon::parse($startDate)->translatedFormat('d M Y') }} — {{ \Carbon\Carbon::parse($endDate)->translatedFormat('d M Y') }}
+            Periode: {{ \Carbon\Carbon::parse($startDate)->translatedFormat('d M Y') }} â€” {{ \Carbon\Carbon::parse($endDate)->translatedFormat('d M Y') }}
         </p>
     </form>
 
@@ -214,3 +214,4 @@
     </div>
 </div>
 @endsection
+

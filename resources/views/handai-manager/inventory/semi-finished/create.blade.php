@@ -1,4 +1,4 @@
-@extends('handai-manager.layouts.master')
+﻿@extends('layouts.master')
 
 @section('title', 'Tambah Produk Setengah Jadi')
 
@@ -117,3 +117,4 @@ function semiFinishedCreate() {
 }
 </script>
 @endpush
+

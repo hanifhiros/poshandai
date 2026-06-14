@@ -1,4 +1,4 @@
-@extends('handai-manager.layouts.master')
+﻿@extends('layouts.master')
 
 @section('title', 'Tambah Batch Stok')
 
@@ -15,7 +15,7 @@
                 </svg>
             </a>
             <div>
-                <h1 class="text-xl font-bold text-slate-800">Tambah Batch — {{ $stock->name }}</h1>
+                <h1 class="text-xl font-bold text-slate-800">Tambah Batch â€” {{ $stock->name }}</h1>
                 <p class="text-sm text-slate-500">Catat pembelian / batch baru untuk item ini</p>
             </div>
         </div>

@@ -10,7 +10,6 @@ use App\Http\Controllers\Manager\Operational\SupplierController;
 use App\Http\Controllers\Manager\Operational\WasteController;
 use App\Http\Controllers\Manager\Operational\StockMovementController;
 use App\Http\Controllers\Manager\Operational\StockOpnameController;
-use App\Http\Controllers\Reseller\ResellerController;
 use App\Http\Controllers\Manager\Finance\FinanceController;
 use App\Http\Controllers\Manager\Finance\rndRequestController;
 use App\Http\Controllers\Manager\Finance\RNDLogController;
@@ -230,13 +229,6 @@ Route::middleware(['web', 'auth', 'cekrole:Manager'])->group(function () {
 
 
         // web.php
-        // reseller management
-        Route::resource('resellers', ResellerController::class)->except(['show']);
-
-        // Jika ingin reseller yang sudah ada ditambahkan ke store saat ini
-        // Route::get('/resellers/attach', [ResellerController::class, 'attachForm'])->name('resellers.attach.form'); // halaman pilih reseller yang sudah ada
-        // Route::post('/resellers/attach', [ResellerController::class, 'attach'])->name('resellers.attach'); // proses attach ke store
-
     });
 
     // ══════════════════════════════════════════════════

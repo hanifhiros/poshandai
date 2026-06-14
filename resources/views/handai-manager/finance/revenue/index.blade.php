@@ -1,6 +1,6 @@
-@extends('handai-manager.layouts.master')
+﻿@extends('layouts.master')
 
-@section('title', 'Revenue — Handai Finance')
+@section('title', 'Revenue â€” Handai Finance')
 
 @section('page-style')
 <style>
@@ -14,7 +14,7 @@
     {{-- Header --}}
     <div class="mb-6">
         <h1 class="text-2xl font-bold text-gray-800">Revenue Management</h1>
-        <p class="text-sm text-gray-500 mt-1">{{ $store->name }} — Analisis pemasukan bisnis</p>
+        <p class="text-sm text-gray-500 mt-1">{{ $store->name }} â€” Analisis pemasukan bisnis</p>
     </div>
 
     {{-- Total --}}
@@ -175,3 +175,4 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 @endsection
+

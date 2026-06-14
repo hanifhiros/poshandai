@@ -1,4 +1,4 @@
-@extends('layouts.layoutBlank')
+@extends('layouts.layoutMaster')
 
 @section('title', 'Tambah Toko')
 

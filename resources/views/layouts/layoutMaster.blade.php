@@ -1,142 +1,90 @@
-<!DOCTYPE html>
-<html lang="id" x-data="globalLoading" x-init="init()" :data-theme="theme" x-cloak>
+﻿<!DOCTYPE html>
+<html lang="id" x-data="{ theme: 'light' }" :data-theme="theme" x-init="
+    if (!localStorage.getItem('theme')) {
+        localStorage.setItem('theme', 'light');  
+    }
+    theme = localStorage.getItem('theme') || 'light';  
+    $watch('theme', value => localStorage.setItem('theme', value));">
+
 
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title')</title>
-
-    {{-- Alpine.js --}}
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-
-    {{-- Vite --}}
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="{{asset('assets/vendor/libs/bootstrap-select/bootstrap-select.js')}}"></script>
+    <script src="{{asset('assets/vendor/libs/select2/select2.js')}}"></script>
+    <script src="{{asset('assets/js/forms-selects.js')}}"></script>
+    <script>
+        document.addEventListener('alpine:init', () => {
+            Alpine.store('sidebar', {
+                open: true
+            });
+        });
+    </script>
     @vite('resources/js/app.js')
     @vite('resources/css/app.css')
-
-    {{-- Fonts & Icons --}}
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ asset('assets/vendor/fonts/tabler-icons.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/vendor/fonts/fontawesome.css') }}">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css" />
-    <link rel="stylesheet" href="{{ asset('css/custom.css') }}">
-
+    @vite('resources/css/layout-theme.css')
     @yield('vendor-style')
     @yield('page-style')
-
-    <style>
-        #global-loading {
-            transition: opacity 0.2s ease;
-            will-change: opacity;
-            z-index: 9999;
-        }
-    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Public+Sans:ital,wght@0,100..900;1,100..900&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="{{ asset('assets/vendor/fonts/tabler-icons.css') }}" />
+    <link rel="stylesheet" href="{{ asset('assets/vendor/fonts/fontawesome.css') }}" />
+    <link rel="stylesheet" href="{{ asset('assets/vendor/fonts/flag-icons.css') }}" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css" />
+    <link rel="stylesheet" href="{{ asset('css/custom.css') }}">
+    <link rel="stylesheet" href="{{asset('assets/vendor/libs/bootstrap-select/bootstrap-select.css')}}" />
+    <link rel="stylesheet" href="{{asset('assets/vendor/libs/select2/select2.css')}}" />
 </head>
 
 <body class="bg-gray-100 text-gray-900">
+    <div class="flex">
+        @include('layouts.components.sidebar')
 
-    {{-- 🔄 Global Loading --}}
-    <div id="global-loading"
-         x-show="loading"
-         x-transition:enter="transition ease-out duration-200"
-         x-transition:enter-start="opacity-0"
-         x-transition:enter-end="opacity-100"
-         x-transition:leave="transition ease-in duration-150"
-         x-transition:leave-start="opacity-100"
-         x-transition:leave-end="opacity-0"
-         class="fixed inset-0 z-[9999] flex items-center justify-center bg-white bg-opacity-80">
-        <dotlottie-player
-            src="{{ asset('animations/loading.json') }}"
-            background="transparent"
-            speed="1"
-            style="width: 220px; height: 220px"
-            class="transition-transform duration-200 ease-out"
-            x-transition:enter="transition ease-out duration-200"
-            x-transition:enter-start="opacity-0 scale-95"
-            x-transition:enter-end="opacity-100 scale-100"
-            x-transition:leave="transition ease-in duration-150"
-            x-transition:leave-start="opacity-100 scale-100"
-            x-transition:leave-end="opacity-0 scale-95"
-            loop
-            autoplay>
-        </dotlottie-player>
+        <div class="flex-1 flex flex-col min-h-screen">
+            <div class="sticky top-0 z-10">
+                @include('layouts.components.navbar')
+            </div>
+
+            <main class="">
+                <div class="">
+                    @yield('content')
+                </div>
+            </main>
+        </div>
     </div>
 
-    {{-- Navbar --}}
-    <div class="fixed top-0 left-0 right-0 z-50">
-        @include('layouts.components.navbar')
-    </div>
-
-    {{-- Content --}}
-    <div class="pt-[4rem]">
-        @yield('content')
-    </div>
-
-    {{-- Scripts --}}
     @yield('vendor-script')
     @yield('page-script')
-
-    {{-- DotLottie --}}
-    <script src="https://unpkg.com/@dotlottie/player-component@latest/dist/dotlottie-player.js"></script>
     <script>
-        document.addEventListener('alpine:init', () => {
-            Alpine.data('globalLoading', () => ({
-                theme: localStorage.getItem('theme') || 'light',
-                loading: true,
-                init() {
-                    const MINIMUM_DURATION = 2500; // minimum durasi tampil loading
-                    this.$watch('theme', val => localStorage.setItem('theme', val));
+        document.addEventListener('DOMContentLoaded', function () {
+            const savedTheme = localStorage.getItem('theme') || 'light';
 
-                    const start = Date.now();
-                    const finishLoading = () => {
-                        const elapsed = Date.now() - start;
-                        const remaining = Math.max(0, MINIMUM_DURATION - elapsed);
-                        setTimeout(() => {
-                            this.loading = false;
-                        }, remaining);
-                    };
+            document.documentElement.setAttribute('data-theme', savedTheme);
 
-                    window.addEventListener('loading-start', () => this.loading = true);
-                    window.addEventListener('loading-end', finishLoading);
-                    window.addEventListener('beforeunload', () => this.loading = true);
-                    window.addEventListener('pageshow', (event) => {
-                        if (event.persisted) {
-                            finishLoading();
-                        }
-                    });
-
-                    // PENTING: kirim loading-end setelah Alpine sudah aktif
-                    window.addEventListener('load', () => {
-                        window.dispatchEvent(new Event('loading-end'));
-                    });
-                }
-            }));
-        });
-
-        document.addEventListener('DOMContentLoaded', () => {
-            const shouldTrigger = (href, target) => {
-                return href && !href.startsWith('#') && !href.startsWith('javascript:') && target !== '_blank';
-            };
-
-            const startLoading = () => window.dispatchEvent(new Event('loading-start'));
-
-            document.querySelectorAll('a').forEach(link => {
-                link.addEventListener('click', () => {
-                    if (shouldTrigger(link.getAttribute('href'), link.target)) {
-                        startLoading();
+            const themeObserver = new MutationObserver(function (mutations) {
+                mutations.forEach(function (mutation) {
+                    if (mutation.attributeName === 'data-theme') {
+                        localStorage.setItem('theme', document.documentElement.getAttribute('data-theme'));
                     }
                 });
             });
 
-            document.querySelectorAll('form').forEach(form => {
-                form.addEventListener('submit', () => {
-                    startLoading();
-                });
+            themeObserver.observe(document.documentElement, {
+                attributes: true
             });
         });
+        $(document).ready(function () {
+            $('.handai-select').select2();
+        });
     </script>
-</body>
-</html>
 
+</body>
+
+</html>

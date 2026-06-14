@@ -1,4 +1,4 @@
-@extends('handai-manager.layouts.master')
+﻿@extends('layouts.master')
 
 @section('title', 'Add New Stock')
 
@@ -90,5 +90,6 @@
 
     
 @endsection
+
 
 

@@ -21,7 +21,7 @@ return new class extends Migration
             $table->unsignedBigInteger('created_by')->nullable();
             $table->timestamps();
 
-            $table->foreign('store_id')->references('id')->on('stores')->cascadeOnDelete();
+            $table->foreign('store_id')->references('id')->on('store')->cascadeOnDelete();
             $table->foreign('created_by')->references('id')->on('users')->nullOnDelete();
             $table->unique(['store_id', 'plan_number']);
         });

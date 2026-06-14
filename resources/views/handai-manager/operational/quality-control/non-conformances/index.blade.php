@@ -1,4 +1,4 @@
-@extends('handai-manager.layouts.master')
+﻿@extends('layouts.master')
 
 @section('title', 'Non-Conformances')
 
@@ -113,3 +113,4 @@
     </div>
 </div>
 @endsection
+

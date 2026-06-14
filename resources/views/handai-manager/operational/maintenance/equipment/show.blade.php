@@ -1,4 +1,4 @@
-@extends('handai-manager.layouts.master')
+﻿@extends('layouts.master')
 
 @section('title', $equipment->name)
 
@@ -211,3 +211,4 @@
     </div>
 </div>
 @endsection
+

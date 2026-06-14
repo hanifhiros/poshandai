@@ -1,4 +1,4 @@
-@extends('handai-manager.layouts.master')
+﻿@extends('layouts.master')
 
 @section('title', 'Tambah Resep')
 
@@ -474,7 +474,7 @@
                 <div class="w-6 h-6 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center text-[11px] font-bold">4</div>
                 <div>
                     <h2 class="text-[13px] font-semibold text-gray-700">Standar Produksi Batch</h2>
-                    <p class="text-[11px] text-gray-400">HPP per unit = (total bahan + upah) ÷ output per batch</p>
+                    <p class="text-[11px] text-gray-400">HPP per unit = (total bahan + upah) Ã· output per batch</p>
                 </div>
             </div>
             <div>
@@ -507,7 +507,7 @@
                         <input type="number" name="wage_per_unit" x-model.number="wageFinished" step="1" min="0"
                             class="w-full px-9 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 focus:outline-none focus:border-indigo-300" placeholder="2000">
                     </div>
-                    <p class="text-[10px] text-gray-400 mt-1">Upah untuk menghasilkan 1 unit produk jadi. Misal: membuat 1 menu → Rp 2.000</p>
+                    <p class="text-[10px] text-gray-400 mt-1">Upah untuk menghasilkan 1 unit produk jadi. Misal: membuat 1 menu â†’ Rp 2.000</p>
                 </div>
                 <div x-show="outputType === 'semi'">
                     <label class="block text-xs font-medium text-gray-600 mb-1">Upah Produksi Produk Setengah Jadi (per batch)</label>
@@ -515,7 +515,7 @@
                         <input type="number" name="semi_labor_cost" x-model.number="laborCost" step="1" min="0"
                             class="w-full px-9 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 focus:outline-none focus:border-indigo-300" placeholder="5000">
                     </div>
-                    <p class="text-[10px] text-gray-400 mt-1">Upah untuk mengolah 1 batch. HPP per unit = (bahan + upah) ÷ output per batch (<span x-text="(parseFloat(semiOutputQty)||1)"></span> <span x-text="unitsById[sfpPrices[selectedProductId]?.unit_id]?.symbol || 'unit'"></span>)</p>
+                    <p class="text-[10px] text-gray-400 mt-1">Upah untuk mengolah 1 batch. HPP per unit = (bahan + upah) Ã· output per batch (<span x-text="(parseFloat(semiOutputQty)||1)"></span> <span x-text="unitsById[sfpPrices[selectedProductId]?.unit_id]?.symbol || 'unit'"></span>)</p>
                 </div>
             </div>
         </div>
@@ -547,7 +547,7 @@
                                         <span class="font-mono text-gray-600" x-text="'Rp ' + formatNumber(laborCost||0)"></span>
                                     </div>
                                     <div class="flex justify-between font-medium border-t border-emerald-50 pt-1">
-                                        <span class="text-gray-500">÷ Output batch</span>
+                                        <span class="text-gray-500">Ã· Output batch</span>
                                         <span class="font-mono text-gray-600" x-text="(parseFloat(semiOutputQty)||1) + ' ' + (unitsById[sfpPrices[selectedProductId]?.unit_id]?.symbol || 'unit')"></span>
                                     </div>
                                 </div>
@@ -610,7 +610,7 @@
                 <div class="text-[12px] text-gray-500 space-y-1">
                     <template x-for="(ing, ii) in ingredients.filter(i => (i.type || 'bahan') === 'bahan')" :key="'bb-'+ii">
                         <div class="flex items-center justify-between">
-                            <div class="truncate max-w-[240px]" x-text="(stockPrices[ing.stock_id] && stockPrices[ing.stock_id].name) + ' · ' + (ing.baseQty || 0) + ' ' + (unitsById[ing.unit_id]?.symbol || '')"></div>
+                            <div class="truncate max-w-[240px]" x-text="(stockPrices[ing.stock_id] && stockPrices[ing.stock_id].name) + ' Â· ' + (ing.baseQty || 0) + ' ' + (unitsById[ing.unit_id]?.symbol || '')"></div>
                             <div class="font-mono text-gray-700">Rp <span x-text="formatNumber(getIngredientCost(ii, baseVariantIdx))"></span></div>
                         </div>
                     </template>
@@ -626,7 +626,7 @@
                 <div class="text-[12px] text-gray-500 space-y-1">
                     <template x-for="(ing, ii) in ingredients.filter(i => i.type === 'semi_finished')" :key="'sf-tot-'+ii">
                         <div class="flex items-center justify-between">
-                            <div class="truncate max-w-[240px]" x-text="(sfpPrices[ing.sfp_id] && sfpPrices[ing.sfp_id].name) + ' · ' + (ing.baseQty || 0) + ' ' + (unitsById[ing.unit_id]?.symbol || '')"></div>
+                            <div class="truncate max-w-[240px]" x-text="(sfpPrices[ing.sfp_id] && sfpPrices[ing.sfp_id].name) + ' Â· ' + (ing.baseQty || 0) + ' ' + (unitsById[ing.unit_id]?.symbol || '')"></div>
                             <div class="font-mono text-purple-700">Rp <span x-text="formatNumber(getSfpIngredientCost(ii, baseVariantIdx))"></span></div>
                         </div>
                     </template>
@@ -642,7 +642,7 @@
                 <div class="text-[12px] text-gray-500 space-y-1">
                     <template x-for="(ing, ii) in ingredients.filter(i => (i.type || 'bahan') === 'kemasan')" :key="'km-'+ii">
                         <div class="flex items-center justify-between">
-                            <div class="truncate max-w-[240px]" x-text="(stockPrices[ing.stock_id] && stockPrices[ing.stock_id].name) + ' · ' + (ing.baseQty || 0) + ' ' + (unitsById[ing.unit_id]?.symbol || '')"></div>
+                            <div class="truncate max-w-[240px]" x-text="(stockPrices[ing.stock_id] && stockPrices[ing.stock_id].name) + ' Â· ' + (ing.baseQty || 0) + ' ' + (unitsById[ing.unit_id]?.symbol || '')"></div>
                             <div class="font-mono text-gray-700">Rp <span x-text="formatNumber(getIngredientCost(ii, baseVariantIdx))"></span></div>
                         </div>
                     </template>
@@ -683,7 +683,7 @@
         <template x-if="selectedProductId">
         <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6">
             <div class="flex items-center justify-end gap-3">
-                <a href="{{ route('manager.inventory.recipes.index') }}" class="h-9 px-4 inline-flex items-center text-[13px] font-medium text-gray-600 bg-white border border-gray-200 hover:bg-gray-50 hover:bg-gray-100 rounded-lg transition">← Batal</a>
+                <a href="{{ route('manager.inventory.recipes.index') }}" class="h-9 px-4 inline-flex items-center text-[13px] font-medium text-gray-600 bg-white border border-gray-200 hover:bg-gray-50 hover:bg-gray-100 rounded-lg transition">â† Batal</a>
                 <button type="submit"
                     class="h-9 px-5 inline-flex items-center gap-1.5 text-[13px] font-medium text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg transition shadow-sm disabled:opacity-50 disabled:cursor-not-allowed">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
@@ -724,7 +724,7 @@
             </div>
             <p x-show="newStockError" class="text-[12px] text-red-600 mt-2" x-text="newStockError"></p>
             <div class="mt-5 flex justify-end gap-2">
-                <button type="button" @click="showNewStockModal = false" class="h-8 px-4 text-[12px] font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 hover:bg-gray-100 rounded-lg transition">← Batal</button>
+                <button type="button" @click="showNewStockModal = false" class="h-8 px-4 text-[12px] font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 hover:bg-gray-100 rounded-lg transition">â† Batal</button>
                 <button type="button" @click="saveNewStock()" class="h-8 px-4 text-[12px] font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition">Simpan</button>
             </div>
         </div>
@@ -1188,3 +1188,4 @@ function recipeCreate() {
 }
 </script>
 @endpush
+

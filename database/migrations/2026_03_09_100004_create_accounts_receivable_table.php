@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('accounts_receivable', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('store_id')->constrained('stores')->cascadeOnDelete();
+            $table->foreignId('store_id')->constrained('store')->cascadeOnDelete();
             $table->foreignId('customer_id')->nullable()->constrained('customer')->nullOnDelete();
             $table->string('invoice_number')->nullable();
             $table->string('description');

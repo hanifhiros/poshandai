@@ -1,16 +1,16 @@
 <?php
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\Kasir\DashboardController;
+use App\Http\Controllers\POS\DashboardPOS;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Kasir\KasirController;
-use App\Http\Controllers\Kasir\CartController;
-use App\Http\Controllers\Kasir\CheckoutController;
+use App\Http\Controllers\POS\KasirController;
+use App\Http\Controllers\POS\CartController;
+use App\Http\Controllers\POS\CheckoutController;
 Route::middleware(['web', 'auth', 'cekrole:Kasir'])->group(function () {
     Route::get('select-store', [KasirController::class, 'index'])->name('kasir.store');
 
     Route::post('set-store', [KasirController::class, 'setStore'])->name('kasir.setstore');
     // route::get('start-order', 'StartOrder@index')->name('pos.startorder');
-    Route::get('dashboard', [DashboardController::class, 'index'])->name('kasir.dashboard');
+    Route::get('dashboard', [DashboardPOS::class, 'index'])->name('kasir.dashboard');
     // Card related routes
     Route::get('/cart', [CartController::class, 'index'])->name('kasir.cart.index');
     Route::post('/cart/add', [CartController::class, 'addToCart'])->name('kasir.cart.add');
@@ -27,7 +27,7 @@ Route::middleware(['web', 'auth', 'cekrole:Kasir'])->group(function () {
     Route::get('/checkout', [CartController::class, 'index'])->name('kasir.checkout');
     Route::get('/invoice/{id}', [KasirController::class, 'showInvoice'])->name('kasir.invoice');
     Route::post('/cart/remove-item', [CartController::class, 'removeItem'])->name('kasir.cart.removeItem');
-    Route::get('/invoice/print/{order}', [\App\Http\Controllers\Kasir\InvoiceController::class, 'show'])->name('kasir.invoice.print');
-    Route::get('/invoice/pdf/{orderId}', [\App\Http\Controllers\Kasir\InvoiceController::class, 'downloadPdf'])->name('kasir.invoice.pdf');
+    Route::get('/invoice/print/{order}', [\App\Http\Controllers\POS\InvoiceController::class, 'show'])->name('kasir.invoice.print');
+    Route::get('/invoice/pdf/{orderId}', [\App\Http\Controllers\POS\InvoiceController::class, 'downloadPdf'])->name('kasir.invoice.pdf');
 
 });

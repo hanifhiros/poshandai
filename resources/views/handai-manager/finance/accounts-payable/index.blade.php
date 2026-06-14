@@ -1,6 +1,6 @@
-@extends('handai-manager.layouts.master')
+﻿@extends('layouts.master')
 
-@section('title', 'Hutang (AP) — Handai Finance')
+@section('title', 'Hutang (AP) â€” Handai Finance')
 
 @section('page-style')
 <style>
@@ -14,7 +14,7 @@
     <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
             <h1 class="text-2xl font-bold text-gray-800">Accounts Payable (Hutang)</h1>
-            <p class="text-sm text-gray-500 mt-1">{{ $store->name }} — Kelola hutang ke supplier</p>
+            <p class="text-sm text-gray-500 mt-1">{{ $store->name }} â€” Kelola hutang ke supplier</p>
         </div>
         <a href="{{ route('manager.finance.ap.create') }}"
            class="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition">
@@ -120,7 +120,7 @@
                                     <i class="ti ti-cash text-base mr-0.5"></i> Bayar
                                 </button>
                             @else
-                                <span class="text-gray-400 text-xs">✓</span>
+                                <span class="text-gray-400 text-xs">âœ“</span>
                             @endif
                         </td>
                     </tr>
@@ -174,3 +174,4 @@
     </div>
 </div>
 @endsection
+

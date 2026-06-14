@@ -1,4 +1,4 @@
-@extends('handai-manager.layouts.master')
+﻿@extends('layouts.master')
 
 @section('content')
 <div class="container-xl">
@@ -150,3 +150,4 @@
     </div>
 </div>
 @endsection
+

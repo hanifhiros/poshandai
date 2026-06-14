@@ -1,4 +1,4 @@
-@extends('handai-manager.layouts.master')
+﻿@extends('layouts.master')
 @section('title', 'History Import / Export')
 
 @section('page-style')
@@ -257,3 +257,4 @@ function historyPage() {
 }
 </script>
 @endsection
+

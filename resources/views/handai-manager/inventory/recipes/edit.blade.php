@@ -1,4 +1,4 @@
-@extends('handai-manager.layouts.master')
+﻿@extends('layouts.master')
 
 @section('title', 'Edit Resep - ' . ($isSemi ?? false ? ('Produk Setengah Jadi (ID ' . ($outputId ?? '') . ')') : ($product->name ?? '')))
 
@@ -464,7 +464,7 @@
                 </div>
                 <div>
                     <h2 class="text-[13px] font-semibold text-gray-700">Standar Produksi Batch</h2>
-                    <p class="text-[11px] text-gray-400">HPP per unit = (total bahan + upah) ÷ output per batch</p>
+                    <p class="text-[11px] text-gray-400">HPP per unit = (total bahan + upah) Ã· output per batch</p>
                 </div>
             </div>
             <div>
@@ -496,7 +496,7 @@
                         <input type="number" name="wage_per_unit" x-model.number="wageFinished" step="1" min="0"
                             class="w-full px-9 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 focus:outline-none focus:border-indigo-300" placeholder="2000">
                     </div>
-                    <p class="text-[10px] text-gray-400 mt-1">Upah untuk menghasilkan 1 unit produk jadi. Misal: membuat 1 menu → Rp 2.000</p>
+                    <p class="text-[10px] text-gray-400 mt-1">Upah untuk menghasilkan 1 unit produk jadi. Misal: membuat 1 menu â†’ Rp 2.000</p>
                 </div>
                 <div x-show="outputType === 'semi'">
                     <label class="block text-xs font-medium text-gray-600 mb-1">Upah Produksi Produk Setengah Jadi (per batch)</label>
@@ -504,7 +504,7 @@
                         <input type="number" name="semi_labor_cost" x-model.number="laborCost" step="1" min="0"
                             class="w-full px-9 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 focus:outline-none focus:border-indigo-300" placeholder="5000">
                     </div>
-                    <p class="text-[10px] text-gray-400 mt-1">Upah untuk mengolah 1 batch. HPP per unit = (bahan + upah) ÷ output per batch (<span x-text="(parseFloat(semiOutputQty)||1)"></span> {{ $isSemi ? ($sfpOutput->unit->symbol ?? 'unit') : 'unit' }})</p>
+                    <p class="text-[10px] text-gray-400 mt-1">Upah untuk mengolah 1 batch. HPP per unit = (bahan + upah) Ã· output per batch (<span x-text="(parseFloat(semiOutputQty)||1)"></span> {{ $isSemi ? ($sfpOutput->unit->symbol ?? 'unit') : 'unit' }})</p>
                 </div>
             </div>
         </div>
@@ -536,7 +536,7 @@
                                         <span class="font-mono text-gray-600" x-text="'Rp ' + formatNumber(laborCost||0)"></span>
                                     </div>
                                     <div class="flex justify-between font-medium border-t border-emerald-50 pt-1">
-                                        <span class="text-gray-500">÷ Output batch</span>
+                                        <span class="text-gray-500">Ã· Output batch</span>
                                         <span class="font-mono text-gray-600" x-text="(parseFloat(semiOutputQty)||1) + ' {{ $isSemi ? ($sfpOutput->unit->symbol ?? 'unit') : 'unit' }}'"></span>
                                     </div>
                                 </div>
@@ -599,7 +599,7 @@
                 <div class="text-[12px] text-gray-500 space-y-1">
                     <template x-for="(ing, ii) in ingredients.filter(i => (i.type || 'bahan') === 'bahan')" :key="'bb-'+ii">
                         <div class="flex items-center justify-between">
-                            <div class="truncate max-w-[240px]" x-text="(stockPrices[ing.stock_id]?.name || '—') + ' · ' + (ing.baseQty || 0) + ' ' + (unitsById[ing.unit_id]?.symbol || '')"></div>
+                            <div class="truncate max-w-[240px]" x-text="(stockPrices[ing.stock_id]?.name || 'â€”') + ' Â· ' + (ing.baseQty || 0) + ' ' + (unitsById[ing.unit_id]?.symbol || '')"></div>
                             <div class="font-mono text-gray-700">Rp <span x-text="formatNumber(getIngredientCost(ii, baseVariantIdx))"></span></div>
                         </div>
                     </template>
@@ -615,7 +615,7 @@
                 <div class="text-[12px] text-gray-500 space-y-1">
                     <template x-for="(ing, ii) in ingredients.filter(i => i.type === 'semi_finished')" :key="'sf-tot-'+ii">
                         <div class="flex items-center justify-between">
-                            <div class="truncate max-w-[240px]" x-text="(sfpPrices[ing.sfp_id]?.name || '—') + ' · ' + (ing.baseQty || 0) + ' ' + (unitsById[ing.unit_id]?.symbol || '')"></div>
+                            <div class="truncate max-w-[240px]" x-text="(sfpPrices[ing.sfp_id]?.name || 'â€”') + ' Â· ' + (ing.baseQty || 0) + ' ' + (unitsById[ing.unit_id]?.symbol || '')"></div>
                             <div class="font-mono text-purple-700">Rp <span x-text="formatNumber(getSfpIngredientCost(ii, baseVariantIdx))"></span></div>
                         </div>
                     </template>
@@ -631,7 +631,7 @@
                 <div class="text-[12px] text-gray-500 space-y-1">
                     <template x-for="(ing, ii) in ingredients.filter(i => (i.type || 'bahan') === 'kemasan')" :key="'km-'+ii">
                         <div class="flex items-center justify-between">
-                            <div class="truncate max-w-[240px]" x-text="(stockPrices[ing.stock_id]?.name || '—') + ' · ' + (ing.baseQty || 0) + ' ' + (unitsById[ing.unit_id]?.symbol || '')"></div>
+                            <div class="truncate max-w-[240px]" x-text="(stockPrices[ing.stock_id]?.name || 'â€”') + ' Â· ' + (ing.baseQty || 0) + ' ' + (unitsById[ing.unit_id]?.symbol || '')"></div>
                             <div class="font-mono text-gray-700">Rp <span x-text="formatNumber(getIngredientCost(ii, baseVariantIdx))"></span></div>
                         </div>
                     </template>
@@ -655,7 +655,7 @@
                     <div class="font-mono text-indigo-700 text-lg mt-1">Rp <span x-text="formatNumber(laborCost)"></span></div>
                 </div>
                 <div class="p-3 bg-indigo-50 rounded-lg">
-                    <div class="text-xs text-gray-500">Upah setara / unit (Semi → per unit)</div>
+                    <div class="text-xs text-gray-500">Upah setara / unit (Semi â†’ per unit)</div>
                     <div class="font-mono text-indigo-700 text-lg mt-1">Rp <span x-text="formatNumber(Math.round(((parseFloat(laborCost)||0) / (parseFloat(semiOutputQty)||1)) * 100) / 100)"></span></div>
                 </div>
             </div>
@@ -668,7 +668,7 @@
                 <div class="space-y-2 text-[13px] text-gray-700">
                     <template x-for="sfpId in [...new Set(ingredients.filter(i => i.type === 'semi_finished').map(i => i.sfp_id))]" :key="sfpId">
                         <div class="flex items-center justify-between">
-                            <div class="truncate max-w-[60%]" x-text="(sfpPrices[sfpId]?.name || '—')"></div>
+                            <div class="truncate max-w-[60%]" x-text="(sfpPrices[sfpId]?.name || 'â€”')"></div>
                             <div class="font-mono text-indigo-700">Rp <span x-text="formatNumber( ((sfpPrices[sfpId]?.labor_cost||0) / (sfpPrices[sfpId]?.output_qty||1)).toFixed(2) )"></span></div>
                         </div>
                     </template>
@@ -687,7 +687,7 @@
                 <template x-if="ingredients.filter(i => i.type === 'semi_finished').length > 0">
                     <template x-for="sfpId in [...new Set(ingredients.filter(i => i.type === 'semi_finished').map(i => i.sfp_id))]" :key="'recap-'+sfpId">
                         <div class="flex items-center justify-between">
-                            <div class="truncate max-w-[60%]">Upah dari: <span x-text="(sfpPrices[sfpId]?.name || '—')"></span></div>
+                            <div class="truncate max-w-[60%]">Upah dari: <span x-text="(sfpPrices[sfpId]?.name || 'â€”')"></span></div>
                             <div class="font-mono">Rp <span x-text="formatNumber((function(){ let sum=0; ingredients.forEach((ing,ii)=>{ if(ing.type==='semi_finished' && ing.sfp_id==sfpId){ sum += getSfpWageContribution(ii, baseVariantIdx); } }); return sum; })())"></span></div>
                         </div>
                     </template>
@@ -1287,3 +1287,4 @@ function recipeEdit() {
 }
 </script>
 @endpush
+

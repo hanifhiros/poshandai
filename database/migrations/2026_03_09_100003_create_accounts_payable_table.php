@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('accounts_payable', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('store_id')->constrained('stores')->cascadeOnDelete();
+            $table->foreignId('store_id')->constrained('store')->cascadeOnDelete();
             $table->foreignId('supplier_id')->nullable()->constrained('suppliers')->nullOnDelete();
             $table->string('description');
             $table->decimal('total_amount', 15, 2);

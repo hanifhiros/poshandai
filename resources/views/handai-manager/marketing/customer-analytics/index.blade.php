@@ -1,4 +1,4 @@
-@extends('handai-manager.layouts.master')
+﻿@extends('layouts.master')
 @section('title', 'Customer Analytics')
 
 @section('vendor-style')
@@ -84,9 +84,9 @@
 @section('content')
 <div class="py-5 px-4 sm:px-6 lg:px-8 max-w-[1400px] mx-auto space-y-6">
 
-    {{-- ═══════════════════════════════════════════════
+    {{-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
          HEADER + PERIOD FILTER
-    ═══════════════════════════════════════════════ --}}
+    â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
 
     <form method="GET" action="" class="ca-card flex flex-wrap items-center gap-3">
         <span class="text-sm font-semibold text-slate-600 mr-1">
@@ -112,7 +112,7 @@
         <div class="flex items-center gap-2 ml-auto">
             <input type="date" name="start_date" value="{{ isset($startDate) ? $startDate->format('Y-m-d') : '' }}"
                    class="ca-date-input" placeholder="Mulai">
-            <span class="text-xs text-slate-400">—</span>
+            <span class="text-xs text-slate-400">â€”</span>
             <input type="date" name="end_date" value="{{ isset($endDate) ? $endDate->format('Y-m-d') : '' }}"
                    class="ca-date-input" placeholder="Akhir">
             <button type="submit" name="period" value="custom"
@@ -122,9 +122,9 @@
         </div>
     </form>
 
-    {{-- ═══════════════════════════════════════════════
+    {{-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
          SUMMARY CARDS
-    ═══════════════════════════════════════════════ --}}
+    â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
 
     <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-4">
 
@@ -175,7 +175,7 @@
         {{-- Customer Aktif --}}
         <div class="ca-card">
             <div class="flex items-center justify-between mb-3">
-                <span class="ca-label">Aktif ≤30 Hari</span>
+                <span class="ca-label">Aktif â‰¤30 Hari</span>
                 <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:#ecfdf5;">
                     <i class="ti ti-activity text-base" style="color:#059669;"></i>
                 </div>
@@ -207,9 +207,9 @@
 
     </div>
 
-    {{-- ═══════════════════════════════════════════════
+    {{-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
          SEGMENTATION CHARTS
-    ═══════════════════════════════════════════════ --}}
+    â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
 
@@ -233,9 +233,9 @@
 
     </div>
 
-    {{-- ═══════════════════════════════════════════════
+    {{-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
          CUSTOMER LIST TABLE + HIGH VALUE SIDEBAR
-    ═══════════════════════════════════════════════ --}}
+    â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
 
     @php
         $highValueIds = ($highValueCustomers ?? collect())->pluck('id')->toArray();
@@ -338,7 +338,7 @@
             @if($customerList instanceof \Illuminate\Pagination\LengthAwarePaginator && $customerList->hasPages())
             <div class="flex items-center justify-between mt-4 pt-4" style="border-top:1px solid #f1f5f9;">
                 <span style="font-size:.75rem;color:#94a3b8;">
-                    Menampilkan {{ $customerList->firstItem() }}–{{ $customerList->lastItem() }} dari {{ number_format($customerList->total(), 0, ',', '.') }}
+                    Menampilkan {{ $customerList->firstItem() }}â€“{{ $customerList->lastItem() }} dari {{ number_format($customerList->total(), 0, ',', '.') }}
                 </span>
                 <div class="ca-pagination">
                     @if($customerList->onFirstPage())
@@ -532,3 +532,4 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 </script>
 @endsection
+

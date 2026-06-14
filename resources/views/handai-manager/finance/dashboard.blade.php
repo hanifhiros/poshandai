@@ -1,6 +1,6 @@
-@extends('handai-manager.layouts.master')
+﻿@extends('layouts.master')
 
-@section('title', 'Finance Dashboard — Handai')
+@section('title', 'Finance Dashboard â€” Handai')
 
 @section('page-style')
 @vite('resources/css/handai-manager-finance-dashboard.css')
@@ -13,7 +13,7 @@
     <div class="mb-8 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
         <div>
             <h1 class="text-2xl font-bold text-gray-800">Finance Dashboard</h1>
-            <p class="text-sm text-gray-500 mt-1">{{ $store->name ?? 'Store' }} — {{ now()->translatedFormat('F Y') }}</p>
+            <p class="text-sm text-gray-500 mt-1">{{ $store->name ?? 'Store' }} â€” {{ now()->translatedFormat('F Y') }}</p>
         </div>
         <div class="flex gap-2">
             <a href="{{ route('manager.finance.revenue.index') }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border border-gray-300 rounded-lg hover:bg-gray-50 transition">
@@ -113,13 +113,13 @@
         <div class="fc p-5">
             <div class="flex items-center justify-between mb-4">
                 <h3 class="text-sm font-semibold text-gray-700">Pengeluaran Terakhir</h3>
-                <a href="{{ route('manager.finance.expenses.index') }}" class="text-xs text-green-600 hover:underline">Lihat Semua →</a>
+                <a href="{{ route('manager.finance.expenses.index') }}" class="text-xs text-green-600 hover:underline">Lihat Semua â†’</a>
             </div>
             @forelse ($recentExpenses as $exp)
                 <div class="flex items-center justify-between py-2 {{ !$loop->last ? 'border-b border-gray-100' : '' }}">
                     <div>
                         <p class="text-sm text-gray-700">{{ Str::limit($exp->description, 30) }}</p>
-                        <p class="text-xs text-gray-400">{{ $exp->category->name ?? '-' }} · {{ $exp->expense_date->format('d/m/Y') }}</p>
+                        <p class="text-xs text-gray-400">{{ $exp->category->name ?? '-' }} Â· {{ $exp->expense_date->format('d/m/Y') }}</p>
                     </div>
                     <p class="text-sm font-semibold text-red-600">-Rp{{ number_format($exp->amount, 0, ',', '.') }}</p>
                 </div>
@@ -132,7 +132,7 @@
         <div class="fc p-5">
             <div class="flex items-center justify-between mb-4">
                 <h3 class="text-sm font-semibold text-gray-700">Hutang Jatuh Tempo</h3>
-                <a href="{{ route('manager.finance.ap.index') }}" class="text-xs text-green-600 hover:underline">Lihat Semua →</a>
+                <a href="{{ route('manager.finance.ap.index') }}" class="text-xs text-green-600 hover:underline">Lihat Semua â†’</a>
             </div>
             @forelse ($overdueAP as $ap)
                 <div class="flex items-center justify-between py-2 {{ !$loop->last ? 'border-b border-gray-100' : '' }}">
@@ -151,7 +151,7 @@
         <div class="fc p-5">
             <div class="flex items-center justify-between mb-4">
                 <h3 class="text-sm font-semibold text-gray-700">Piutang Jatuh Tempo</h3>
-                <a href="{{ route('manager.finance.ar.index') }}" class="text-xs text-green-600 hover:underline">Lihat Semua →</a>
+                <a href="{{ route('manager.finance.ar.index') }}" class="text-xs text-green-600 hover:underline">Lihat Semua â†’</a>
             </div>
             @forelse ($overdueAR as $ar)
                 <div class="flex items-center justify-between py-2 {{ !$loop->last ? 'border-b border-gray-100' : '' }}">
@@ -220,3 +220,4 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 @endsection
+

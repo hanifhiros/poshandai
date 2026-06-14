@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('expense_categories', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('store_id')->constrained('stores')->cascadeOnDelete();
+            $table->foreignId('store_id')->constrained('store')->cascadeOnDelete();
             $table->string('name');
             $table->string('slug')->index();
             $table->string('description')->nullable();

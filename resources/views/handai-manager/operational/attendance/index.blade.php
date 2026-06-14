@@ -1,4 +1,4 @@
-@extends('handai-manager.layouts.master')
+﻿@extends('layouts.master')
 
 @section('title', 'Rekap Absensi')
 
@@ -143,7 +143,7 @@
                                 </button>
                             </form>
                             @else
-                                <span class="text-xs text-gray-400">—</span>
+                                <span class="text-xs text-gray-400">â€”</span>
                             @endif
                         </td>
                     </tr>
@@ -159,3 +159,4 @@
     </div>
 </div>
 @endsection
+

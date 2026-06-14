@@ -1,4 +1,4 @@
-@extends('handai-manager.layouts.master')
+﻿@extends('layouts.master')
 
 @section('title', 'Edit Product')
 
@@ -249,3 +249,4 @@
 @endpush
 
 @endsection
+

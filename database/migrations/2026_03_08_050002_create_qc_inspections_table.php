@@ -26,7 +26,7 @@ return new class extends Migration
             $table->text('notes')->nullable();
             $table->timestamps();
 
-            $table->foreign('store_id')->references('id')->on('stores')->cascadeOnDelete();
+            $table->foreign('store_id')->references('id')->on('store')->cascadeOnDelete();
             $table->foreign('qc_standard_id')->references('id')->on('qc_standards')->nullOnDelete();
             $table->foreign('inspector_id')->references('id')->on('employees')->nullOnDelete();
             $table->unique(['store_id', 'inspection_number']);

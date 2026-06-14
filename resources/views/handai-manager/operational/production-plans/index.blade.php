@@ -1,4 +1,4 @@
-@extends('handai-manager.layouts.master')
+﻿@extends('layouts.master')
 
 @section('title', 'Production Planning')
 
@@ -75,7 +75,7 @@
                             </a>
                         </td>
                         <td class="px-4 py-3 text-gray-500 text-xs">
-                            {{ $plan->start_date->format('d M') }} — {{ $plan->end_date->format('d M Y') }}
+                            {{ $plan->start_date->format('d M') }} â€” {{ $plan->end_date->format('d M Y') }}
                         </td>
                         <td class="px-4 py-3 text-center text-gray-700">{{ $plan->items_count }}</td>
                         <td class="px-4 py-3">
@@ -120,3 +120,4 @@
     </div>
 </div>
 @endsection
+

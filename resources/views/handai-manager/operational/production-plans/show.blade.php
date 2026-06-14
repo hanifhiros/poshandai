@@ -1,4 +1,4 @@
-@extends('handai-manager.layouts.master')
+﻿@extends('layouts.master')
 
 @section('title', $plan->name)
 
@@ -20,7 +20,7 @@
             </a>
             <div>
                 <h1 class="text-xl font-bold text-gray-900">{{ $plan->name }}</h1>
-                <p class="text-sm text-gray-500 mt-0.5">{{ $plan->plan_number }} &middot; {{ $plan->start_date->format('d M') }} — {{ $plan->end_date->format('d M Y') }}</p>
+                <p class="text-sm text-gray-500 mt-0.5">{{ $plan->plan_number }} &middot; {{ $plan->start_date->format('d M') }} â€” {{ $plan->end_date->format('d M Y') }}</p>
             </div>
         </div>
         <div class="flex items-center gap-2">
@@ -203,3 +203,4 @@
     @endif
 </div>
 @endsection
+

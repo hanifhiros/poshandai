@@ -1,4 +1,4 @@
-@extends('handai-manager.layouts.master')
+﻿@extends('layouts.master')
 
 @section('title', 'Riwayat Produksi')
 
@@ -21,7 +21,7 @@
         openDetail(d) { this.detailData = d; this.showDetail = true; }
      }">
 
-    {{-- ── FLASH ── --}}
+    {{-- â”€â”€ FLASH â”€â”€ --}}
     @if(session('success'))
     <div class="mb-4 p-3 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl text-[13px] flex items-center gap-2">
         <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
@@ -35,7 +35,7 @@
     </div>
     @endif
 
-    {{-- ── HEADER ── --}}
+    {{-- â”€â”€ HEADER â”€â”€ --}}
     <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-5">
         <div>
             <h1 class="text-[19px] font-bold text-gray-800 leading-tight">Riwayat Produksi</h1>
@@ -60,7 +60,7 @@
         </div>
     </div>
 
-    {{-- ── STAT CARDS ── --}}
+    {{-- â”€â”€ STAT CARDS â”€â”€ --}}
     <div class="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-5">
         <div class="pdk-card-stat">
             <p class="text-[11px] font-medium text-gray-400 uppercase tracking-wider leading-none">Total Produksi</p>
@@ -84,7 +84,7 @@
         </div>
     </div>
 
-    {{-- ── FILTER ── --}}
+    {{-- â”€â”€ FILTER â”€â”€ --}}
     <div x-show="showFilter" x-collapse x-cloak class="mb-5">
         <form method="GET" action="{{ route('manager.operational.produksi') }}"
               class="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
@@ -121,13 +121,13 @@
         </form>
     </div>
 
-    {{-- ── MAIN TABLE ── --}}
+    {{-- â”€â”€ MAIN TABLE â”€â”€ --}}
     <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
 
         {{-- Info bar --}}
         <div class="px-5 py-2.5 border-b border-gray-50 flex items-center justify-between">
             <p class="text-[12px] text-gray-400">
-                <span class="font-medium text-gray-500">{{ $productions->firstItem() ?? 0 }}–{{ $productions->lastItem() ?? 0 }}</span> dari {{ $productions->total() }} catatan
+                <span class="font-medium text-gray-500">{{ $productions->firstItem() ?? 0 }}â€“{{ $productions->lastItem() ?? 0 }}</span> dari {{ $productions->total() }} catatan
             </p>
             @if(request()->hasAny(['search','from','to','type']))
             <a href="{{ route('manager.operational.produksi') }}" class="text-[11px] text-emerald-600 hover:text-emerald-700 font-medium inline-flex items-center gap-1">
@@ -333,7 +333,7 @@
         @endif
     </div>
 
-    {{-- ── DETAIL MODAL ── --}}
+    {{-- â”€â”€ DETAIL MODAL â”€â”€ --}}
     <div x-show="showDetail" x-cloak
          x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
          x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
@@ -398,3 +398,4 @@
 
 </div>
 @endsection
+

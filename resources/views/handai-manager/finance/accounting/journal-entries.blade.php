@@ -1,6 +1,6 @@
-@extends('handai-manager.layouts.master')
+﻿@extends('layouts.master')
 
-@section('title', 'Jurnal Entries — Handai Finance')
+@section('title', 'Jurnal Entries â€” Handai Finance')
 
 @section('content')
 <style>
@@ -160,3 +160,4 @@
     @endif
 </div>
 @endsection
+

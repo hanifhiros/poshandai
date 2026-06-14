@@ -22,7 +22,7 @@ class Login extends Controller
      */
     public function index(): View
     {
-        return view('login');
+        return view('auth.login');
     }
 
     /**

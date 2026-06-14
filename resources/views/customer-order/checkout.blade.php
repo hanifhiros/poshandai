@@ -1,4 +1,4 @@
-@extends('handai-manager.layouts.layoutBlank')
+﻿@extends('layouts.layoutBlank')
 
 
 @section('title', 'Landing Page')
@@ -623,7 +623,7 @@
                         document.getElementById('promo-code-text').textContent = '-';
                     }
                 }  else {
-                    alert(data.error_detail || 'Gagal memperbarui quantity'); // ✅ pakai `data.error`
+                    alert(data.error_detail || 'Gagal memperbarui quantity'); // âœ… pakai `data.error`
                 }
 
             })

@@ -1,4 +1,4 @@
-@extends('handai-manager.layouts.master')
+﻿@extends('layouts.master')
 
 @section('title', 'Database Customer')
 
@@ -120,7 +120,7 @@
         {{-- Pagination --}}
         @if ($customers->hasPages())
             <div class="px-5 py-3 border-t border-gray-100 flex items-center justify-between">
-                <span class="text-[12px] text-gray-400">Menampilkan {{ $customers->firstItem() }}–{{ $customers->lastItem() }} dari {{ $customers->total() }}</span>
+                <span class="text-[12px] text-gray-400">Menampilkan {{ $customers->firstItem() }}â€“{{ $customers->lastItem() }} dari {{ $customers->total() }}</span>
                 <div class="flex items-center gap-1">
                     @if ($customers->onFirstPage())
                         <span class="w-8 h-8 flex items-center justify-center rounded-lg text-gray-300"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg></span>
@@ -157,3 +157,4 @@
     }
 </script>
 @endpush
+

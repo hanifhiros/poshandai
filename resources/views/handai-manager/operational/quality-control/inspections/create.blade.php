@@ -1,4 +1,4 @@
-@extends('handai-manager.layouts.master')
+﻿@extends('layouts.master')
 
 @section('title', 'Inspeksi QC Baru')
 
@@ -30,7 +30,7 @@
                 <label class="text-xs text-gray-500 block mb-1">Standar QC (opsional)</label>
                 <select name="qc_standard_id" x-model="selectedStandard" @change="loadChecklist()"
                         class="w-full rounded-lg border-gray-200 text-sm focus:ring-cyan-500 focus:border-cyan-500">
-                    <option value="">— Tanpa standar —</option>
+                    <option value="">â€” Tanpa standar â€”</option>
                     @foreach($standards as $std)
                     <option value="{{ $std->id }}" data-checklist="{{ json_encode($std->checklist_items) }}">{{ $std->name }} ({{ \App\Models\QcStandard::CATEGORIES[$std->category] ?? $std->category }})</option>
                     @endforeach
@@ -134,3 +134,4 @@ function inspectionForm() {
 }
 </script>
 @endsection
+

@@ -1,4 +1,4 @@
-@extends('handai-manager.layouts.master')
+﻿@extends('layouts.master')
 
 @section('title', 'Stock Alerts')
 
@@ -157,7 +157,7 @@
                     <tr>
                         <td colspan="7" class="px-4 py-12 text-center text-gray-400">
                             <i class="ti ti-check-circle text-4xl block mb-2 text-emerald-300"></i>
-                            Semua stok dalam kondisi aman! 🎉
+                            Semua stok dalam kondisi aman! ðŸŽ‰
                         </td>
                     </tr>
                     @endforelse
@@ -172,3 +172,4 @@
     </div>
 </div>
 @endsection
+

@@ -1,4 +1,4 @@
-@extends('handai-manager.layouts.master')
+﻿@extends('layouts.master')
 
 @section('title', 'Isi Stok dari R&D')
 
@@ -78,7 +78,7 @@
 </div>
 @endsection
 
-{{-- @extends('handai-manager.layouts.master')
+{{-- @extends('layouts.master')
 
 @section('title', 'Isi Stok dari R&D')
 
@@ -142,3 +142,4 @@
   </form>
 </div>
 @endsection --}}
+

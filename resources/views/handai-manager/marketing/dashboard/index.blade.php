@@ -1,4 +1,4 @@
-@extends('handai-manager.layouts.master')
+﻿@extends('layouts.master')
 @section('title', 'Marketing Dashboard')
 
 @section('vendor-style')
@@ -57,9 +57,9 @@
 @section('content')
 <div class="py-5 px-4 sm:px-6 lg:px-8 max-w-[1400px] mx-auto space-y-6">
 
-    {{-- ═══════════════════════════════════════════════
+    {{-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
          ZONE A: Period Filter + KPI Cards
-    ═══════════════════════════════════════════════ --}}
+    â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
 
     {{-- Period Filter --}}
     <form method="GET" action="" class="mk-card flex flex-wrap items-center gap-3">
@@ -86,7 +86,7 @@
         <div class="flex items-center gap-2 ml-auto">
             <input type="date" name="start_date" value="{{ isset($startDate) ? $startDate->format('Y-m-d') : '' }}"
                    class="mk-date-input" placeholder="Mulai">
-            <span class="text-xs text-slate-400">—</span>
+            <span class="text-xs text-slate-400">â€”</span>
             <input type="date" name="end_date" value="{{ isset($endDate) ? $endDate->format('Y-m-d') : '' }}"
                    class="mk-date-input" placeholder="Akhir">
             <button type="submit" name="period" value="custom"
@@ -140,7 +140,7 @@
         {{-- 3. AOV --}}
         <div class="mk-card">
             <div class="flex items-center justify-between mb-3">
-                <span class="mk-label" title="Average Order Value — rata-rata nilai per transaksi">AOV</span>
+                <span class="mk-label" title="Average Order Value â€” rata-rata nilai per transaksi">AOV</span>
                 <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:#fefce8;">
                     <i class="ti ti-receipt text-base" style="color:#ca8a04;"></i>
                 </div>
@@ -253,9 +253,9 @@
 
     </div>
 
-    {{-- ═══════════════════════════════════════════════
+    {{-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
          ZONE B: Insights & Trend Charts
-    ═══════════════════════════════════════════════ --}}
+    â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
 
     {{-- Alerts & Recommendations --}}
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -313,9 +313,9 @@
 
     </div>
 
-    {{-- ═══════════════════════════════════════════════
+    {{-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
          ZONE C: Strategic Focus Tables
-    ═══════════════════════════════════════════════ --}}
+    â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
 
     @php
         $rankStyles = [
@@ -330,7 +330,7 @@
 
         {{-- Top 5 Revenue Products --}}
         <div class="mk-chart-box">
-            <h3><i class="ti ti-trophy text-base mr-1" style="color:#ca8a04;"></i>Top 5 Produk — Revenue</h3>
+            <h3><i class="ti ti-trophy text-base mr-1" style="color:#ca8a04;"></i>Top 5 Produk â€” Revenue</h3>
             <table class="mk-table">
                 <thead>
                     <tr>
@@ -362,7 +362,7 @@
 
         {{-- Top 5 Margin Products --}}
         <div class="mk-chart-box">
-            <h3><i class="ti ti-chart-arrows-vertical text-base mr-1" style="color:#16a34a;"></i>Top 5 Produk — Margin Tertinggi</h3>
+            <h3><i class="ti ti-chart-arrows-vertical text-base mr-1" style="color:#16a34a;"></i>Top 5 Produk â€” Margin Tertinggi</h3>
             <table class="mk-table">
                 <thead>
                     <tr>
@@ -394,7 +394,7 @@
 
         {{-- Top Repeat Products --}}
         <div class="mk-chart-box">
-            <h3><i class="ti ti-repeat text-base mr-1" style="color:#7c3aed;"></i>Produk — Repeat Rate Tertinggi</h3>
+            <h3><i class="ti ti-repeat text-base mr-1" style="color:#7c3aed;"></i>Produk â€” Repeat Rate Tertinggi</h3>
             <table class="mk-table">
                 <thead>
                     <tr>
@@ -586,3 +586,4 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 </script>
 @endsection
+

@@ -1,4 +1,4 @@
-@extends('handai-manager.layouts.master')
+﻿@extends('layouts.master')
 
 @section('title', 'Add New Product')
 
@@ -119,7 +119,7 @@
                                     <input type="number" name="combinations[0][quantity]" class="border border-slate-300 p-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-green-500" placeholder="0" min="0">
                                 </div>
                                 <div class="flex-shrink-0">
-                                    <button type="button" class="remove-combination bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded text-sm hidden">✕</button>
+                                    <button type="button" class="remove-combination bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded text-sm hidden">âœ•</button>
                                 </div>
                         </div>
                     </div>
@@ -130,7 +130,7 @@
             <div class="bg-white rounded-2xl border border-slate-200/80 mt-4 shadow-sm p-6">
                 <div class="flex items-center justify-between gap-3">
 
-                     <a href="{{ route('manager.inventory.products') }}" class="h-9 px-4 inline-flex items-center text-[13px] font-medium text-gray-600 bg-white border border-gray-200 hover:bg-gray-50 hover:bg-gray-100 rounded-lg transition">← Batal</a>
+                     <a href="{{ route('manager.inventory.products') }}" class="h-9 px-4 inline-flex items-center text-[13px] font-medium text-gray-600 bg-white border border-gray-200 hover:bg-gray-50 hover:bg-gray-100 rounded-lg transition">â† Batal</a>
 
                     <button type="submit" class="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg shadow-sm">
                         Tambah Produk
@@ -168,7 +168,7 @@ document.getElementById('add-combination').addEventListener('click', () => {
             <input type="number" name="combinations[${variantIndex}][quantity]" class="border border-gray-300 p-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-green-500" placeholder="0" min="0">
         </div>
         <div class="flex-shrink-0">
-            <button type="button" class="remove-combination bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded text-sm">✕</button>
+            <button type="button" class="remove-combination bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded text-sm">âœ•</button>
         </div>
         </div>
     </div>`;
@@ -198,5 +198,6 @@ document.querySelectorAll('.remove-combination').forEach(btn => {
 
     
 @endsection
+
 
 

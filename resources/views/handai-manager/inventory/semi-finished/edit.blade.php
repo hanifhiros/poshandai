@@ -1,4 +1,4 @@
-@extends('handai-manager.layouts.master')
+﻿@extends('layouts.master')
 
 @section('title', 'Edit Produk Setengah Jadi')
 
@@ -114,3 +114,4 @@ function semiFinishedEdit() {
 }
 </script>
 @endpush
+

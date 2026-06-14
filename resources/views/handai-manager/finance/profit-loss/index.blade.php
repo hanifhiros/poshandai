@@ -1,6 +1,6 @@
-@extends('handai-manager.layouts.master')
+﻿@extends('layouts.master')
 
-@section('title', 'Profit & Loss — Handai Finance')
+@section('title', 'Profit & Loss â€” Handai Finance')
 
 @section('page-style')
 <style>
@@ -13,7 +13,7 @@
 
     <div class="mb-6">
         <h1 class="text-2xl font-bold text-gray-800">Profit & Loss Report</h1>
-        <p class="text-sm text-gray-500 mt-1">{{ $store->name }} — {{ $periodLabel }}</p>
+        <p class="text-sm text-gray-500 mt-1">{{ $store->name }} â€” {{ $periodLabel }}</p>
     </div>
 
     {{-- Filter --}}
@@ -171,3 +171,4 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 @endsection
+

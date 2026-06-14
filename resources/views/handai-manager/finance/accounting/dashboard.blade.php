@@ -1,6 +1,6 @@
-@extends('handai-manager.layouts.master')
+﻿@extends('layouts.master')
 
-@section('title', 'Finance Dashboard — Handai')
+@section('title', 'Finance Dashboard â€” Handai')
 
 @section('page-style')
 <style>
@@ -25,7 +25,7 @@
         </div>
         <div class="flex items-center gap-2 text-xs text-gray-400">
             <i class="ti ti-clock text-sm"></i>
-            <span>Cache 5 menit — data diperbarui otomatis saat ada transaksi baru</span>
+            <span>Cache 5 menit â€” data diperbarui otomatis saat ada transaksi baru</span>
         </div>
     </div>
 
@@ -93,7 +93,7 @@
 
     {{-- 6-Month Trend Chart --}}
     <div class="fc p-6 mb-8">
-        <h3 class="text-base font-semibold text-gray-700 mb-4">Tren Keuangan — 6 Bulan Terakhir</h3>
+        <h3 class="text-base font-semibold text-gray-700 mb-4">Tren Keuangan â€” 6 Bulan Terakhir</h3>
         <div style="height:320px">
             <canvas id="trendChart"></canvas>
         </div>
@@ -253,3 +253,4 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 @endpush
+

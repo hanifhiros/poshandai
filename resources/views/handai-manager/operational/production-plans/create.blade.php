@@ -1,4 +1,4 @@
-@extends('handai-manager.layouts.master')
+﻿@extends('layouts.master')
 
 @section('title', 'Buat Production Plan')
 
@@ -149,3 +149,4 @@ function productionPlanForm() {
 }
 </script>
 @endsection
+

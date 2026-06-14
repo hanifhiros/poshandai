@@ -1,5 +1,8 @@
 <?php
 
+use App\Http\Controllers\POS\CartController;
+use App\Http\Controllers\POS\DashboardPOS;
+use App\Http\Controllers\POS\KasirController;
 use Illuminate\Support\Facades\Route;
 
 Route::group(['middleware' => ['web', 'auth', 'cekrole:POS']], function () {

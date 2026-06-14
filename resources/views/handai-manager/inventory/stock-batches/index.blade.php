@@ -1,4 +1,4 @@
-@extends('handai-manager.layouts.master')
+﻿@extends('layouts.master')
 
 @section('title', 'Stock Batches')
 
@@ -18,7 +18,7 @@
 
 <div class="py-5 px-4 sm:px-6 lg:px-8 max-w-[1360px] mx-auto" x-data="{ showFilter: {{ request()->hasAny(['search','status','date_from','date_to']) ? 'true' : 'false' }}, deleteId: null, showDeleteModal: false }">
 
-    {{-- ── HEADER ── --}}
+    {{-- â”€â”€ HEADER â”€â”€ --}}
     <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-5">
         <div>
             <h1 class="text-[19px] font-bold text-gray-800 leading-tight">Stock Batches</h1>
@@ -43,7 +43,7 @@
         </div>
     </div>
 
-    {{-- ── STAT CARDS ── --}}
+    {{-- â”€â”€ STAT CARDS â”€â”€ --}}
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
         <div class="sb-card-stat">
             <p class="text-[11px] font-medium text-gray-400 uppercase tracking-wider leading-none">Total Batch</p>
@@ -63,7 +63,7 @@
         </div>
     </div>
 
-    {{-- ── FILTER ── --}}
+    {{-- â”€â”€ FILTER â”€â”€ --}}
     <div x-show="showFilter" x-collapse x-cloak class="mb-5">
         <form method="GET" action="{{ route('manager.inventory.stock-batches.index') }}"
               class="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
@@ -101,13 +101,13 @@
         </form>
     </div>
 
-    {{-- ── TABLE ── --}}
+    {{-- â”€â”€ TABLE â”€â”€ --}}
     <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
 
         {{-- Info bar --}}
         <div class="px-5 py-2.5 border-b border-gray-50 flex items-center justify-between">
             <p class="text-[12px] text-gray-400">
-                <span class="font-medium text-gray-500">{{ $stockBatches->firstItem() ?? 0 }}–{{ $stockBatches->lastItem() ?? 0 }}</span> dari {{ $stockBatches->total() }} batch
+                <span class="font-medium text-gray-500">{{ $stockBatches->firstItem() ?? 0 }}â€“{{ $stockBatches->lastItem() ?? 0 }}</span> dari {{ $stockBatches->total() }} batch
             </p>
             @if(request()->hasAny(['search','status','date_from','date_to']))
             <a href="{{ route('manager.inventory.stock-batches.index') }}" class="text-[11px] text-emerald-600 hover:text-emerald-700 font-medium inline-flex items-center gap-1">
@@ -149,7 +149,7 @@
                             @endif
                         </td>
                         {{-- Supplier --}}
-                        <td class="py-3 px-4 text-gray-500 hidden xl:table-cell">{{ $batch->supplier_name ?: '—' }}</td>
+                        <td class="py-3 px-4 text-gray-500 hidden xl:table-cell">{{ $batch->supplier_name ?: 'â€”' }}</td>
                         {{-- Qty --}}
                         <td class="py-3 px-4 text-right tabular-nums">
                             <span class="font-semibold text-gray-700">{{ number_format($batch->unit_qty, $batch->unit_qty == intval($batch->unit_qty) ? 0 : 1) }}</span>
@@ -158,7 +158,7 @@
                         {{-- Cost --}}
                         <td class="py-3 px-4 text-right font-semibold text-gray-700 tabular-nums">Rp{{ number_format($batch->cost, 0, ',', '.') }}</td>
                         {{-- Buy Date --}}
-                        <td class="py-3 px-4 text-gray-500 tabular-nums">{{ $batch->buy_date ? $batch->buy_date->format('d M Y') : '—' }}</td>
+                        <td class="py-3 px-4 text-gray-500 tabular-nums">{{ $batch->buy_date ? $batch->buy_date->format('d M Y') : 'â€”' }}</td>
                         {{-- Expired --}}
                         <td class="py-3 px-4">
                             @if($batch->computed_expired_date)
@@ -174,7 +174,7 @@
                             </p>
                             @endif
                             @else
-                            <span class="text-gray-300">—</span>
+                            <span class="text-gray-300">â€”</span>
                             @endif
                         </td>
                         {{-- Status --}}
@@ -243,12 +243,12 @@
                 <div class="grid grid-cols-2 gap-x-4 gap-y-1.5 text-[12px]">
                     <div><span class="text-gray-400">Qty:</span> <span class="font-semibold text-gray-700">{{ number_format($batch->unit_qty, $batch->unit_qty == intval($batch->unit_qty) ? 0 : 1) }} {{ $batch->unit->symbol ?? '' }}</span></div>
                     <div><span class="text-gray-400">Biaya:</span> <span class="font-semibold text-gray-700">Rp{{ number_format($batch->cost, 0, ',', '.') }}</span></div>
-                    <div><span class="text-gray-400">Masuk:</span> <span class="text-gray-600">{{ $batch->buy_date ? $batch->buy_date->format('d M Y') : '—' }}</span></div>
+                    <div><span class="text-gray-400">Masuk:</span> <span class="text-gray-600">{{ $batch->buy_date ? $batch->buy_date->format('d M Y') : 'â€”' }}</span></div>
                     <div>
                         <span class="text-gray-400">Expired:</span>
                         @if($batch->computed_expired_date)
                         <span class="{{ $isExpired ? 'text-red-500 font-medium' : ($isNear ? 'text-amber-600 font-medium' : 'text-gray-600') }}">{{ $batch->computed_expired_date->format('d M Y') }}</span>
-                        @else <span class="text-gray-300">—</span>
+                        @else <span class="text-gray-300">â€”</span>
                         @endif
                     </div>
                 </div>
@@ -307,7 +307,7 @@
         @endif
     </div>
 
-    {{-- ── DELETE MODAL ── --}}
+    {{-- â”€â”€ DELETE MODAL â”€â”€ --}}
     <div x-show="showDeleteModal" x-cloak
          x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
          x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"

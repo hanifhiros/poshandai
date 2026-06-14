@@ -1,4 +1,4 @@
-@extends('handai-manager.layouts.master')
+﻿@extends('layouts.master')
 
 @section('title', 'Buat Standar QC')
 
@@ -89,3 +89,4 @@ function standardForm() {
 }
 </script>
 @endsection
+

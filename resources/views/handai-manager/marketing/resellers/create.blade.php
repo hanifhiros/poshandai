@@ -1,4 +1,4 @@
-@extends('handai-manager.layouts.master')
+﻿@extends('layouts.master')
 
 @section('title', 'Tambah Reseller')
 
@@ -82,3 +82,4 @@
     </form>
 </div>
 @endsection
+

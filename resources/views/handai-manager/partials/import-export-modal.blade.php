@@ -199,7 +199,7 @@
                         </div>
                     </div>
 
-                    @if(in_array($type ?? '', ['stock', 'product', 'supplier', 'customer', 'reseller']))
+                    @if(in_array($type ?? '', ['stock', 'product', 'supplier', 'customer']))
                     <div class="mt-4 pt-4 border-t border-gray-100">
                         <p class="text-[12px] text-gray-400 mb-2">Atau ambil template kosong untuk import:</p>
                         <a href="{{ route('manager.io.template', $type) }}"
@@ -213,7 +213,7 @@
 
                 {{-- Import Tab --}}
                 <div x-show="activeTab === 'import'" class="p-6">
-                    @if(in_array($type ?? '', ['stock', 'product', 'supplier', 'customer', 'reseller']))
+                    @if(in_array($type ?? '', ['stock', 'product', 'supplier', 'customer']))
                     <form action="{{ route('manager.io.import', $type) }}" method="POST" enctype="multipart/form-data"
                           x-data="{ fileName: '', dragover: false }"
                           @submit.stop>

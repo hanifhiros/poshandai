@@ -1,6 +1,6 @@
-@extends('handai-manager.layouts.master')
+﻿@extends('layouts.master')
 
-@section('title', 'Chart of Accounts — Handai Finance')
+@section('title', 'Chart of Accounts â€” Handai Finance')
 
 @section('content')
 <style>
@@ -13,7 +13,7 @@
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
         <div>
             <h1 class="text-2xl font-bold text-gray-800">Chart of Accounts</h1>
-            <p class="text-sm text-gray-500 mt-1">{{ $store->name ?? 'Semua Store' }} — Daftar Akun</p>
+            <p class="text-sm text-gray-500 mt-1">{{ $store->name ?? 'Semua Store' }} â€” Daftar Akun</p>
         </div>
         <a href="{{ route('manager.finance.accounting.dashboard') }}" class="mt-3 sm:mt-0 text-sm text-green-600 hover:underline">&larr; Kembali ke Dashboard</a>
     </div>
@@ -60,7 +60,7 @@
                                     <td class="px-5 py-3 font-mono font-semibold text-gray-700">{{ $acc->code }}</td>
                                     <td class="px-5 py-3 text-gray-800">
                                         @if ($acc->parent_id)
-                                            <span class="text-gray-300 mr-1">└</span>
+                                            <span class="text-gray-300 mr-1">â””</span>
                                         @endif
                                         {{ $acc->name }}
                                     </td>
@@ -73,7 +73,7 @@
                                                 <i class="ti ti-lock text-sm"></i> Ya
                                             </span>
                                         @else
-                                            <span class="text-xs text-gray-400">—</span>
+                                            <span class="text-xs text-gray-400">â€”</span>
                                         @endif
                                     </td>
                                     <td class="px-5 py-3 text-center">
@@ -102,3 +102,4 @@
     </div>
 </div>
 @endsection
+

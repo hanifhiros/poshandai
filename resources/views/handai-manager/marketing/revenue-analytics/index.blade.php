@@ -1,4 +1,4 @@
-@extends('handai-manager.layouts.master')
+﻿@extends('layouts.master')
 @section('title', 'Revenue Analytics')
 
 @section('vendor-style')
@@ -68,7 +68,7 @@
         <div class="flex items-center gap-2 ml-auto">
             <input type="date" name="start_date" value="{{ isset($startDate) ? $startDate->format('Y-m-d') : '' }}"
                    class="ra-date-input" placeholder="Mulai">
-            <span class="text-xs text-slate-400">—</span>
+            <span class="text-xs text-slate-400">â€”</span>
             <input type="date" name="end_date" value="{{ isset($endDate) ? $endDate->format('Y-m-d') : '' }}"
                    class="ra-date-input" placeholder="Akhir">
             <button type="submit" name="period" value="custom"
@@ -216,7 +216,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // ── Revenue Trend (Line) ──
+    // â”€â”€ Revenue Trend (Line) â”€â”€
     const revLabels = @json(($revenueTrend ?? collect())->pluck('date'));
     const revData   = @json(($revenueTrend ?? collect())->pluck('revenue'));
 
@@ -260,7 +260,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // ── AOV Trend (Line) ──
+    // â”€â”€ AOV Trend (Line) â”€â”€
     const aovLabels = @json(($aovTrend ?? collect())->pluck('date'));
     const aovData   = @json(($aovTrend ?? collect())->pluck('aov'));
 
@@ -304,7 +304,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // ── Revenue by Category (Doughnut) ──
+    // â”€â”€ Revenue by Category (Doughnut) â”€â”€
     const catLabels = @json(($revenueByCategory ?? collect())->pluck('category'));
     const catData   = @json(($revenueByCategory ?? collect())->pluck('revenue'));
 
@@ -343,7 +343,7 @@ document.addEventListener('DOMContentLoaded', function () {
         buildLegend(catChart, 'legendCategory');
     }
 
-    // ── Revenue by Payment Method (Doughnut) ──
+    // â”€â”€ Revenue by Payment Method (Doughnut) â”€â”€
     const payLabels = @json(($revenueByPaymentMethod ?? collect())->pluck('payment_type'));
     const payData   = @json(($revenueByPaymentMethod ?? collect())->pluck('revenue'));
 
@@ -385,3 +385,4 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 </script>
 @endsection
+

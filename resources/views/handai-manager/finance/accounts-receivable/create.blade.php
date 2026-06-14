@@ -1,6 +1,6 @@
-@extends('handai-manager.layouts.master')
+﻿@extends('layouts.master')
 
-@section('title', 'Tambah Piutang — Handai Finance')
+@section('title', 'Tambah Piutang â€” Handai Finance')
 
 @section('content')
 <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -29,7 +29,7 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Customer <span class="text-red-500">*</span></label>
                     <select name="customer_id" required class="mt-1 block w-full text-sm border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500">
-                        <option value="">— Pilih Customer —</option>
+                        <option value="">â€” Pilih Customer â€”</option>
                         @foreach ($customers as $cust)
                             <option value="{{ $cust->id }}" {{ old('customer_id') == $cust->id ? 'selected' : '' }}>{{ $cust->name }}</option>
                         @endforeach
@@ -75,3 +75,4 @@
     </div>
 </div>
 @endsection
+

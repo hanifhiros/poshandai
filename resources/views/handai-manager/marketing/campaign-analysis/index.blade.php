@@ -1,4 +1,4 @@
-@extends('handai-manager.layouts.master')
+﻿@extends('layouts.master')
 @section('title', 'Analisis Kampanye & Promosi')
 
 @section('vendor-style')
@@ -77,7 +77,7 @@
         <div class="flex items-center gap-2 ml-auto">
             <input type="date" name="start_date" value="{{ isset($startDate) ? $startDate->format('Y-m-d') : '' }}"
                    class="ca-date-input" placeholder="Mulai">
-            <span class="text-xs text-slate-400">—</span>
+            <span class="text-xs text-slate-400">â€”</span>
             <input type="date" name="end_date" value="{{ isset($endDate) ? $endDate->format('Y-m-d') : '' }}"
                    class="ca-date-input" placeholder="Akhir">
             <button type="submit" name="period" value="custom"
@@ -330,3 +330,4 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 </script>
 @endsection
+

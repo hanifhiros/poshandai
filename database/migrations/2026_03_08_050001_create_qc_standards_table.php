@@ -18,7 +18,7 @@ return new class extends Migration
             $table->boolean('is_active')->default(true);
             $table->timestamps();
 
-            $table->foreign('store_id')->references('id')->on('stores')->cascadeOnDelete();
+            $table->foreign('store_id')->references('id')->on('store')->cascadeOnDelete();
         });
     }
 

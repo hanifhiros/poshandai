@@ -1,4 +1,4 @@
-@extends('handai-manager.layouts.master')
+﻿@extends('layouts.master')
 
 @section('title', 'Produk')
 
@@ -36,7 +36,7 @@
         @endif
      }">
 
-    {{-- ── FLASH MESSAGES ── --}}
+    {{-- â”€â”€ FLASH MESSAGES â”€â”€ --}}
     @if(session('success'))
     <div class="mb-4 p-3 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl text-[13px] flex items-center gap-2" x-data x-init="setTimeout(() => $el.remove(), 4000)">
         <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
@@ -50,7 +50,7 @@
     </div>
     @endif
 
-    {{-- ── HEADER ── --}}
+    {{-- â”€â”€ HEADER â”€â”€ --}}
     <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-5">
         <div>
             <h1 class="text-[19px] font-bold text-gray-800 leading-tight">Produk</h1>
@@ -83,7 +83,7 @@
         </div>
     </div>
 
-    {{-- ── TAB TOGGLE ── --}}
+    {{-- â”€â”€ TAB TOGGLE â”€â”€ --}}
     <div class="flex items-center gap-2 mb-5">
         <a href="{{ route('manager.inventory.products', ['tab' => 'produk_jadi']) }}"
            class="tab-btn {{ $tab === 'produk_jadi' ? 'active' : '' }}">
@@ -97,12 +97,12 @@
         </a>
     </div>
 
-    {{-- ═══════════════════════════════════════════════════════════════
+    {{-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
          TAB: PRODUK JADI
-         ═══════════════════════════════════════════════════════════════ --}}
+         â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
     @if($tab === 'produk_jadi')
 
-    {{-- ── STAT CARDS ── --}}
+    {{-- â”€â”€ STAT CARDS â”€â”€ --}}
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
         <div class="prd-card-stat">
             <p class="text-[11px] font-medium text-gray-400 uppercase tracking-wider leading-none">Total Varian</p>
@@ -122,7 +122,7 @@
         </div>
     </div>
 
-    {{-- ── FILTER ── --}}
+    {{-- â”€â”€ FILTER â”€â”€ --}}
     <div x-show="showFilter" x-collapse x-cloak class="mb-5">
         <form method="GET" action="{{ route('manager.inventory.products') }}"
               class="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
@@ -157,13 +157,13 @@
         </form>
     </div>
 
-    {{-- ── MAIN TABLE ── --}}
+    {{-- â”€â”€ MAIN TABLE â”€â”€ --}}
     <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
 
         {{-- Info bar --}}
         <div class="px-5 py-2.5 border-b border-gray-50 flex items-center justify-between">
             <p class="text-[12px] text-gray-400">
-                <span class="font-medium text-gray-500">{{ $variants->firstItem() ?? 0 }}–{{ $variants->lastItem() ?? 0 }}</span> dari {{ $variants->total() }} varian
+                <span class="font-medium text-gray-500">{{ $variants->firstItem() ?? 0 }}â€“{{ $variants->lastItem() ?? 0 }}</span> dari {{ $variants->total() }} varian
             </p>
             @if(request()->hasAny(['search','status','category','expired_range']))
             <a href="{{ route('manager.inventory.products') }}" class="text-[11px] text-emerald-600 hover:text-emerald-700 font-medium inline-flex items-center gap-1">
@@ -239,7 +239,7 @@
                                 {{ number_format($variant->nearly_expired) }}
                             </button>
                             @else
-                            <span class="text-gray-300">—</span>
+                            <span class="text-gray-300">â€”</span>
                             @endif
                         </td>
                         {{-- Status --}}
@@ -298,7 +298,7 @@
                 <div class="flex items-start justify-between gap-2 mb-2">
                     <div class="min-w-0 flex-1">
                         <p class="font-semibold text-gray-800 text-[13px] leading-snug truncate">{{ $variant->product->name }}</p>
-                        <p class="text-[11px] text-gray-400 truncate">{{ $variant->variantOptions->pluck('name')->implode(', ') ?: '—' }}</p>
+                        <p class="text-[11px] text-gray-400 truncate">{{ $variant->variantOptions->pluck('name')->implode(', ') ?: 'â€”' }}</p>
                     </div>
                     @if($isOut)
                     <span class="prd-badge bg-red-50 text-red-600 shrink-0"><span class="w-1.5 h-1.5 rounded-full bg-red-400"></span>Habis</span>
@@ -317,7 +317,7 @@
                         @if($variant->nearly_expired > 0)
                         <button @click="openExpired({{ $variant->id }})" class="text-amber-600 font-semibold hover:text-amber-700 cursor-pointer">{{ number_format($variant->nearly_expired) }}</button>
                         @else
-                        <span class="text-gray-300">—</span>
+                        <span class="text-gray-300">â€”</span>
                         @endif
                     </div>
                 </div>
@@ -378,7 +378,7 @@
         @endif
     </div>
 
-    {{-- ── EXPIRED VARIANTS SECTION ── --}}
+    {{-- â”€â”€ EXPIRED VARIANTS SECTION â”€â”€ --}}
     @if($expiredVariants->count())
     <div class="mt-8">
         <div class="flex items-center gap-2 mb-4">
@@ -440,7 +440,7 @@
     </div>
     @endif
 
-    {{-- ── EXPIRED BATCH DETAIL MODAL ── --}}
+    {{-- â”€â”€ EXPIRED BATCH DETAIL MODAL â”€â”€ --}}
     <div x-show="showExpiredModal" x-cloak
          x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
          x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
@@ -485,12 +485,12 @@
 
     @endif {{-- end tab produk_jadi --}}
 
-    {{-- ═══════════════════════════════════════════════════════════════
+    {{-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
          TAB: PRODUK SETENGAH JADI
-         ═══════════════════════════════════════════════════════════════ --}}
+         â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
     @if($tab === 'setengah_jadi')
 
-    {{-- ── STAT CARDS ── --}}
+    {{-- â”€â”€ STAT CARDS â”€â”€ --}}
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
         <div class="prd-card-stat">
             <p class="text-[11px] font-medium text-gray-400 uppercase tracking-wider leading-none">Total Produk</p>
@@ -510,7 +510,7 @@
         </div>
     </div>
 
-    {{-- ── FILTER ── --}}
+    {{-- â”€â”€ FILTER â”€â”€ --}}
     <div x-show="showFilter" x-collapse x-cloak class="mb-5">
         <form method="GET" action="{{ route('manager.inventory.products') }}"
               class="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
@@ -541,13 +541,13 @@
         </form>
     </div>
 
-    {{-- ── MAIN TABLE ── --}}
+    {{-- â”€â”€ MAIN TABLE â”€â”€ --}}
     <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
 
         {{-- Info bar --}}
         <div class="px-5 py-2.5 border-b border-gray-50 flex items-center justify-between">
             <p class="text-[12px] text-gray-400">
-                <span class="font-medium text-gray-500">{{ $semiFinishedProducts->firstItem() ?? 0 }}–{{ $semiFinishedProducts->lastItem() ?? 0 }}</span> dari {{ $semiFinishedProducts->total() }} produk
+                <span class="font-medium text-gray-500">{{ $semiFinishedProducts->firstItem() ?? 0 }}â€“{{ $semiFinishedProducts->lastItem() ?? 0 }}</span> dari {{ $semiFinishedProducts->total() }} produk
             </p>
             @if(request()->hasAny(['search','status']))
             <a href="{{ route('manager.inventory.products', ['tab' => 'setengah_jadi']) }}" class="text-[11px] text-violet-600 hover:text-violet-700 font-medium inline-flex items-center gap-1">
@@ -612,7 +612,7 @@
                             @if($sfp->min_stock > 0)
                             <span class="{{ $sfp->current_qty <= $sfp->min_stock ? 'text-red-500 font-semibold' : 'text-gray-500' }}">{{ number_format($sfp->min_stock, 1) }}</span>
                             @else
-                            <span class="text-gray-300">—</span>
+                            <span class="text-gray-300">â€”</span>
                             @endif
                         </td>
                         {{-- HPP/Unit --}}
@@ -707,7 +707,7 @@
                 <div class="grid grid-cols-2 gap-x-4 gap-y-1.5 text-[12px]">
                     <div><span class="text-gray-400">Stok:</span> <span class="font-semibold text-gray-700">{{ number_format($sfp->current_qty, 1) }} {{ $sfp->unit?->symbol ?? '' }}</span></div>
                     <div><span class="text-gray-400">HPP:</span> <span class="font-semibold text-emerald-700">Rp{{ number_format($sfp->price_per_unit, 0, ',', '.') }}</span></div>
-                    <div><span class="text-gray-400">Min Stok:</span> <span class="text-gray-600">{{ $sfp->min_stock > 0 ? number_format($sfp->min_stock, 1) : '—' }}</span></div>
+                    <div><span class="text-gray-400">Min Stok:</span> <span class="text-gray-600">{{ $sfp->min_stock > 0 ? number_format($sfp->min_stock, 1) : 'â€”' }}</span></div>
                     <div><span class="text-gray-400">Bahan:</span> <span class="text-gray-600">{{ $sfp->materials->count() }} item</span></div>
                 </div>
                 <div class="flex items-center justify-end gap-3 mt-3 pt-2.5 border-t border-gray-100">

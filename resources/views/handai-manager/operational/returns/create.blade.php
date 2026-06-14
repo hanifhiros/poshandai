@@ -1,4 +1,4 @@
-@extends('handai-manager.layouts.master')
+﻿@extends('layouts.master')
 
 @section('content')
 <div class="container-xl" x-data="returnForm()">
@@ -206,3 +206,4 @@ function returnForm() {
 </script>
 @endif
 @endsection
+

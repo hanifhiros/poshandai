@@ -1,4 +1,4 @@
-@extends('handai-manager.layouts.master')
+﻿@extends('layouts.master')
 
 @section('title', 'Daftar Karyawan')
 
@@ -54,7 +54,7 @@
                 <div>
                     <span class="font-semibold">Password sementara:</span>
                     <code class="ml-1 px-2 py-0.5 bg-amber-100 rounded font-mono text-sm select-all">{{ session('temp_password') }}</code>
-                    <span class="ml-2 text-amber-600 text-xs">Salin sekarang — tidak bisa ditampilkan lagi</span>
+                    <span class="ml-2 text-amber-600 text-xs">Salin sekarang â€” tidak bisa ditampilkan lagi</span>
                 </div>
                 <button @click="show = false" class="text-amber-400 hover:text-amber-600 ml-3">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -106,7 +106,7 @@
         {{-- Pagination --}}
         @if ($employees->hasPages())
             <div class="px-5 py-3 border-t border-gray-100 flex items-center justify-between">
-                <span class="text-[12px] text-gray-400">Menampilkan {{ $employees->firstItem() }}–{{ $employees->lastItem() }} dari {{ $employees->total() }}</span>
+                <span class="text-[12px] text-gray-400">Menampilkan {{ $employees->firstItem() }}â€“{{ $employees->lastItem() }} dari {{ $employees->total() }}</span>
                 <div class="flex items-center gap-1">
                     @if ($employees->onFirstPage())
                         <span class="w-8 h-8 flex items-center justify-center rounded-lg text-gray-300"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg></span>
@@ -127,3 +127,4 @@
     </div>
 </div>
 @endsection
+

@@ -1,6 +1,6 @@
-@extends('handai-pos.layouts.layoutPos')
+﻿@extends('layouts.layoutPos')
 
-@section('title', 'POS Dashboard — Handai')
+@section('title', 'POS Dashboard â€” Handai')
 
 @section('page-style')
 @vite('resources/css/handai-pos-dashboard.css')
@@ -99,7 +99,7 @@
                            @input.debounce.300ms="filterProducts()"
                            @keydown="detectBarcode($event)"
                            @keydown.escape="searchQuery = ''; filterProducts()"
-                           :placeholder="barcodeMode ? 'Mode Barcode — scan atau ketik SKU...' : 'Cari produk... (Ctrl+K)'"
+                           :placeholder="barcodeMode ? 'Mode Barcode â€” scan atau ketik SKU...' : 'Cari produk... (Ctrl+K)'"
                            class="w-full pl-10 pr-20 h-11 rounded-xl border text-sm font-medium text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#0C9044]/20 focus:border-[#0C9044]/50 transition"
                            :class="barcodeMode ? 'border-[#0C9044] bg-green-50/30' : 'border-slate-200 bg-slate-50/50'" />
                     <div class="absolute inset-y-0 right-0 pr-2 flex items-center gap-1">
@@ -135,7 +135,7 @@
                     {{-- Scroll view removed per UX update --}}
                 </div>
 
-                {{-- Column count selector — grid mode --}}
+                {{-- Column count selector â€” grid mode --}}
                 <div class="flex items-center gap-1 shrink-0" x-show="viewMode === 'grid'" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 -translate-x-2" x-transition:enter-end="opacity-100 translate-x-0">
                     <div class="w-px h-5 bg-slate-200"></div>
                     <template x-for="n in gridColOptions" :key="n">
@@ -147,7 +147,7 @@
                     </template>
                 </div>
 
-                {{-- Row size selector — list mode --}}
+                {{-- Row size selector â€” list mode --}}
                 <div class="flex items-center gap-1 shrink-0" x-show="viewMode === 'list'" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 -translate-x-2" x-transition:enter-end="opacity-100 translate-x-0">
                     <div class="w-px h-5 bg-slate-200"></div>
                     <button @click="listSize = 'compact'; localStorage.setItem('pos_list_size', 'compact')"
@@ -167,8 +167,8 @@
                     </button>
                 </div>
 
-                {{-- Scroll card size selector — hscroll mode --}}
-                {{-- Horizontal scroll controls removed — feature deprecated. --}}
+                {{-- Scroll card size selector â€” hscroll mode --}}
+                {{-- Horizontal scroll controls removed â€” feature deprecated. --}}
             </div>
 
             {{-- Category Filter Pills --}}
@@ -229,7 +229,7 @@
                           @keydown.space.prevent="if(!item.isSoldOut) openVariantModal(item)"
                           :aria-label="item.product.name">
 
-                        {{-- Image — fixed height container --}}
+                        {{-- Image â€” fixed height container --}}
                         <div class="prod-img rounded-t-xl">
                                <img :src="item.product.image_url ? '{{ asset('') }}' + item.product.image_url : '{{ asset('assets/image.png') }}'"
                                    :alt="item.product.name"
@@ -354,7 +354,7 @@
                                     }"
                                     x-text="item.product.name"></h4>
 
-                                {{-- Category label — normal & large only --}}
+                                {{-- Category label â€” normal & large only --}}
                                 <p x-show="listSize !== 'compact'"
                                    class="text-slate-400 mt-0.5 line-clamp-1"
                                    :class="listSize === 'large' ? 'text-xs' : 'text-[11px]'"
@@ -378,7 +378,7 @@
                                     </span>
                                 </div>
 
-                                {{-- Stock indicator — only on large --}}
+                                {{-- Stock indicator â€” only on large --}}
                                 <div x-show="listSize === 'large' && !item.isSoldOut" class="mt-1 flex items-center gap-1.5">
                                     <div class="w-1.5 h-1.5 rounded-full" :class="item.totalStock > 10 ? 'bg-emerald-400' : item.totalStock > 0 ? 'bg-amber-400' : 'bg-red-400'"></div>
                                     <span class="text-[10px] text-slate-400 font-medium" x-text="item.totalStock > 10 ? t('available') : 'Stok: ' + item.totalStock"></span>
@@ -387,7 +387,7 @@
 
                             {{-- Right side: stock badge + favorite --}}
                             <div class="flex items-center gap-2 shrink-0 ml-2">
-                                {{-- Stock badge — compact & normal --}}
+                                {{-- Stock badge â€” compact & normal --}}
                                 <div x-show="listSize !== 'large' && !item.isSoldOut" class="flex items-center gap-1">
                                     <div class="w-1.5 h-1.5 rounded-full" :class="item.totalStock > 10 ? 'bg-emerald-400' : item.totalStock > 0 ? 'bg-amber-400' : 'bg-red-400'"></div>
                                     <span x-show="listSize === 'normal'" class="text-[10px] text-slate-400 font-medium" x-text="item.totalStock > 10 ? t('available') : 'Stok: ' + item.totalStock"></span>
@@ -647,7 +647,7 @@
                     <div class="mb-2 max-h-36 overflow-y-auto border-t border-slate-100 pt-2">
                         <template x-for="(t, i) in pendingSync" :key="i">
                             <div class="py-1 flex items-center justify-between">
-                                <div class="truncate text-xs"><span class="font-medium" x-text="t.type"></span> — <span x-text="JSON.stringify(t.payload)"></span></div>
+                                <div class="truncate text-xs"><span class="font-medium" x-text="t.type"></span> â€” <span x-text="JSON.stringify(t.payload)"></span></div>
                                 <div class="ml-2 flex items-center gap-2">
                                     <button @click="(function(idx){ const task = pendingSync.splice(idx,1)[0]; pendingSync.unshift(task); try{ if(window.localforage) localforage.setItem('pos_pending_sync', pendingSync);}catch(e){}; processSyncQueue(); })(i)" class="px-2 py-1 text-xs bg-green-50 text-green-700 rounded">Retry</button>
                                     <button @click="(function(idx){ pendingSync.splice(idx,1); try{ if(window.localforage) localforage.setItem('pos_pending_sync', pendingSync);}catch(e){}; })(i)" class="px-2 py-1 text-xs bg-red-50 text-red-700 rounded">Remove</button>
@@ -730,7 +730,7 @@
                     <select x-model="modalSelectedVariantId" @change="updateModalVariant()"
                             class="w-full h-11 rounded-xl border border-slate-200 bg-slate-50/50 px-3 text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#0C9044]/20 focus:border-[#0C9044]/50 transition cursor-pointer">
                         <template x-for="v in modalProduct?.variants || []" :key="v.id">
-                            <option :value="v.id" x-text="v.variant_options.join(', ') + ' — Rp ' + Number(v.final_price).toLocaleString('id-ID')"></option>
+                            <option :value="v.id" x-text="v.variant_options.join(', ') + ' â€” Rp ' + Number(v.final_price).toLocaleString('id-ID')"></option>
                         </template>
                     </select>
                 </div>
@@ -760,7 +760,7 @@
                     </div>
                     <div class="text-right">
                         <p class="text-[10px] text-slate-400 font-medium uppercase tracking-wide" x-text="t('stock')"></p>
-                        <p class="text-xl font-bold text-emerald-600" x-text="modalSelectedVariant?.quantity ?? '—'"></p>
+                        <p class="text-xl font-bold text-emerald-600" x-text="modalSelectedVariant?.quantity ?? 'â€”'"></p>
                     </div>
                 </div>
 
@@ -811,7 +811,7 @@
             <div class="flex gap-3">
                 <button @click="showClearConfirm = false" aria-label="Tutup"
                         class="flex-1 h-10 rounded-xl border border-slate-200 text-sm font-semibold text-slate-500 hover:bg-slate-50 hover:bg-gray-100 transition cursor-pointer">
-                    ← Batal
+                    â† Batal
                 </button>
                 <button @click="clearCart()"
                         class="flex-1 h-10 rounded-xl bg-red-500 hover:bg-red-600 text-white text-sm font-bold transition cursor-pointer">
@@ -968,7 +968,7 @@
                 <div class="flex justify-between"><span class="text-sm font-bold">Total</span><span class="font-bold text-lg">Rp <span x-text="Number(cartTotal).toLocaleString('id-ID')"></span></span></div>
             </div>
             <div class="flex gap-3">
-                <button @click="showCheckoutConfirm = false" class="flex-1 h-11 rounded-lg border border-slate-200 hover:bg-gray-100">← Batal</button>
+                <button @click="showCheckoutConfirm = false" class="flex-1 h-11 rounded-lg border border-slate-200 hover:bg-gray-100">â† Batal</button>
                 <button @click="confirmCheckout()" class="flex-1 h-11 rounded-lg bg-[#0C9044] text-white font-bold">Lanjutkan</button>
             </div>
         </div>
@@ -1002,7 +1002,7 @@
                     localStorage.removeItem('pos_shift_opened_at');
                     if (this._timer) clearInterval(this._timer);
                     this.shiftDuration = '';
-                    showToast('Shift ditutup — Durasi: ' + duration, 'info', 3000);
+                    showToast('Shift ditutup â€” Durasi: ' + duration, 'info', 3000);
                 } else {
                     // Open shift
                     this.isOpen = true;
@@ -1870,7 +1870,7 @@
                     this.setViewMode(this.viewMode === 'grid' ? 'list' : 'grid');
                     showToast(this.viewMode === 'grid' ? 'Mode: Kolom' : 'Mode: Baris', 'info', 1200);
                 }
-                // Alt+G: Cycle grid columns (2→3→4→5→2) or list sizes (compact→normal→large→compact)
+                // Alt+G: Cycle grid columns (2â†’3â†’4â†’5â†’2) or list sizes (compactâ†’normalâ†’largeâ†’compact)
                 if (e.altKey && (e.key === 'g' || e.key === 'G')) {
                     e.preventDefault();
                     if (this.viewMode === 'grid') {

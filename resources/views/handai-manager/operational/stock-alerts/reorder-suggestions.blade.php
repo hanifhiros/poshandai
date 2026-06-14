@@ -1,4 +1,4 @@
-@extends('handai-manager.layouts.master')
+﻿@extends('layouts.master')
 
 @section('title', 'Saran Reorder')
 
@@ -79,3 +79,4 @@
     </div>
 </div>
 @endsection
+

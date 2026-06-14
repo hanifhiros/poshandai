@@ -1,4 +1,4 @@
-@extends('handai-manager.layouts.master')
+﻿@extends('layouts.master')
 
 @section('title', 'Laporan Maintenance')
 
@@ -107,3 +107,4 @@
     </div>
 </div>
 @endsection
+

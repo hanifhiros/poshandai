@@ -1,4 +1,4 @@
-@extends('handai-manager.layouts.master')
+﻿@extends('layouts.master')
 
 @section('title', 'Stock Opname')
 
@@ -139,3 +139,4 @@
     </div>
 </div>
 @endsection
+

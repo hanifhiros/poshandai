@@ -24,7 +24,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->foreign('production_plan_id')->references('id')->on('production_plans')->cascadeOnDelete();
-            $table->foreign('store_id')->references('id')->on('stores')->cascadeOnDelete();
+            $table->foreign('store_id')->references('id')->on('store')->cascadeOnDelete();
             $table->foreign('product_variants_id')->references('id')->on('product_variants')->nullOnDelete();
             $table->foreign('semi_finished_product_id')->references('id')->on('semi_finished_products')->nullOnDelete();
             $table->foreign('assigned_to')->references('id')->on('employees')->nullOnDelete();

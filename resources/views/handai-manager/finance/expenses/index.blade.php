@@ -1,6 +1,6 @@
-@extends('handai-manager.layouts.master')
+﻿@extends('layouts.master')
 
-@section('title', 'Pengeluaran — Handai Finance')
+@section('title', 'Pengeluaran â€” Handai Finance')
 
 @section('page-style')
 <style>
@@ -15,7 +15,7 @@
     <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
             <h1 class="text-2xl font-bold text-gray-800">Pengeluaran</h1>
-            <p class="text-sm text-gray-500 mt-1">{{ $store->name }} — Kelola semua pengeluaran bisnis</p>
+            <p class="text-sm text-gray-500 mt-1">{{ $store->name }} â€” Kelola semua pengeluaran bisnis</p>
         </div>
         <a href="{{ route('manager.finance.expenses.create') }}"
            class="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition">
@@ -117,3 +117,4 @@
     </div>
 </div>
 @endsection
+

@@ -24,7 +24,7 @@ return new class extends Migration
             $table->date('closed_date')->nullable();
             $table->timestamps();
 
-            $table->foreign('store_id')->references('id')->on('stores')->cascadeOnDelete();
+            $table->foreign('store_id')->references('id')->on('store')->cascadeOnDelete();
             $table->foreign('qc_inspection_id')->references('id')->on('qc_inspections')->cascadeOnDelete();
             $table->foreign('assigned_to')->references('id')->on('employees')->nullOnDelete();
             $table->unique(['store_id', 'nc_number']);

@@ -1,6 +1,6 @@
-@extends('handai-pos.layouts.layoutPos')
+﻿@extends('layouts.layoutPos')
 
-@section('title', 'Riwayat Transaksi — Handai POS')
+@section('title', 'Riwayat Transaksi â€” Handai POS')
 
 @section('page-style')
 @vite('resources/css/handai-pos-history.css')
@@ -111,7 +111,7 @@
                     </div>
                     <div class="min-w-0">
                         <p class="text-sm font-semibold text-slate-800 truncate">{{ $order->customer->name ?? 'Walk-in' }}</p>
-                        <p class="text-[11px] text-slate-400">{{ \Carbon\Carbon::parse($order->created_at)->format('H:i') }} · {{ ucfirst($order->payment_type ?? 'Cash') }}</p>
+                        <p class="text-[11px] text-slate-400">{{ \Carbon\Carbon::parse($order->created_at)->format('H:i') }} Â· {{ ucfirst($order->payment_type ?? 'Cash') }}</p>
                     </div>
                 </div>
                 <div class="flex items-center gap-3 shrink-0">
@@ -210,3 +210,4 @@
     }
 </script>
 @endsection
+

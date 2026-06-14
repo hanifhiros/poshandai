@@ -1,4 +1,4 @@
-@extends('handai-manager.layouts.master')
+﻿@extends('layouts.master')
 
 @section('title', 'Buat R&D Baru')
 
@@ -64,7 +64,7 @@
                 <div>
                     <label class="crd-label">PIC (Penanggung Jawab)</label>
                     <select name="pic_id" class="crd-select" required>
-                        <option value="">— Pilih PIC —</option>
+                        <option value="">â€” Pilih PIC â€”</option>
                         @foreach ($employees as $employee)
                         <option value="{{ $employee->id }}" {{ old('pic_id') == $employee->id ? 'selected' : '' }}>{{ $employee->name }}</option>
                         @endforeach
@@ -106,7 +106,7 @@
                                 @foreach($stocks as $stock)
                                 <option value="{{ $stock->id }}" data-unit-type="{{ $stock->unit->unit_type }}">{{ $stock->name }}</option>
                                 @endforeach
-                                <option value="manual">— Input Manual —</option>
+                                <option value="manual">â€” Input Manual â€”</option>
                             </select>
                         </div>
                         <div class="hidden" id="manual-wrap-0">
@@ -192,7 +192,7 @@ function addStockRow() {
     stocks.forEach(s => {
         stockOptions += `<option value="${s.id}" data-unit-type="${s.unit?.unit_type ?? ''}">${s.name}</option>`;
     });
-    stockOptions += `<option value="manual">— Input Manual —</option>`;
+    stockOptions += `<option value="manual">â€” Input Manual â€”</option>`;
 
     let unitOptions = `<option value="">Satuan</option>`;
     units.forEach(u => {
@@ -244,5 +244,6 @@ function removeRndRow(index) {
 }
 </script>
 @endpush
+
 
 

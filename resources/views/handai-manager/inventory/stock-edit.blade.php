@@ -1,6 +1,6 @@
-@extends('handai-manager.layouts.master')
+﻿@extends('layouts.master')
 
-@section('title', 'Edit Bahan — ' . $stock->name)
+@section('title', 'Edit Bahan â€” ' . $stock->name)
 
 @section('content')
 <div class="min-h-screen bg-slate-50/60 py-6 px-4 sm:px-6 lg:px-8">
@@ -117,7 +117,7 @@
                     <p class="text-[11px] text-slate-400 mt-1">Berapa hari bahan ini bisa disimpan sebelum kadaluarsa</p>
                 </div>
 
-                {{-- ── ERP Settings ── --}}
+                {{-- â”€â”€ ERP Settings â”€â”€ --}}
                 <div class="pt-5 border-t border-slate-100">
                     <h3 class="text-xs font-medium text-slate-500 mb-4 uppercase tracking-wider flex items-center gap-1.5">
                         <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
@@ -158,7 +158,7 @@
                             </label>
                             <select id="default_supplier_id" name="default_supplier_id"
                                     class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400 transition">
-                                <option value="">— Tidak ada —</option>
+                                <option value="">â€” Tidak ada â€”</option>
                                 @foreach($suppliers as $sup)
                                     <option value="{{ $sup->id }}" {{ old('default_supplier_id', $stock->default_supplier_id) == $sup->id ? 'selected' : '' }}>
                                         {{ $sup->name }}
@@ -222,7 +222,7 @@
         {{-- Submit --}}
         <div class="mt-5 flex items-center justify-between">
             <a href="{{ route('manager.inventory.stock') }}"
-               class="text-sm text-slate-500 hover:text-slate-700 hover:bg-gray-100 transition">← Batal</a>
+               class="text-sm text-slate-500 hover:text-slate-700 hover:bg-gray-100 transition">â† Batal</a>
             <button type="submit"
                     class="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-xl transition shadow-sm">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -234,3 +234,4 @@
     </form>
 </div>
 @endsection
+

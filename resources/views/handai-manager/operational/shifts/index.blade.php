@@ -1,4 +1,4 @@
-@extends('handai-manager.layouts.master')
+﻿@extends('layouts.master')
 
 @section('title', 'Manajemen Shift')
 
@@ -105,3 +105,4 @@
     </div>
 </div>
 @endsection
+

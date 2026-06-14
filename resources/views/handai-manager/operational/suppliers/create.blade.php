@@ -1,4 +1,4 @@
-@extends('handai-manager.layouts.master')
+﻿@extends('layouts.master')
 
 @section('title', 'Tambah Supplier')
 
@@ -102,7 +102,7 @@
         <div class="flex justify-end gap-3 pt-4 border-t border-gray-100">
             <a href="{{ route('manager.operational.suppliers.index') }}"
                class="px-4 py-2.5 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-100 transition">
-                ← Batal
+                â† Batal
             </a>
             <button type="submit"
                     class="px-6 py-2.5 bg-green-600 text-white rounded-xl text-sm font-medium hover:bg-green-700 transition shadow-sm">
@@ -112,3 +112,4 @@
     </form>
 </div>
 @endsection
+

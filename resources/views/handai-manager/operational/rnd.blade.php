@@ -1,4 +1,4 @@
-@extends('handai-manager.layouts.master')
+﻿@extends('layouts.master')
 
 @section('title', 'Riset & Pengembangan')
 
@@ -22,7 +22,7 @@
         deleteId: null, showDeleteModal: false
      }">
 
-    {{-- ── FLASH MESSAGES ── --}}
+    {{-- â”€â”€ FLASH MESSAGES â”€â”€ --}}
     @if(session('success'))
     <div class="mb-4 p-3 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl text-[13px] flex items-center gap-2">
         <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
@@ -35,7 +35,7 @@
     </div>
     @endif
 
-    {{-- ── HEADER ── --}}
+    {{-- â”€â”€ HEADER â”€â”€ --}}
     <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-5">
         <div>
             <h1 class="text-[19px] font-bold text-gray-800 leading-tight">Riset & Pengembangan</h1>
@@ -59,7 +59,7 @@
         </div>
     </div>
 
-    {{-- ── STAT CARDS ── --}}
+    {{-- â”€â”€ STAT CARDS â”€â”€ --}}
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
         <div class="rnd-card-stat">
             <p class="text-[11px] font-medium text-gray-400 uppercase tracking-wider leading-none">Total Proyek</p>
@@ -79,7 +79,7 @@
         </div>
     </div>
 
-    {{-- ── FILTER ── --}}
+    {{-- â”€â”€ FILTER â”€â”€ --}}
     <div x-show="showFilter" x-collapse x-cloak class="mb-5">
         <form method="GET" action="{{ route('manager.operational.rnd') }}"
               class="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
@@ -117,13 +117,13 @@
         </form>
     </div>
 
-    {{-- ── MAIN TABLE ── --}}
+    {{-- â”€â”€ MAIN TABLE â”€â”€ --}}
     <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
 
         {{-- Info bar --}}
         <div class="px-5 py-2.5 border-b border-gray-50 flex items-center justify-between">
             <p class="text-[12px] text-gray-400">
-                <span class="font-medium text-gray-500">{{ $rndHistories->firstItem() ?? 0 }}–{{ $rndHistories->lastItem() ?? 0 }}</span> dari {{ $rndHistories->total() }} proyek
+                <span class="font-medium text-gray-500">{{ $rndHistories->firstItem() ?? 0 }}â€“{{ $rndHistories->lastItem() ?? 0 }}</span> dari {{ $rndHistories->total() }} proyek
             </p>
             @if(request()->hasAny(['search','status','from','to']))
             <a href="{{ route('manager.operational.rnd') }}" class="text-[11px] text-emerald-600 hover:text-emerald-700 font-medium inline-flex items-center gap-1">
@@ -163,7 +163,7 @@
                             @endif
                         </td>
                         {{-- PIC --}}
-                        <td class="py-3 px-4 text-gray-500 hidden lg:table-cell">{{ $project->pic->name ?? '—' }}</td>
+                        <td class="py-3 px-4 text-gray-500 hidden lg:table-cell">{{ $project->pic->name ?? 'â€”' }}</td>
                         {{-- Materials --}}
                         <td class="py-3 px-4 hidden xl:table-cell">
                             <div class="flex flex-wrap gap-1">
@@ -222,7 +222,7 @@
                 <div class="flex items-start justify-between gap-2 mb-2">
                     <div class="min-w-0 flex-1">
                         <p class="font-semibold text-gray-800 text-[13px] leading-snug truncate">{{ $project->rnd_name }}</p>
-                        <p class="text-[11px] text-gray-400 truncate">{{ $project->pic->name ?? '—' }} &bull; {{ \Carbon\Carbon::parse($project->rnd_date)->format('d M Y') }}</p>
+                        <p class="text-[11px] text-gray-400 truncate">{{ $project->pic->name ?? 'â€”' }} &bull; {{ \Carbon\Carbon::parse($project->rnd_date)->format('d M Y') }}</p>
                     </div>
                     @if($project->status === 'approved')
                     <span class="rnd-badge bg-emerald-50 text-emerald-600 shrink-0"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>Approved</span>
@@ -289,7 +289,7 @@
         @endif
     </div>
 
-    {{-- ── READY PROJECTS SECTION ── --}}
+    {{-- â”€â”€ READY PROJECTS SECTION â”€â”€ --}}
     @if($readyProjects->isNotEmpty())
     <div class="mt-8">
         <div class="flex items-center gap-2 mb-4">
@@ -343,7 +343,7 @@
     </div>
     @endif
 
-    {{-- ── DELETE MODAL ── --}}
+    {{-- â”€â”€ DELETE MODAL â”€â”€ --}}
     <div x-show="showDeleteModal" x-cloak
          x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
          x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"

@@ -1,4 +1,4 @@
-@extends('handai-manager.layouts.master')
+﻿@extends('layouts.master')
 
 @section('title', 'Log Maintenance')
 
@@ -43,7 +43,7 @@
             <label class="text-xs text-gray-500 block mb-1">Jadwal Terkait (opsional)</label>
             <select name="maintenance_schedule_id"
                     class="w-full rounded-lg border-gray-200 text-sm focus:ring-teal-500 focus:border-teal-500">
-                <option value="">— Tanpa jadwal —</option>
+                <option value="">â€” Tanpa jadwal â€”</option>
                 @foreach($equipment->schedules as $sch)
                 <option value="{{ $sch->id }}" {{ old('maintenance_schedule_id') == $sch->id ? 'selected' : '' }}>
                     {{ $sch->task_name }} ({{ \App\Models\MaintenanceSchedule::FREQUENCIES[$sch->frequency] ?? $sch->frequency }})
@@ -114,3 +114,4 @@
     </form>
 </div>
 @endsection
+

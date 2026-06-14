@@ -1,4 +1,4 @@
-@extends('handai-manager.layouts.master')
+﻿@extends('layouts.master')
 
 @section('title', 'Quality Control Dashboard')
 
@@ -58,7 +58,7 @@
     <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
         <div class="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
             <h2 class="text-sm font-bold text-gray-700">Inspeksi Terakhir</h2>
-            <a href="{{ route('manager.operational.qc.inspections.index') }}" class="text-xs text-cyan-600 hover:underline">Lihat semua →</a>
+            <a href="{{ route('manager.operational.qc.inspections.index') }}" class="text-xs text-cyan-600 hover:underline">Lihat semua â†’</a>
         </div>
         <div class="overflow-x-auto">
             <table class="w-full text-sm">
@@ -109,3 +109,4 @@
     </div>
 </div>
 @endsection
+

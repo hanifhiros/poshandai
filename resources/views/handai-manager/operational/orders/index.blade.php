@@ -1,4 +1,4 @@
-@extends('handai-manager.layouts.master')
+﻿@extends('layouts.master')
 
 @section('title', 'Daftar Order')
 
@@ -21,7 +21,7 @@
         showFilter: {{ request()->hasAny(['search','status']) && request('status') !== '' ? 'true' : 'false' }}
      }">
 
-    {{-- ── FLASH ── --}}
+    {{-- â”€â”€ FLASH â”€â”€ --}}
     @if(session('success'))
     <div class="mb-4 p-3 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl text-[13px] flex items-center gap-2">
         <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
@@ -35,7 +35,7 @@
     </div>
     @endif
 
-    {{-- ── HEADER ── --}}
+    {{-- â”€â”€ HEADER â”€â”€ --}}
     <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-5">
         <div>
             <h1 class="text-[19px] font-bold text-gray-800 leading-tight">Daftar Order Customer</h1>
@@ -54,7 +54,7 @@
         </div>
     </div>
 
-    {{-- ── STAT CARDS ── --}}
+    {{-- â”€â”€ STAT CARDS â”€â”€ --}}
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
         <div class="ord-card-stat">
             <p class="text-[11px] font-medium text-gray-400 uppercase tracking-wider leading-none">Total Order</p>
@@ -74,7 +74,7 @@
         </div>
     </div>
 
-    {{-- ── FILTER ── --}}
+    {{-- â”€â”€ FILTER â”€â”€ --}}
     <div x-show="showFilter" x-collapse x-cloak class="mb-5">
         <form method="GET" action="{{ route('manager.operational.orders.index') }}"
               class="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
@@ -104,13 +104,13 @@
         </form>
     </div>
 
-    {{-- ── MAIN TABLE ── --}}
+    {{-- â”€â”€ MAIN TABLE â”€â”€ --}}
     <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
 
         {{-- Info bar --}}
         <div class="px-5 py-2.5 border-b border-gray-50 flex items-center justify-between">
             <p class="text-[12px] text-gray-400">
-                <span class="font-medium text-gray-500">{{ $orders->firstItem() ?? 0 }}–{{ $orders->lastItem() ?? 0 }}</span> dari {{ $orders->total() }} order
+                <span class="font-medium text-gray-500">{{ $orders->firstItem() ?? 0 }}â€“{{ $orders->lastItem() ?? 0 }}</span> dari {{ $orders->total() }} order
             </p>
             @if(request()->filled('status') || request()->filled('search'))
             <a href="{{ route('manager.operational.orders.index') }}" class="text-[11px] text-emerald-600 hover:text-emerald-700 font-medium inline-flex items-center gap-1">
@@ -299,7 +299,7 @@
         @endif
     </div>
 
-    {{-- ── PENDING ORDERS SECTION ── --}}
+    {{-- â”€â”€ PENDING ORDERS SECTION â”€â”€ --}}
     @if(count($pendingOrders) > 0)
     <div class="mt-8">
         <div class="flex items-center gap-2 mb-4">
@@ -316,7 +316,7 @@
                 {{-- Card Header --}}
                 <div class="px-4 py-3 border-b border-gray-50 flex items-center justify-between">
                     <div>
-                        <p class="font-bold text-gray-800 text-[13px]">#{{ $order->id }} — {{ $order->customer->name ?? '-' }}</p>
+                        <p class="font-bold text-gray-800 text-[13px]">#{{ $order->id }} â€” {{ $order->customer->name ?? '-' }}</p>
                         @if($order->delivery_date || $order->delivery_time)
                         <p class="text-[11px] text-gray-400 mt-0.5 flex items-center gap-1">
                             <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>

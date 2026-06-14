@@ -1,4 +1,4 @@
-@extends('handai-manager.layouts.master')
+﻿@extends('layouts.master')
 
 @section('title', 'KPI Operasional')
 
@@ -515,3 +515,4 @@
 </script>
 @endpush
 @endsection
+

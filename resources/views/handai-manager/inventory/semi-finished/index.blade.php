@@ -1,4 +1,4 @@
-@extends('handai-manager.layouts.master')
+﻿@extends('layouts.master')
 
 @section('title', 'Produk Setengah Jadi')
 
@@ -164,3 +164,4 @@
     @endif
 </div>
 @endsection
+

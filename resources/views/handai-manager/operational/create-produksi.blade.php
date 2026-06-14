@@ -1,4 +1,4 @@
-@extends('handai-manager.layouts.master')
+﻿@extends('layouts.master')
 
 @section('title', 'Tambah Produksi')
 
@@ -129,7 +129,7 @@
                         <label class="cpd-label">Pilih Nama</label>
                         <div class="flex items-center gap-2">
                             <select x-model="selectedPic" class="cpd-select flex-1">
-                                <option value="">— Pilih PIC —</option>
+                                <option value="">â€” Pilih PIC â€”</option>
                                 <template x-for="emp in employees" :key="emp.id">
                                     <option :value="emp.id" x-text="emp.name"></option>
                                 </template>
@@ -147,7 +147,7 @@
                         <div class="flex flex-wrap gap-2">
                             <template x-for="(id, idx) in picIds" :key="id">
                                 <div class="flex items-center gap-1 px-3 py-2 rounded-full bg-emerald-50 border border-emerald-100 text-sm text-emerald-700">
-                                    <span x-text="employees.find(e => e.id == id)?.name || '—'" class="truncate"></span>
+                                    <span x-text="employees.find(e => e.id == id)?.name || 'â€”'" class="truncate"></span>
                                     <button type="button" @click="removePic(idx)" class="w-6 h-6 rounded-full flex items-center justify-center text-red-600 hover:bg-red-100" aria-label="Hapus PIC">
                                         <svg class="w-3 h-3" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 7L14 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M9 7V5a2 2 0 012-2h2a2 2 0 012 2v2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M8 11v7a2 2 0 002 2h4a2 2 0 002-2v-7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M10 15v-3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M14 15v-3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
                                     </button>
@@ -183,9 +183,9 @@
                                 <div x-show="line.type === 'finished'" x-cloak>
                                     <label class="cpd-label">Produk + Varian</label>
                                     <select :name="`production_lines[${index}][product_variants_id]`" x-model="line.product_variants_id" class="cpd-select" :disabled="line.type !== 'finished'">
-                                        <option value="">— Pilih Produk Varian —</option>
+                                        <option value="">â€” Pilih Produk Varian â€”</option>
                                         @foreach ($productVariants as $variant)
-                                        <option value="{{ $variant->id }}">{{ $variant->product->name }} — {{ $variant->options->pluck('name')->join(', ') }}</option>
+                                        <option value="{{ $variant->id }}">{{ $variant->product->name }} â€” {{ $variant->options->pluck('name')->join(', ') }}</option>
                                         @endforeach
                                     </select>
                                 </div>
@@ -193,7 +193,7 @@
                                 <div x-show="line.type === 'semi'" x-cloak>
                                     <label class="cpd-label">Produk Setengah Jadi</label>
                                     <select :name="`production_lines[${index}][semi_finished_product_id]`" x-model="line.semi_finished_product_id" class="cpd-select" :disabled="line.type !== 'semi'">
-                                        <option value="">— Pilih Setengah Jadi —</option>
+                                        <option value="">â€” Pilih Setengah Jadi â€”</option>
                                         @foreach(\App\Models\SemiFinishedProduct::where('store_id', session('selected_store'))->get() as $sfp)
                                         <option value="{{ $sfp->id }}">{{ $sfp->name }}</option>
                                         @endforeach
@@ -295,7 +295,7 @@
         {{-- Submit --}}
         <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6">
             <div class="flex items-center justify-between gap-3">
-                <a href="{{ route('manager.operational.produksi') }}" class="h-10 px-5 text-[13px] font-medium text-gray-400 hover:text-gray-600 bg-white border border-gray-200 hover:border-gray-300 hover:bg-gray-100 rounded-lg transition inline-flex items-center">← Batal</a>
+                <a href="{{ route('manager.operational.produksi') }}" class="h-10 px-5 text-[13px] font-medium text-gray-400 hover:text-gray-600 bg-white border border-gray-200 hover:border-gray-300 hover:bg-gray-100 rounded-lg transition inline-flex items-center">â† Batal</a>
                 <button type="submit" class="h-10 px-6 text-[13px] font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg transition shadow-sm cursor-pointer inline-flex items-center gap-2">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                     Simpan Produksi
@@ -437,4 +437,5 @@ function produksiForm() {
   }
 </script>
 @endpush
+
 

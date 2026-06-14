@@ -1,6 +1,6 @@
-@extends('handai-manager.layouts.master')
+﻿@extends('layouts.master')
 
-@section('title', 'Tambah Pengeluaran — Handai Finance')
+@section('title', 'Tambah Pengeluaran â€” Handai Finance')
 
 @section('page-style')
 <style>
@@ -22,7 +22,7 @@
         <div class="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl">
             <ul class="text-sm text-red-600">
                 @foreach ($errors->all() as $error)
-                    <li>• {{ $error }}</li>
+                    <li>â€¢ {{ $error }}</li>
                 @endforeach
             </ul>
         </div>
@@ -89,3 +89,4 @@
     </div>
 </div>
 @endsection
+

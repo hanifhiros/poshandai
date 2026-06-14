@@ -1,40 +1,37 @@
-@extends('layouts.layoutBlank')
-
-@section('title', 'Dashboard Superadmin')
+@extends('layouts.layoutMaster')
 
 @section('content')
-    <div class="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-        <div class="bg-white w-full max-w-xl shadow rounded-2xl p-8">
-            <div class="flex items-center justify-center mb-6">
-                <img src="{{ asset('assets/logo.png') }}" alt="Logo" class="h-10">
-            </div>
-            <h1 class="text-3xl font-bold text-center text-green-700 mb-2">Dashboard Superadmin</h1>
-            <p class="text-gray-600 text-center mb-6">Selamat datang di panel Superadmin Handai Coffee.</p>
+<div class="p-6">
+    <h1 class="text-2xl font-bold text-slate-800 mb-6">CEO Command Center</h1>
 
-            <div class="grid gap-4">
-                <a href="{{ route('superadmin.account.index') }}"
-                   class="block w-full text-center py-3 px-4 bg-white text-green-700 font-semibold border border-green-600 rounded-lg hover:bg-green-600 hover:text-white transition duration-200">
-                    Manajemen Akun
-                </a>
-
-                <a href="{{ route('superadmin.store.index') }}"
-                   class="block w-full text-center py-3 px-4 bg-white text-green-700 font-semibold border border-green-600 rounded-lg hover:bg-green-600 hover:text-white transition duration-200">
-                    Kelola Toko
-                </a>
-
-                <a href="{{ route('superadmin.simulate.index') }}"
-                   class="block w-full text-center py-3 px-4 bg-white text-green-700 font-semibold border border-green-600 rounded-lg hover:bg-green-600 hover:text-white transition duration-200">
-                    Managemen Toko
-                </a>
-            </div>
-
-            <form action="{{ route('logout') }}" method="POST" class="mt-6 text-center">
-                @csrf
-                <button type="submit"
-                        class="inline-block text-sm px-4 py-2 text-red-600 border border-red-500 rounded-lg bg-white hover:bg-red-500 hover:text-white transition duration-200">
-                    Logout
-                </button>
-            </form>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+            <h3 class="text-slate-500 text-sm uppercase font-bold">Total Cabang</h3>
+            <p class="text-3xl font-black text-slate-800">{{\App\Models\Store::count()}}</p>
+        </div>
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+            <h3 class="text-slate-500 text-sm uppercase font-bold">Total Karyawan</h3>
+            <p class="text-3xl font-black text-slate-800">{{\App\Models\User::count()}}</p>
+        </div>
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+            <h3 class="text-slate-500 text-sm uppercase font-bold">Simulasi Aktif</h3>
+            <p class="text-3xl font-black text-slate-800">Ready</p>
         </div>
     </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <a href="{{ route('superadmin.account.index') }}" class="block p-6 bg-white border-l-4 border-green-600 shadow-sm rounded-lg hover:shadow-md">
+            <h2 class="font-bold text-lg">Manajemen Akun</h2>
+            <p class="text-sm text-slate-500">Kelola staf, role, dan hak akses.</p>
+        </a>
+        <a href="{{ route('superadmin.store.index') }}" class="block p-6 bg-white border-l-4 border-blue-600 shadow-sm rounded-lg hover:shadow-md">
+            <h2 class="font-bold text-lg">Manajemen Toko</h2>
+            <p class="text-sm text-slate-500">Tambah/Edit data cabang.</p>
+        </a>
+        <a href="{{ route('superadmin.simulate.index') }}" class="block p-6 bg-white border-l-4 border-purple-600 shadow-sm rounded-lg hover:shadow-md">
+            <h2 class="font-bold text-lg">Simulasi & Monitoring</h2>
+            <p class="text-sm text-slate-500">Masuk ke role apa saja di toko mana saja.</p>
+        </a>
+    </div>
+</div>
 @endsection

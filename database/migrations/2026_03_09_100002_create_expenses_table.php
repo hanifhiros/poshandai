@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('expenses', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('store_id')->constrained('stores')->cascadeOnDelete();
+            $table->foreignId('store_id')->constrained('store')->cascadeOnDelete();
             $table->foreignId('expense_category_id')->constrained('expense_categories')->cascadeOnDelete();
             $table->date('expense_date');
             $table->decimal('amount', 15, 2);
