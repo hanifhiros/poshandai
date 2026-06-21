@@ -65,9 +65,9 @@
         @csrf
 
 
-        {{-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+        {{-- ================================================================
              SECTION 1: Informasi Pembelian
-             â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
+             ================================================================ --}}
         <div id="purchase-info-section" class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
             <div class="px-6 py-4 border-b border-slate-100 bg-slate-50/50">
                 <h2 class="text-sm font-semibold text-slate-700 flex items-center gap-2">
@@ -181,9 +181,9 @@
             </div>
         </div>
 
-        {{-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+        {{-- ================================================================
              SECTION 2: Detail Item Pembelian
-             â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
+             ================================================================ --}}
         <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-visible">
             <div class="px-6 py-4 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
                 <h2 class="text-sm font-semibold text-slate-700 flex items-center gap-2">
@@ -217,7 +217,7 @@
                     <svg class="w-12 h-12 mx-auto mb-3 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
                     </svg>
-                    <p class="text-sm">Belum ada item. Klik <strong>"Tambah Item"</strong> untuk mulai.</p>
+                    <p class="text-sm">Belum ada item. Klik <strong>"Tambah Bahan"</strong> untuk mulai.</p>
                 </div>
                 <div x-show="errors.items" data-error-field class="text-xs text-red-500 mt-2 flex items-center justify-center gap-1">
                     <svg class="w-3 h-3 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
@@ -371,8 +371,6 @@
                                          class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-right focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400">
                                      <div x-show="errors['item_' + idx + '_unit_price']" data-error-field class="text-xs text-red-500 mt-1"
                                          x-text="errors['item_' + idx + '_unit_price']"></div>
-                                     <div x-show="errors['item_' + idx + '_unit_price']" data-error-field class="text-xs text-red-500 mt-1"
-                                         x-text="errors['item_' + idx + '_unit_price']"></div>
                                 </div>
                                 <div>
                                     <label class="text-xs text-slate-500 mb-1 block">Subtotal</label>
@@ -387,9 +385,9 @@
             </div>
         </div>
 
-        {{-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+        {{-- ================================================================
              SECTION 3: Ringkasan & Total
-             â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
+             ================================================================ --}}
         <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
             <div class="px-6 py-4 border-b border-slate-100 bg-slate-50/50">
                 <h2 class="text-sm font-semibold text-slate-700 flex items-center gap-2">
@@ -417,7 +415,7 @@
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                                 </svg>
-                                <span x-text="notaFileName || 'Pilih file (JPG, PNG, PDF â€” maks 4 MB)'"></span>
+                                <span x-text="notaFileName || 'Pilih file (JPG, PNG, PDF - maks 4 MB)'"></span>
                                 <input type="file"
                                        name="nota"
                                        accept="image/*,.pdf"
@@ -486,9 +484,9 @@
             </div>
         </div>
 
-        {{-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+        {{-- ================================================================
              Validation Summary (shown after failed submit attempt)
-             â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
+             ================================================================ --}}
         <div x-show="attempted && Object.keys(errors).length > 0" x-transition
              class="bg-red-50 border border-red-200 rounded-2xl px-5 py-4 shadow-sm">
             <div class="flex items-start gap-3">
@@ -525,13 +523,13 @@
             </div>
         </div>
 
-        {{-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+        {{-- ================================================================
              SECTION 4: Tombol Simpan
-             â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
+             ================================================================ --}}
         <div class="flex items-center justify-between bg-white rounded-2xl border border-slate-200/80 shadow-sm px-6 py-4">
             <a href="{{ route('manager.inventory.stock') }}"
                class="text-sm text-slate-500 hover:text-slate-700 hover:bg-gray-100 transition">
-                &larr; Batal
+                ← Batal
             </a>
             <button type="submit"
                     :disabled="submitting"
@@ -552,9 +550,9 @@
         </div>
     </form>
 
-    {{-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    {{-- ================================================================
          Modal: Buat Bahan Baru
-         â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
+         ================================================================ --}}
     <div x-show="showNewStockModal" x-transition.opacity
          class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
          style="display:none;">
@@ -607,7 +605,7 @@
             <div class="px-6 py-4 border-t border-slate-100 flex gap-3">
                 <button type="button" @click="showNewStockModal = false"
                         class="flex-1 py-2.5 rounded-xl text-sm font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 hover:bg-gray-100 transition">
-                    â† Batal
+                    ← Batal
                 </button>
                 <button type="button" @click="submitNewStock()"
                         :disabled="newStockSaving"
@@ -622,9 +620,9 @@
         </div>
     </div>
 
-    {{-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    {{-- ================================================================
          Confirmation Modal
-         â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
+         ================================================================ --}}
     <div x-show="showConfirm" x-transition.opacity
          class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
          style="display:none;">
@@ -647,7 +645,7 @@
                 <button type="button"
                         @click="showConfirm = false"
                         class="flex-1 py-2.5 rounded-xl text-sm font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 hover:bg-gray-100 transition">
-                    â† Batal
+                    ← Batal
                 </button>
                 <button type="button"
                         @click="confirmSubmit()"
@@ -868,12 +866,12 @@ function purchaseForm() {
             this.serverError = '';
             this.successMsg  = '';
 
-            // â”€â”€ Abort controller with 15-second timeout â”€â”€
+            // ── Abort controller with 15-second timeout ──
             const controller = new AbortController();
             const timeoutId  = setTimeout(() => controller.abort(), 15000);
 
             try {
-                console.log('[Purchase] 1. Building FormDataâ€¦');
+                console.log('[Purchase] 1. Building FormData…');
 
                 const csrfInput = document.querySelector('input[name="_token"]');
                 if (!csrfInput) {
@@ -909,7 +907,7 @@ function purchaseForm() {
                     ? this.pendingForm.action
                     : '{{ route("manager.inventory.stock.store") }}';
 
-                console.log('[Purchase] 2. POST â†’', url, '| items:', this.items.length);
+                console.log('[Purchase] 2. POST →', url, '| items:', this.items.length);
 
                 const resp = await fetch(url, {
                     method: 'POST',
@@ -925,7 +923,7 @@ function purchaseForm() {
                 clearTimeout(timeoutId);
                 console.log('[Purchase] 3. Response status:', resp.status, resp.statusText);
 
-                // â”€â”€ Guard: check content-type BEFORE calling .json() â”€â”€
+                // ── Guard: check content-type BEFORE calling .json() ──
                 const contentType = (resp.headers.get('content-type') || '');
                 if (!contentType.includes('application/json')) {
                     const text = await resp.text();
@@ -938,7 +936,7 @@ function purchaseForm() {
                     } else if (resp.status === 405) {
                         this.serverError = 'Method Not Allowed (405). Route mungkin salah.';
                     } else if (resp.redirected) {
-                        this.serverError = 'Server redirect â€” kemungkinan session habis. Refresh halaman.';
+                        this.serverError = 'Server redirect - kemungkinan session habis. Refresh halaman.';
                     } else {
                         this.serverError = 'Server error (' + resp.status + '). Response bukan JSON.';
                     }
@@ -960,7 +958,7 @@ function purchaseForm() {
                     return;      // keep submitting=true while redirecting
                 }
 
-                // â”€â”€ Not OK or success===false â”€â”€
+                // ── Not OK or success===false ──
                 this.serverError = data.message || 'Terjadi kesalahan server (HTTP ' + resp.status + ').';
 
             } catch (err) {
@@ -968,7 +966,7 @@ function purchaseForm() {
                 console.error('[Purchase] Error caught:', err);
 
                 if (err.name === 'AbortError') {
-                    this.serverError = 'Request timeout (15 dtk). Server tidak merespon â€” coba lagi.';
+                    this.serverError = 'Request timeout (15 dtk). Server tidak merespon - coba lagi.';
                 } else {
                     this.serverError = 'Gagal mengirim: ' + (err.message || 'Periksa koneksi internet.');
                 }
@@ -997,7 +995,7 @@ function purchaseForm() {
             });
         },
 
-        // â”€â”€ Quick-create stock from purchase form â”€â”€
+        // ── Quick-create stock from purchase form ──
         openNewStockModal(idx) {
             this.newStockTargetIdx = idx;
             this.newStock = { name: '', unit_id: '', stock_category_id: '', expired_duration: 30 };
@@ -1059,4 +1057,3 @@ function purchaseForm() {
 @endpush
 
 @endsection
-

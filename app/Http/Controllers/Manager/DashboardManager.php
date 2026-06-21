@@ -180,15 +180,16 @@ class DashboardManager extends Controller
             }
 
             // ═══════════════════════════════════════════
-            // Hourly data — sales AND order counts in one query
+            // Hourly data — sales AND order counts in one query (POSTGRESQL FIX)
             // ═══════════════════════════════════════════
             $hourlyRaw = DB::table('orders')
-                ->selectRaw("CAST(strftime('%H', created_at) AS INTEGER) as hour, SUM(gross_amount) as total, COUNT(*) as order_count")
+                ->selectRaw("EXTRACT(HOUR FROM created_at) as hour, SUM(gross_amount) as total, COUNT(*) as order_count")
                 ->where('store_id', $store_id)
                 ->whereDate('created_at', $today)
-                ->groupBy('hour')
+                ->groupBy(DB::raw('EXTRACT(HOUR FROM created_at)'))
                 ->orderBy('hour')
                 ->get();
+                
             $hourlySalesData = array_fill(0, 24, 0);
             $hourlyOrderCounts = array_fill(0, 24, 0);
             foreach ($hourlyRaw as $h) {
@@ -227,12 +228,12 @@ class DashboardManager extends Controller
             $ordersPerHour = $transactionsToday > 0
                 ? round($transactionsToday / max(1, Carbon::now()->hour), 1) : 0;
 
-            // Peak hour
+            // Peak hour (POSTGRESQL FIX)
             $peakHourData = DB::table('orders')
-                ->selectRaw("CAST(strftime('%H', created_at) AS INTEGER) as hour, COUNT(*) as cnt")
+                ->selectRaw("EXTRACT(HOUR FROM created_at) as hour, COUNT(*) as cnt")
                 ->where('store_id', $store_id)
                 ->whereDate('created_at', $today)
-                ->groupBy('hour')
+                ->groupBy(DB::raw('EXTRACT(HOUR FROM created_at)'))
                 ->orderByDesc('cnt')
                 ->first();
             $peakHour = $peakHourData ? sprintf('%02d:00', $peakHourData->hour) : '-';
@@ -281,22 +282,23 @@ class DashboardManager extends Controller
             $grossMarginToday = $revenueToday > 0
                 ? round(($grossProfitToday / $revenueToday) * 100, 1) : 0;
 
-            // ═══════════════════════════════════════════
-            // Revenue Target — based on 30-day average
+// ═══════════════════════════════════════════
+            // Revenue Target — based on 30-day average (POSTGRESQL FIX)
             // ═══════════════════════════════════════════
             $thirtyDaysAgo = Carbon::today()->subDays(30);
-            $avgDailyRevenue = (float) Order::where('store_id', $store_id)
+            
+            // 1. Ambil total penjualan per hari (Sub-query)
+            $subQuery = DB::table('orders')
+                ->selectRaw('DATE(created_at) as day, SUM(gross_amount) as daily_total')
+                ->where('store_id', $store_id)
                 ->whereDate('created_at', '>=', $thirtyDaysAgo)
                 ->whereDate('created_at', '<', $today)
+                ->groupBy(DB::raw('DATE(created_at)'));
+
+            // 2. Hitung rata-ratanya dari sub-query di atas
+            $avgDailyRevenue = (float) DB::query()
+                ->fromSub($subQuery, 'daily_totals')
                 ->selectRaw('COALESCE(AVG(daily_total), 0) as avg_daily')
-                ->fromSub(
-                    Order::where('store_id', $store_id)
-                        ->whereDate('created_at', '>=', $thirtyDaysAgo)
-                        ->whereDate('created_at', '<', $today)
-                        ->selectRaw('DATE(created_at) as day, SUM(gross_amount) as daily_total')
-                        ->groupBy('day'),
-                    'daily_totals'
-                )
                 ->value('avg_daily');
 
             // Target = 110% of 30-day avg (slight stretch)
@@ -306,7 +308,7 @@ class DashboardManager extends Controller
             $revenueMonthlyProgress = $revenueTargetMonthly > 0 ? min(100, round(($revenueMTD / $revenueTargetMonthly) * 100, 1)) : 0;
 
             // ═══════════════════════════════════════════
-            // OPTIMIZED: Legacy data without loading ALL orders
+            // OPTIMIZED: Legacy data without loading ALL orders (POSTGRESQL FIX)
             // ═══════════════════════════════════════════
             $legacyTotals = Order::where('store_id', $store_id)
                 ->selectRaw('SUM(gross_amount) as total_sales, COUNT(*) as total_transactions, SUM(gross_amount) - SUM(total_hpp_orders) as laba_bersih')
@@ -322,19 +324,19 @@ class DashboardManager extends Controller
                 ->groupBy('tanggal')->orderBy('tanggal')->get();
 
             $penjualanMingguan = DB::table('orders')
-                ->selectRaw('strftime("%W", created_at) as minggu_ke, SUM(gross_amount) as total_penjualan')
+                ->selectRaw('EXTRACT(WEEK FROM created_at) as minggu_ke, SUM(gross_amount) as total_penjualan')
                 ->where('store_id', $store_id)
-                ->groupBy('minggu_ke')->orderBy('minggu_ke')->get();
+                ->groupBy(DB::raw('EXTRACT(WEEK FROM created_at)'))->orderBy('minggu_ke')->get();
 
             $penjualanBulanan = DB::table('orders')
-                ->selectRaw("strftime('%Y-%m', created_at) as bulan, SUM(gross_amount) as total_penjualan")
+                ->selectRaw("TO_CHAR(created_at, 'YYYY-MM') as bulan, SUM(gross_amount) as total_penjualan")
                 ->where('store_id', $store_id)
-                ->groupBy('bulan')->orderBy('bulan')->get();
+                ->groupBy(DB::raw("TO_CHAR(created_at, 'YYYY-MM')"))->orderBy('bulan')->get();
 
             $penjualanTahunan = DB::table('orders')
-                ->selectRaw("strftime('%Y', created_at) as tahun, SUM(gross_amount) as total_penjualan")
+                ->selectRaw("EXTRACT(YEAR FROM created_at) as tahun, SUM(gross_amount) as total_penjualan")
                 ->where('store_id', $store_id)
-                ->groupBy('tahun')->orderBy('tahun')->get();
+                ->groupBy(DB::raw("EXTRACT(YEAR FROM created_at)"))->orderBy('tahun')->get();
 
             $produkTerlarisBulanIni = $this->getTopSellingProducts($store_id, $startOfMonth, $endOfMonth);
             $produkTerlarisSemua = $this->getTopSellingProducts($store_id);
@@ -342,10 +344,8 @@ class DashboardManager extends Controller
             // ═══════════════════════════════════════════
             // MARKETING DATA (using registered customers table)
             // ═══════════════════════════════════════════
-            // total number of customer records we have in the system
             $totalCustomers = Customer::count();
 
-            // customers created this month / last-month-same-window
             $newCustomersMonth = Customer::whereBetween('created_at', [$startOfMonth, $endOfMonth])->count();
             $lastMonthNewCustomers = Customer::whereBetween('created_at', [$lastMonthStart, $lastMonthSameDay])->count();
 
@@ -353,7 +353,6 @@ class DashboardManager extends Controller
                 ? round((($newCustomersMonth - $lastMonthNewCustomers) / $lastMonthNewCustomers) * 100, 1)
                 : ($newCustomersMonth > 0 ? 100 : 0);
 
-            // Top customers by spending (this store, this month)
             $topCustomers = DB::table('orders')
                 ->join('customer', 'orders.customer_id', '=', 'customer.id')
                 ->where('orders.store_id', $store_id)
@@ -365,16 +364,14 @@ class DashboardManager extends Controller
                 ->limit(8)
                 ->get();
 
-            // Order channel breakdown (order_origin)
             $orderChannels = DB::table('orders')
                 ->where('store_id', $store_id)
                 ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
-                ->selectRaw('COALESCE(order_origin, "Langsung") as channel, COUNT(*) as cnt, SUM(gross_amount) as revenue')
+                ->selectRaw('COALESCE(order_origin, \'Langsung\') as channel, COUNT(*) as cnt, SUM(gross_amount) as revenue')
                 ->groupBy('channel')
                 ->orderByDesc('revenue')
                 ->get();
 
-            // Reseller performance
             $resellerPerformance = DB::table('orders')
                 ->join('resellers', 'orders.reseller_id', '=', 'resellers.id')
                 ->where('orders.store_id', $store_id)
@@ -385,6 +382,7 @@ class DashboardManager extends Controller
                 ->orderByDesc('revenue')
                 ->limit(8)
                 ->get();
+                
             $totalResellers = Reseller::whereHas('stores', function ($q) use ($store_id) {
                 $q->where('reseller_store.store_id', $store_id);
             })->count();
@@ -399,12 +397,14 @@ class DashboardManager extends Controller
                 ->havingRaw('COUNT(*) > 1')
                 ->get()
                 ->count();
+                
             $uniqueCustomersMonth = DB::table('orders')
                 ->where('store_id', $store_id)
                 ->whereNotNull('customer_id')
                 ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
                 ->distinct('customer_id')
                 ->count('customer_id');
+                
             $repeatRate = $uniqueCustomersMonth > 0
                 ? round(($repeatCustomers / $uniqueCustomersMonth) * 100, 1) : 0;
 
@@ -415,12 +415,12 @@ class DashboardManager extends Controller
                 ->whereDate('production_date', $today)
                 ->selectRaw('COUNT(*) as batches, COALESCE(SUM(quantity_produced), 0) as total_qty')
                 ->first();
+                
             $productionMonth = ProductionHistory::where('store_id', $store_id)
                 ->whereBetween('production_date', [$startOfMonth, $endOfMonth])
                 ->selectRaw('COUNT(*) as batches, COALESCE(SUM(quantity_produced), 0) as total_qty')
                 ->first();
 
-            // Top produced products this month
             $topProductions = ProductionHistory::where('store_id', $store_id)
                 ->whereBetween('production_date', [$startOfMonth, $endOfMonth])
                 ->select('product_name', DB::raw('SUM(quantity_produced) as total_qty'), DB::raw('COUNT(*) as batch_count'))
@@ -429,10 +429,9 @@ class DashboardManager extends Controller
                 ->limit(8)
                 ->get();
 
-            // Production last 7 days trend (single query)
-            $sevenDaysAgo = Carbon::today()->subDays(6)->toDateString();
+            $sevenDaysAgoStr = Carbon::today()->subDays(6)->toDateString();
             $productionByDate = ProductionHistory::where('store_id', $store_id)
-                ->whereDate('production_date', '>=', $sevenDaysAgo)
+                ->whereDate('production_date', '>=', $sevenDaysAgoStr)
                 ->selectRaw('DATE(production_date) as d, COALESCE(SUM(quantity_produced), 0) as qty')
                 ->groupBy('d')
                 ->pluck('qty', 'd');
@@ -463,11 +462,9 @@ class DashboardManager extends Controller
                 'revenueDailyProgress', 'revenueMonthlyProgress',
                 'totalSales', 'totalTransaction', 'LabaBersih',
                 'penjualanHarian', 'penjualanMingguan', 'penjualanBulanan', 'penjualanTahunan',
-                // Marketing
                 'totalCustomers', 'newCustomersMonth', 'newCustomerGrowth',
                 'topCustomers', 'orderChannels', 'resellerPerformance',
                 'totalResellers', 'repeatRate', 'uniqueCustomersMonth', 'repeatCustomers',
-                // Production / Operasional
                 'productionToday', 'productionMonth', 'topProductions', 'production7Days'
             );
         });
@@ -517,7 +514,6 @@ class DashboardManager extends Controller
             ];
         }
 
-        // Target achievement alert
         if ($dashData['revenueDailyProgress'] >= 100) {
             $alerts[] = [
                 'severity' => 'success',
@@ -538,10 +534,7 @@ class DashboardManager extends Controller
             ];
         }
 
-        // Extract cached data for view
         extract($dashData);
-
-        // Last updated timestamp
         $lastUpdated = Carbon::now()->format('H:i:s');
 
         return view('handai-manager.index', compact(
@@ -566,11 +559,9 @@ class DashboardManager extends Controller
             'alerts',
             'totalSales', 'totalTransaction', 'LabaBersih',
             'penjualanHarian', 'penjualanMingguan', 'penjualanBulanan', 'penjualanTahunan',
-            // Marketing
             'totalCustomers', 'newCustomersMonth', 'newCustomerGrowth',
             'topCustomers', 'orderChannels', 'resellerPerformance',
             'totalResellers', 'repeatRate', 'uniqueCustomersMonth', 'repeatCustomers',
-            // Production / Operasional
             'productionToday', 'productionMonth', 'topProductions', 'production7Days'
         ));
     }

@@ -5,7 +5,7 @@ use App\Http\Controllers\POS\DashboardPOS;
 use App\Http\Controllers\POS\KasirController;
 use Illuminate\Support\Facades\Route;
 
-Route::group(['middleware' => ['web', 'auth', 'cekrole:POS']], function () {
+Route::group(['middleware' => ['web', 'auth', 'role:POS']], function () {
     Route::get('select-store', 'StoreController@index')->name('pos.store');
 
     Route::post('set-store', 'StoreController@setStore')->name('pos.setstore');

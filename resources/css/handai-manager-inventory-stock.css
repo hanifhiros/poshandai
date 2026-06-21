@@ -1,0 +1,62 @@
+/* CSS Variables untuk Tema Inventory */
+:root {
+    --inv-bg: #f1f5f9;
+    --inv-card-bg: #ffffff;
+    --inv-text: #1e293b;
+    --inv-muted: #64748b;
+    --inv-accent: #0C9044;
+    --inv-accent-light: #dcfce7;
+    --inv-border: #e2e8f0;
+    --inv-info: #3b82f6;
+    --inv-radius: 16px;
+}
+
+/* Style untuk Kotak/Card */
+.inv-card, .inv-card-hover, .stat-card {
+    background-color: var(--inv-card-bg);
+    border: 1px solid var(--inv-border);
+    border-radius: var(--inv-radius);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+}
+
+.inv-card-hover:hover {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    transform: translateY(-3px);
+    transition: all 0.3s ease;
+}
+
+.stat-card {
+    padding: 1.25rem;
+    border-radius: 12px;
+}
+
+/* Input & Tombol */
+.inv-input, .stock-select {
+    background-color: #f8fafc;
+    border: 1px solid var(--inv-border);
+    border-radius: 0.5rem;
+    padding: 0.5rem 1rem;
+    width: 100%;
+}
+.inv-btn {
+    display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; border-radius: 0.5rem; font-weight: 600; font-size: 0.875rem; cursor: pointer; transition: all 0.2s;
+}
+.inv-btn-primary { background-color: var(--inv-accent); color: white; border: 1px solid var(--inv-accent); }
+.inv-btn-primary:hover { background-color: #0a7a3a; }
+.inv-btn-outline { border: 1px solid var(--inv-border); background: white; }
+.inv-btn-outline:hover { background: #f1f5f9; }
+
+/* Lencana (Badges) */
+.inv-badge { display: inline-flex; align-items: center; gap: 0.25rem; padding: 0.25rem 0.6rem; border-radius: 9999px; font-size: 0.7rem; font-weight: 700; }
+.dot { width: 6px; height: 6px; border-radius: 50%; }
+
+/* Tabel */
+.inv-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+.inv-table th { padding: 1rem 1.25rem; background: #f8fafc; border-bottom: 1px solid var(--inv-border); color: var(--inv-muted); }
+.inv-table td { padding: 1rem 1.25rem; border-bottom: 1px solid var(--inv-border); }
+
+/* Aksesoris Visual */
+.bar { width: 4px; height: 18px; border-radius: 4px; display: inline-block; margin-right: 8px; }
+.section-title { display: flex; align-items: center; font-weight: 700; color: var(--inv-text); font-size: 1.125rem; }
+.fade-in-up { animation: fadeInUp 0.5s ease forwards; opacity: 0; transform: translateY(10px); }
+@keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }

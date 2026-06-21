@@ -1,12 +1,10 @@
 <div x-data="sidebarOffcanvas()" x-init="init()" class="flex bg-indigo-50">
   <nav x-bind:class="sidebarClass()" class="overflow-hidden flex flex-col border-none shadow-xl">
-    <!-- LOGO -->
     <div class="bg-[#0C9044] text-white py-4 rounded-br-lg ">
       <div class="flex items-center justify-between">
-        <!-- Kiri: Logo + Teks -->
         <div class="flex items-center ">
           <div class="ms-2 grid w-16 h-16 shrink-0 place-content-center">
-            <img src="{{ asset('assets/svg/handai-logo.svg') }}" alt="Handai Logo" width="38" height="auto"
+            <img src="{{ asset('assets/favicon.ico') }}" alt="Handai Logo" width="38" height="auto"
               class="object-contain" />
           </div>
 
@@ -20,22 +18,14 @@
           </div>
         </div>
 
-        <!-- Kanan: Tombol "X" (Mobile) -->
         <div x-show="isMobile && open" x-transition class="cursor-pointer">
-          <!-- <a @click="open = false" class="text-white hover:text-gray-100 transition-colors">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
-              stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="4" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </a> -->
         </div>
       </div>
     </div>
 
-
-    <!-- ISI SIDEBAR -->
-        @php use App\Helpers\RoleHelper; @endphp
-      @if (RoleHelper::hasRole('Superadmin'))
+    @php use App\Helpers\RoleHelper; @endphp
+    
+    @if(session('is_simulating') || (auth()->check() && auth()->user()->role === 'Superadmin'))
       <a href="{{ route('superadmin.dashboard') }}"
          @click="selected = 'Superadmin Dashboard'"
          :class="selected === 'Superadmin Dashboard' ? 'bg-green-600/10 text-green-800' : 'text-slate-500 hover:bg-slate-100'"
@@ -44,17 +34,18 @@
               <i :class="selected === 'Superadmin Dashboard' ? 'ti ti-device-desktop-filled' : 'ti ti-device-desktop'"></i>
           </div>
           <span x-show="open" x-transition class="absolute ml-16 text font-medium ">
-              Superadmin Dashboard
+              Kembali ke Superadmin
           </span>
       </a>
-      @endif
-    <div x-data="{ selected: '{{ $categoryName ?? '' }}' }" class="flex-1 overflow-y-auto space-y-1 p-3">
+    @endif
+    
+    <div x-data="{ selected: '{{ $categoryName ?? '' }}' }" class="flex-1 overflow-y-auto space-y-1 p-3 hide-scrollbar">
+      
       <div class="h-3 mt-3 flex items-center">
-          <p x-show="open" x-transition class="text-slate-600 ps-6 text-sm">Menu</p>
+          <p x-show="open" x-transition class="text-slate-600 ps-6 text-sm font-semibold">POS / Kasir</p>
           <hr x-show="!open" x-transition class="border-t border-slate-300 w-full" />
       </div>
 
-      <!-- All Products Button -->
       <a :href="'/pos/products?category=All Products'" class="relative flex h-15 w-full items-center rounded-md transition-colors ">
           <button type="button" @click="selected = 'All Products'" 
                   :class="selected === 'All Products' ? 'bg-green-600/10 text-green-800' : 'text-slate-500 hover:bg-slate-100'"
@@ -68,8 +59,7 @@
           </button>
       </a>
 
-      <!-- Categories Loop -->
-        @foreach (($categories ?? []) as $category)
+      @foreach (($categories ?? []) as $category)
           <a :href="'/pos/products?category=' + '{{ $category->category_name ?? '' }}'" class="relative flex h-15 w-full items-center rounded-md transition-colors">
               <button type="button" 
                 @click="selected = '{{ $category->category_name ?? '' }}'"
@@ -87,12 +77,120 @@
               </button>
           </a>
       @endforeach
+
+      <div class="h-3 mt-6 mb-2 flex items-center">
+          <p x-show="open" x-transition class="text-slate-600 ps-6 text-sm font-semibold">Operasional</p>
+          <hr x-show="!open" x-transition class="border-t border-slate-300 w-full" />
+      </div>
+
+      <a href="{{ route('manager.dashboard') }}" class="relative flex h-15 w-full items-center rounded-md transition-colors">
+          <button type="button" @click="selected = 'Manager Dashboard'" 
+                  :class="selected === 'Manager Dashboard' ? 'bg-green-600/10 text-green-800' : 'text-slate-500 hover:bg-slate-100'"
+                  class="relative flex h-15 w-full items-center rounded-md transition-colors cursor-pointer">
+              <div class="grid h-full w-16 place-content-center">
+                  <i :class="selected === 'Manager Dashboard' ? 'ti ti-layout-dashboard-filled' : 'ti ti-layout-dashboard'"></i>
+              </div>
+              <span x-show="open" x-transition class="absolute ml-16 text font-medium text-nowrap">
+                  Dashboard Utama
+              </span>
+          </button>
+      </a>
+
+      <a href="{{ route('manager.operational.orders.index') }}" class="relative flex h-15 w-full items-center rounded-md transition-colors">
+          <button type="button" @click="selected = 'Pesanan'" 
+                  :class="selected === 'Pesanan' ? 'bg-green-600/10 text-green-800' : 'text-slate-500 hover:bg-slate-100'"
+                  class="relative flex h-15 w-full items-center rounded-md transition-colors cursor-pointer">
+              <div class="grid h-full w-16 place-content-center">
+                  <i :class="selected === 'Pesanan' ? 'ti ti-receipt-filled' : 'ti ti-receipt'"></i>
+              </div>
+              <span x-show="open" x-transition class="absolute ml-16 text font-medium text-nowrap">
+                  Pesanan
+              </span>
+          </button>
+      </a>
+
+      <a href="{{ route('manager.inventory.products') }}" class="relative flex h-15 w-full items-center rounded-md transition-colors">
+          <button type="button" @click="selected = 'Produk'" 
+                  :class="selected === 'Produk' ? 'bg-green-600/10 text-green-800' : 'text-slate-500 hover:bg-slate-100'"
+                  class="relative flex h-15 w-full items-center rounded-md transition-colors cursor-pointer">
+              <div class="grid h-full w-16 place-content-center">
+                  <i :class="selected === 'Produk' ? 'ti ti-box-filled' : 'ti ti-box'"></i>
+              </div>
+              <span x-show="open" x-transition class="absolute ml-16 text font-medium text-nowrap">
+                  Produk / Etalase
+              </span>
+          </button>
+      </a>
+
+      <a href="{{ route('manager.inventory.stock') }}" class="relative flex h-15 w-full items-center rounded-md transition-colors">
+          <button type="button" @click="selected = 'Stok'" 
+                  :class="selected === 'Stok' ? 'bg-green-600/10 text-green-800' : 'text-slate-500 hover:bg-slate-100'"
+                  class="relative flex h-15 w-full items-center rounded-md transition-colors cursor-pointer">
+              <div class="grid h-full w-16 place-content-center">
+                  <i :class="selected === 'Stok' ? 'ti ti-packages' : 'ti ti-package'"></i>
+              </div>
+              <span x-show="open" x-transition class="absolute ml-16 text font-medium text-nowrap">
+                  Stok Gudang
+              </span>
+          </button>
+      </a>
+
+      <a href="{{ route('manager.operational.produksi') }}" class="relative flex h-15 w-full items-center rounded-md transition-colors">
+          <button type="button" @click="selected = 'Produksi'" 
+                  :class="selected === 'Produksi' ? 'bg-green-600/10 text-green-800' : 'text-slate-500 hover:bg-slate-100'"
+                  class="relative flex h-15 w-full items-center rounded-md transition-colors cursor-pointer">
+              <div class="grid h-full w-16 place-content-center">
+                  <i class="ti ti-tools-kitchen-2"></i>
+              </div>
+              <span x-show="open" x-transition class="absolute ml-16 text font-medium text-nowrap">
+                  Produksi
+              </span>
+          </button>
+      </a>
+
+      <a href="{{ route('manager.inventory.recipes.index') }}" class="relative flex h-15 w-full items-center rounded-md transition-colors">
+          <button type="button" @click="selected = 'Resep'" 
+                  :class="selected === 'Resep' ? 'bg-green-600/10 text-green-800' : 'text-slate-500 hover:bg-slate-100'"
+                  class="relative flex h-15 w-full items-center rounded-md transition-colors cursor-pointer">
+              <div class="grid h-full w-16 place-content-center">
+                  <i :class="selected === 'Resep' ? 'ti ti-book-filled' : 'ti ti-book'"></i>
+              </div>
+              <span x-show="open" x-transition class="absolute ml-16 text font-medium text-nowrap">
+                  Resep (BOM)
+              </span>
+          </button>
+      </a>
+
+      <a href="{{ route('manager.inventory.stock-batches.index') }}" class="relative flex h-15 w-full items-center rounded-md transition-colors">
+          <button type="button" @click="selected = 'Batch Stok'" 
+                  :class="selected === 'Batch Stok' ? 'bg-green-600/10 text-green-800' : 'text-slate-500 hover:bg-slate-100'"
+                  class="relative flex h-15 w-full items-center rounded-md transition-colors cursor-pointer">
+              <div class="grid h-full w-16 place-content-center">
+                  <i class="ti ti-stack"></i>
+              </div>
+              <span x-show="open" x-transition class="absolute ml-16 text font-medium text-nowrap">
+                  Batch Stok
+              </span>
+          </button>
+      </a>
+
+      <a href="{{ route('manager.operational.suppliers.index') }}" class="relative flex h-15 w-full items-center rounded-md transition-colors">
+          <button type="button" @click="selected = 'Supplier'" 
+                  :class="selected === 'Supplier' ? 'bg-green-600/10 text-green-800' : 'text-slate-500 hover:bg-slate-100'"
+                  class="relative flex h-15 w-full items-center rounded-md transition-colors cursor-pointer">
+              <div class="grid h-full w-16 place-content-center">
+                  <i :class="selected === 'Supplier' ? 'ti ti-truck-delivery' : 'ti ti-truck'"></i>
+              </div>
+              <span x-show="open" x-transition class="absolute ml-16 text font-medium text-nowrap">
+                  Supplier Pemasok
+              </span>
+          </button>
+      </a>
+
   </div>
 
-    <!-- BUTTON COLLAPSE -->
     <div class="relative flex border-t border-slate-300">
-      <div
-        class="relative flex w-full  cursor-pointer items-center justify-between  transition-colors hover:bg-slate-100">
+      <div class="relative flex w-full  cursor-pointer items-center justify-between  transition-colors hover:bg-slate-100">
         <a type="button" @click="toggleSidebar()" class="w-full flex items-center m-2 transition-colors">
           <div class="flex items-center ms-3 p-2">
             <div class="grid place-content-center ">
@@ -106,7 +204,7 @@
         </a>
       </div>
     </div>
-     <!-- tambahin button logout -->
+    
      <div class="relative ">
       <div class="relative flex w-full cursor-pointer text-red-600 items-center justify-between transition-colors hover:bg-red-100">
         <form id="logout-form" action="{{ route('universal.logout') }}" method="POST" class="w-full">
@@ -122,8 +220,6 @@
       </div>
     </div>
 
-  
-    
   </nav>
 
   <button x-show="isMobile && !open" class="fixed top-1/2 right-0 transform -translate-y-1/2
@@ -136,6 +232,17 @@
   </button>
 
 </div>
+
+<style>
+  /* Menghilangkan scrollbar tapi tetap bisa scroll */
+  .hide-scrollbar::-webkit-scrollbar {
+      display: none;
+  }
+  .hide-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+  }
+</style>
 
 <script>
   function sidebarOffcanvas() {

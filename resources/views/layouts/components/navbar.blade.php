@@ -33,7 +33,7 @@
 
             <!-- Kanan: Logo Handai -->
             <div class="flex items-center">
-                <img :src="isMobile ? '{{ asset('assets/svg/handai-text-logo-wrapped.svg') }}' : '{{ asset('assets/svg/handai-text-logo.svg') }}'" 
+                <img :src="isMobile ? '{{ asset('assets/logohandaitext.png') }}' : '{{ asset('assets/logohandaitext.png') }}'" 
                      alt="Handai Logo" class=" w-auto ml-2" :class="isMobile ? 'h-12 min-h-12 min-w-16' : 'h-8 min-h-auto'" />
             </div>
         </nav>

@@ -39,7 +39,7 @@ use App\Http\Controllers\Manager\Operational\QualityControlController;
 use App\Http\Controllers\Manager\Operational\ReturnController;
 use App\Http\Controllers\Manager\Operational\OperationalKpiController;
 
-Route::middleware(['web', 'auth', 'cekrole:Manager'])->group(function () {
+Route::middleware(['web', 'auth', 'role:Manager'])->group(function () {
 
     Route::get('/select-store', [ManagerController::class, 'index'])->name('manager.store');
     Route::post('/set-store', [ManagerController::class, 'setStore'])->name('manager.setstore');

@@ -1,107 +1,144 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Handai Coffee</title>
-    <!-- Pastikan file CSS/JS utama Laravel Anda terhubung di sini (Vite/Mix) -->
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <!-- Alpine.js untuk logika perpindahan Tab -->
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-</head>
-<body class="antialiased">
-    <!-- Background Image dengan efek gelap (Overlay) -->
-    <div class="min-h-screen flex items-center justify-center bg-cover bg-center bg-no-repeat relative" 
-         style="background-image: url('https://images.unsplash.com/photo-1497935586351-b67a49e012bf?q=80&w=1920&auto=format&fit=crop');">
-        
-        <!-- Dark Overlay agar form lebih terbaca -->
-        <div class="absolute inset-0 bg-black/50"></div>
+@extends('layouts.layoutBlank')
 
-        <!-- Glassmorphism Card Wrapper -->
-        <div class="relative z-10 bg-white/10 backdrop-blur-lg border border-white/20 p-8 sm:p-10 rounded-3xl shadow-2xl w-full max-w-md mx-4">
-            
-            <!-- Logo & Header -->
-            <div class="text-center mb-8">
-                <h1 class="text-3xl font-extrabold text-white tracking-wider mb-1">HANDAI COFFEE</h1>
-                <p class="text-sm text-gray-300 font-medium tracking-wide">Telkom University</p>
-                <p class="text-xs text-gray-400 mt-4">Silakan Login menggunakan akun Handai Coffee Anda</p>
+@section('title', 'Login - Handai Coffee')
+
+@section('content')
+    <div class="flex min-h-screen bg-gray-50">
+        <!-- Left Image Section (Illustration) -->
+        <div class="hidden lg:flex flex-2 p-2 justify-center items-center bg-gray-100">
+            <div class="rounded-xl w-full max-w-5xl object-contain">
+                <!-- Path gambar diubah ke absolut (/) agar mengabaikan APP_URL yang mati -->
+                <img src="/assets/login.png" alt="Login Illustration" class="drop-shadow-xl w-full">
             </div>
+        </div>
 
-            <!-- Komponen Alpine.js untuk Tab -->
-            <div x-data="{ loginType: 'staff' }">
+        <!-- Login Form -->
+        <div class="flex-1 flex justify-center items-center p-6 lg:p-12 bg-white shadow-[-10px_0_30px_rgba(0,0,0,0.05)]">
+            <div class="w-full max-w-md space-y-6">
+                <!-- Logos -->
+                <div class="flex justify-center space-x-4 mb-8">
+                    <img src="/assets/BTP.png" class="h-16 mr-2" alt="Logo BTP">
+                    <img src="/assets/kemenkop.png" class="h-12" alt="Logo Kemenkop">
+                    <img src="/assets/TelU.png" class="h-12" alt="Logo TelU">
+                </div>
                 
-                <!-- Tab Selector -->
-                <div class="flex bg-black/30 rounded-xl p-1 mb-6">
-                    <button type="button" @click="loginType = 'staff'" 
-                            :class="loginType === 'staff' ? 'bg-green-600 text-white shadow-md' : 'text-gray-300 hover:text-white'" 
-                            class="flex-1 py-2 rounded-lg text-sm font-semibold transition-all duration-300 focus:outline-none">
-                        Login Staff
-                    </button>
-                    <button type="button" @click="loginType = 'admin'" 
-                            :class="loginType === 'admin' ? 'bg-green-600 text-white shadow-md' : 'text-gray-300 hover:text-white'" 
-                            class="flex-1 py-2 rounded-lg text-sm font-semibold transition-all duration-300 focus:outline-none">
-                        Login Admin
-                    </button>
+                <!-- Login Heading -->
+                <div class="text-center mb-6">
+                    <h3 class="text-3xl font-black text-green-700 tracking-tight">HANDAI COFFEE</h3>
+                    <h5 class="text-lg font-semibold text-gray-700 mb-1">Telkom University</h5>
+                    <p class="text-gray-500 text-sm">Masuk ke dalam sistem operasional</p>
                 </div>
 
-                <!-- Form Login -->
-                <form method="POST" action="{{ route('login.post') }}">
-                    @csrf
-                    <!-- Alert Peringatan Error -->
-                    @if($errors->any())
-                        <div class="mb-4 bg-red-500/80 border border-red-500 text-white px-4 py-3 rounded-xl relative" role="alert">
-                            <span class="block sm:inline text-sm font-medium">{{ $errors->first() }}</span>
+                <!-- ALARM ERROR (Peringatan Salah Password/Email) -->
+                @if ($errors->any())
+                    <div class="bg-red-50 border-l-4 border-red-500 p-4 rounded-r-lg mb-6 shadow-sm">
+                        <div class="flex">
+                            <div class="flex-shrink-0">
+                                <i class="ti ti-alert-triangle text-red-500 text-xl"></i>
+                            </div>
+                            <div class="ml-3">
+                                <h3 class="text-sm font-bold text-red-800">Akses Ditolak!</h3>
+                                <div class="mt-1 text-sm text-red-700">
+                                    <ul class="list-disc pl-4 space-y-1">
+                                        @foreach ($errors->all() as $error)
+                                            <li>{{ $error }}</li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            </div>
                         </div>
-                    @endif
-                    <!-- Dropdown Role (HANYA MUNCUL JIKA TAB STAFF DIPILIH) -->
-                    <div x-show="loginType === 'staff'" 
-                         x-transition:enter="transition ease-out duration-300"
-                         x-transition:enter-start="opacity-0 -translate-y-2"
-                         x-transition:enter-end="opacity-100 translate-y-0"
-                         class="mb-4">
-                        <label class="block text-sm font-medium text-gray-200 mb-1">Role</label>
-                        <!-- Pastikan input hidden untuk role admin dikirim otomatis jika di tab admin -->
-                        <select name="role" x-bind:disabled="loginType === 'admin'" class="w-full px-4 py-3 rounded-xl bg-white/20 border border-white/30 text-white focus:bg-white/30 focus:ring-2 focus:ring-green-500 outline-none transition-all appearance-none">
-                            <option value="POS" class="text-gray-800">POS</option>
-                            <option value="Manager" class="text-gray-800">Manager</option>
-                        </select>
                     </div>
-                    
-                    <!-- Input Hidden Role Admin (Aktif saat tab Admin) -->
-                    <input type="hidden" name="role" value="Superadmin" x-bind:disabled="loginType === 'staff'">
-
-                    <!-- Field Email -->
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-200 mb-1">Email</label>
-                        <input type="email" name="email" required placeholder="email@contoh.com" 
-                               class="w-full px-4 py-3 rounded-xl bg-white/20 border border-white/30 text-white placeholder-gray-400 focus:bg-white/30 focus:ring-2 focus:ring-green-500 outline-none transition-all">
-                    </div>
-
-                    <!-- Field Password -->
-                    <div class="mb-6">
-                        <label class="block text-sm font-medium text-gray-200 mb-1">Password</label>
-                        <input type="password" name="password" required placeholder="••••••••" 
-                               class="w-full px-4 py-3 rounded-xl bg-white/20 border border-white/30 text-white placeholder-gray-400 focus:bg-white/30 focus:ring-2 focus:ring-green-500 outline-none transition-all">
-                    </div>
-
-                    <!-- Tombol Submit -->
-                    <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-xl shadow-lg transform transition-all hover:scale-[1.02] active:scale-95 flex justify-center items-center gap-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
-                        </svg>
-                        Login Sekarang
-                    </button>
-                </form>
+                @endif
                 
-                <!-- Chat Admin Link -->
-                <div class="mt-6 text-center">
-                    <p class="text-sm text-gray-300">
-                        Butuh Bantuan? <a href="#" class="text-green-400 font-bold hover:text-green-300 hover:underline transition-colors">Chat Admin</a>
-                    </p>
+                <div x-data="{ loginType: 'admin', selectedRole: 'Manager' }">
+                    <form action="{{ route('login.post') }}" method="POST" class="space-y-5">
+                        @csrf
+                        
+                        <!-- Pilihan Tipe Login -->
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">Login Sebagai:</label>
+                            <div class="flex space-x-2 bg-gray-100 p-1 rounded-lg">
+                                <label :class="loginType === 'admin' ? 'bg-white text-green-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'"
+                                    class="w-1/2 text-center py-2 rounded-md cursor-pointer transition-all duration-200 font-semibold text-sm">
+                                    <input type="radio" name="login_type" value="admin" x-model="loginType" class="hidden">
+                                    Superadmin
+                                </label>
+                                <label :class="loginType === 'pegawai' ? 'bg-white text-green-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'"
+                                    class="w-1/2 text-center py-2 rounded-md cursor-pointer transition-all duration-200 font-semibold text-sm">
+                                    <input type="radio" name="login_type" value="pegawai" x-model="loginType" class="hidden">
+                                    Pegawai
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Role HANYA MUNCUL jika pilih Pegawai Cabang (Kasir & POS Disatukan) -->
+                        <div x-show="loginType === 'pegawai'" x-transition.opacity class="pt-2">
+                            <label class="block text-sm font-bold text-gray-700 mb-2">Posisi Anda:</label>
+                            <div class="grid grid-cols-2 gap-4">
+                                <label :class="selectedRole === 'Manager' ? 'bg-green-600 text-white border-green-600' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'"
+                                       class="text-center py-2 text-sm rounded-lg border cursor-pointer transition-all font-medium">
+                                    <input type="radio" x-model="selectedRole" value="Manager" class="hidden"> Manager
+                                </label>
+                                <label :class="selectedRole === 'Kasir' ? 'bg-green-600 text-white border-green-600' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'"
+                                       class="text-center py-2 text-sm rounded-lg border cursor-pointer transition-all font-medium">
+                                    <!-- Value tetap "Kasir" untuk database, tapi label visualnya Kasir / POS -->
+                                    <input type="radio" x-model="selectedRole" value="Kasir" class="hidden"> Kasir / POS
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Email -->
+                        <div class="pt-2">
+                            <label for="email" class="block text-sm font-bold text-gray-700">Alamat Email</label>
+                            <input type="email" id="email" name="email" placeholder="contoh: admin@handai.com"
+                                class="w-full mt-2 p-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:bg-white transition-all outline-none" required value="{{ old('email') }}">
+                        </div>
+                    
+                        <!-- Password -->
+                        <div>
+                            <label for="password" class="block text-sm font-bold text-gray-700">Kata Sandi</label>
+                            <div class="relative mt-2">
+                                <input type="password" id="password" name="password" placeholder="••••••••"
+                                    class="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:bg-white transition-all outline-none" required>
+                                <button type="button" id="togglePassword" class="absolute inset-y-0 right-4 flex items-center text-gray-400 hover:text-green-600">
+                                    <i class="ti ti-eye text-lg"></i>
+                                </button>
+                            </div>
+                        </div>
+                    
+                        <!-- Sistem Otomatis menentukan Role berdasarkan Tipe Login -->
+                        <input type="hidden" name="role" :value="loginType === 'admin' ? 'Superadmin' : selectedRole">
+                    
+                        <!-- Tombol Login -->
+                        <button type="submit" class="w-full py-3.5 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200 mt-4">
+                            <i class="ti ti-login mr-1"></i> Login
+                        </button>
+                    </form>
                 </div>
 
+                <div class="text-center mt-6">
+                    <span class="text-sm text-gray-500">Lupa password atau butuh bantuan? 
+                        <a href="http://wa.me/+6281219296850" class="text-green-600 font-bold hover:underline">Chat Admin</a>
+                    </span>
+                </div>
             </div>
         </div>
     </div>
-</body>
-</html>
+@endsection
+
+@section('page-script')
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const toggleBtn = document.getElementById('togglePassword');
+        const passwordInput = document.getElementById('password');
+
+        if (toggleBtn && passwordInput) {
+            toggleBtn.addEventListener('click', function () {
+                const isHidden = passwordInput.type === 'password';
+                passwordInput.type = isHidden ? 'text' : 'password';
+                this.innerHTML = isHidden ? '<i class="ti ti-eye-off text-lg"></i>' : '<i class="ti ti-eye text-lg"></i>';
+            });
+        }
+    });
+</script>
+@endsection

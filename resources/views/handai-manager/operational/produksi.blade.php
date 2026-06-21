@@ -127,7 +127,7 @@
         {{-- Info bar --}}
         <div class="px-5 py-2.5 border-b border-gray-50 flex items-center justify-between">
             <p class="text-[12px] text-gray-400">
-                <span class="font-medium text-gray-500">{{ $productions->firstItem() ?? 0 }}â€“{{ $productions->lastItem() ?? 0 }}</span> dari {{ $productions->total() }} catatan
+                <span class="font-medium text-gray-500">{{ $productions->firstItem() ?? 0 }}-{{ $productions->lastItem() ?? 0 }}</span> dari {{ $productions->total() }} catatan
             </p>
             @if(request()->hasAny(['search','from','to','type']))
             <a href="{{ route('manager.operational.produksi') }}" class="text-[11px] text-emerald-600 hover:text-emerald-700 font-medium inline-flex items-center gap-1">

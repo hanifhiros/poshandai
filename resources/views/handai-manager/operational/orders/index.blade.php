@@ -5,15 +5,25 @@
 @section('content')
 <style>
     [x-cloak] { display: none !important; }
-    .ord-table th { position: sticky; top: 0; z-index: 5; }
-    .ord-row { transition: background-color 0.15s ease; }
-    .ord-badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 9999px; font-size: 11px; font-weight: 500; line-height: 1.4; }
-    .ord-input { width: 100%; height: 36px; padding: 0 12px; font-size: 13px; border: 1px solid #e2e8f0; border-radius: 8px; background: #f8fafc; outline: none; transition: all 0.15s; }
-    .ord-input:focus { background: #fff; border-color: #10b981; box-shadow: 0 0 0 3px rgba(16,185,129,0.08); }
-    .ord-card-stat { background: #fff; border: 1px solid #f1f5f9; border-radius: 12px; padding: 16px 18px; box-shadow: 0 1px 2px rgba(0,0,0,0.03); }
-    .ord-card { transition: transform 0.15s ease, box-shadow 0.15s ease; }
+    
+    /* Background seluruh halaman agar card putih lebih kontras */
+    body { background-color: #f8fafc; }
+    
+    .ord-table th { position: sticky; top: 0; z-index: 5; background-color: #f1f5f9; color: #475569; }
+    .ord-row { transition: all 0.2s ease; }
+    .ord-row:hover { background-color: #f0fdf4 !important; } /* Highlight hijau lembut saat di-hover */
+    
+    .ord-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 9999px; font-size: 11px; font-weight: 600; line-height: 1.4; letter-spacing: 0.02em; }
+    
+    .ord-input { width: 100%; height: 40px; padding: 0 14px; font-size: 13px; border: 1px solid #e2e8f0; border-radius: 10px; background: #ffffff; outline: none; transition: all 0.2s ease; box-shadow: 0 1px 2px rgba(0,0,0,0.02); }
+    .ord-input:focus { border-color: #10b981; box-shadow: 0 0 0 4px rgba(16,185,129,0.1); }
+    
+    .ord-card-stat { background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03); transition: transform 0.2s ease, box-shadow 0.2s ease; }
+    .ord-card-stat:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.08), 0 4px 6px -2px rgba(0,0,0,0.04); }
+    
+    .ord-card { background: #fff; transition: transform 0.2s ease, box-shadow 0.2s ease; border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
     .ord-card:active { transform: scale(0.98); }
-    @media (hover: hover) { .ord-card:hover { box-shadow: 0 4px 20px -4px rgba(0,0,0,0.08); } }
+    @media (hover: hover) { .ord-card:hover { box-shadow: 0 10px 20px -5px rgba(0,0,0,0.1); transform: translateY(-2px); } }
 </style>
 
 <div class="py-5 px-4 sm:px-6 lg:px-8 max-w-[1360px] mx-auto"
@@ -110,7 +120,7 @@
         {{-- Info bar --}}
         <div class="px-5 py-2.5 border-b border-gray-50 flex items-center justify-between">
             <p class="text-[12px] text-gray-400">
-                <span class="font-medium text-gray-500">{{ $orders->firstItem() ?? 0 }}â€“{{ $orders->lastItem() ?? 0 }}</span> dari {{ $orders->total() }} order
+                <span class="font-medium text-gray-500">{{ $orders->firstItem() ?? 0 }}–{{ $orders->lastItem() ?? 0 }}</span> dari {{ $orders->total() }} order
             </p>
             @if(request()->filled('status') || request()->filled('search'))
             <a href="{{ route('manager.operational.orders.index') }}" class="text-[11px] text-emerald-600 hover:text-emerald-700 font-medium inline-flex items-center gap-1">

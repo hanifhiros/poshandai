@@ -216,12 +216,16 @@ public function produksiStore(Request $request)
 
                 // Calculate wage for semi-finished product
                 $outQty = max(0.001, (float) ($sfp->output_qty ?: 1));
-            $laborCost = (float) ($sfp->labor_cost ?? 0);
-            if ($laborCost <= 0) {
-                // fallback: assume some % of material cost (if available) - adjust as needed
-                $laborCost = max(0, (float) ($sfp->material_cost ?? 0) * 0.1);
-            }
-            $wagePerUnit = round($laborCost / $outQty, 2);
+                $laborCost = (float) ($sfp->labor_cost ?? 0);
+                if ($laborCost <= 0) {
+                    $laborCost = max(0, (float) ($sfp->material_cost ?? 0) * 0.1);
+                }
+                
+                $wagePerUnit = round($laborCost / $outQty, 2);
+                
+                // ✅ BUG FIX: Kalkulasi Total Wage & Pay Per PIC ditambahkan di sini
+                $totalWage = round($wagePerUnit * $qtyProduced, 2);
+                $payPerPic = count($picIds) > 0 ? round($totalWage / count($picIds), 2) : 0;
 
                 foreach ($picIds as $pid) {
                     \App\Models\ProductionWage::create([
@@ -257,11 +261,10 @@ public function produksiStore(Request $request)
             // Calculate wage for finished product
             $wagePerUnit = (float) ($prodVar->product->wage_per_unit ?? 0);
             if ($wagePerUnit <= 0) {
-                // Fallback: use a percentage of HPP if wage isn't explicitly set
                 $wagePerUnit = max(0, (float) ($prodVar->product->hpp ?? 0) * 0.1);
             }
             $totalWage = round($wagePerUnit * $qtyProduced, 2);
-            $payPerPic = $picIds ? round($totalWage / count($picIds), 2) : 0;
+            $payPerPic = count($picIds) > 0 ? round($totalWage / count($picIds), 2) : 0;
 
             foreach ($picIds as $pid) {
                 \App\Models\ProductionWage::create([

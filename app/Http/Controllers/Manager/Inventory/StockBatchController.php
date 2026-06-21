@@ -85,8 +85,8 @@ class StockBatchController extends Controller
             ->where('stock_batches.store_id', $selectedStoreId)
             ->selectRaw("
                 COUNT(*) as total,
-                SUM(CASE WHEN stock.expired_duration IS NOT NULL AND date(stock_batches.buy_date, '+' || stock.expired_duration || ' days') < date('now') THEN 1 ELSE 0 END) as expired,
-                SUM(CASE WHEN stock.expired_duration IS NOT NULL AND date(stock_batches.buy_date, '+' || stock.expired_duration || ' days') >= date('now') AND date(stock_batches.buy_date, '+' || stock.expired_duration || ' days') <= date('now', '+7 days') THEN 1 ELSE 0 END) as near_expired
+                SUM(CASE WHEN stock.expired_duration IS NOT NULL AND (stock_batches.buy_date::date + (stock.expired_duration * INTERVAL '1 day')) < CURRENT_DATE THEN 1 ELSE 0 END) as expired,
+                SUM(CASE WHEN stock.expired_duration IS NOT NULL AND (stock_batches.buy_date::date + (stock.expired_duration * INTERVAL '1 day')) >= CURRENT_DATE AND (stock_batches.buy_date::date + (stock.expired_duration * INTERVAL '1 day')) <= (CURRENT_DATE + INTERVAL '7 days') THEN 1 ELSE 0 END) as near_expired
             ")
             ->first();
 

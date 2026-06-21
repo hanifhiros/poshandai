@@ -28,17 +28,17 @@
 
                             <div class="flex justify-center space-x-4 mb-8">
                                 <a class="flex items-center">
-                                    <img src="{{ asset('assets/svg/Partner/BTP.svg') }}" class="h-16 mr-2" alt="Logo">
+                                    <img src="{{ asset('assets/BTP.png') }}" class="h-16 mr-2" alt="Logo">
                                 </a>
                                 <a class="flex items-center">
-                                    <img src="{{ asset('assets/svg/Partner/kemenkop.svg') }}" class="h-12" alt="Logo">
+                                    <img src="{{ asset('assets/kemenkop.png') }}" class="h-12" alt="Logo">
                                 </a>
                                 <a class="flex items-center">
-                                    <img src="{{ asset('assets/svg/Partner/TelU.svg') }}" class="h-12" alt="Logo">
+                                    <img src="{{ asset('assets/TelU.png') }}" class="h-12" alt="Logo">
                                 </a>
                             </div>
                             <div class="flex justify-center ">
-                                <img src="{{ asset('assets/svg/handai-logo-filled.svg') }}" class="h-12" alt="Logo Handai">
+                                <img src="{{ asset('assets/logo.png') }}" class="h-12" alt="Logo Handai">
                             </div>
                             <div class="text-center">
                                 <h3 class="text-3xl font-bold text-primary">HANDAI COFFEE</h3>

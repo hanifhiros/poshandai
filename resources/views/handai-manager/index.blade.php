@@ -1,6 +1,6 @@
 ﻿@extends('layouts.master')
 
-@section('title', 'Dashboard â€” Handai Manager')
+@section('title', 'Dashboard Handai Manager')
 
 @section('vendor-style')
 @endsection
@@ -341,7 +341,7 @@
     <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4 fade-in-up">
         <div>
             <h1 class="text-2xl font-bold" style="color: var(--text-primary); letter-spacing: -0.02em;">
-                {{ $greeting }}, {{ $userName }}! ðŸ‘‹
+                {{ $greeting }}, {{ $userName }}!
             </h1>
             <p class="text-sm mt-1" style="color: var(--text-muted);">
                 {{ now()->translatedFormat('l, d F Y') }} &middot; {{ $selected_store->store_name ?? 'Semua Outlet' }}
@@ -1365,14 +1365,14 @@ document.addEventListener('DOMContentLoaded', () => {
     let refreshCountdown = 60;
     const countdownEl = document.getElementById('refresh-countdown');
 
-    function tickRefresh() {
-        refreshCountdown--;
-        if (countdownEl) countdownEl.textContent = refreshCountdown + 's';
-        if (refreshCountdown <= 0) {
-            window.location.reload();
-        }
-    }
-    setInterval(tickRefresh, 1000);
+    // function tickRefresh() {
+    //     refreshCountdown--;
+    //     if (countdownEl) countdownEl.textContent = refreshCountdown + 's';
+    //     if (refreshCountdown <= 0) {
+    //         window.location.reload();
+    //     }
+    // }
+    // setInterval(tickRefresh, 1000);
 
     // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     // TARGET PROGRESS BAR ANIMATION

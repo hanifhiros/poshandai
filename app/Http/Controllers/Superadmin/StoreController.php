@@ -23,33 +23,69 @@ class StoreController extends Controller
 }
 
 public function store(Request $request)
+    {
+        $request->validate([
+            'store_name' => 'required|string|max:255',
+            'store_address' => 'required|string',
+        ]);
+
+        try {
+            $store = new Store();
+            $store->store_name = $request->store_name;
+            $store->store_address = $request->store_address;
+            $store->owner_id = Auth::id(); 
+            
+            $store->save();
+
+        return redirect()->route('superadmin.store.index')
+            ->with('success', 'Cabang Toko baru berhasil didaftarkan!');
+            
+    } catch (\Exception $e) {
+        return redirect()->back()
+            ->withInput()
+            ->withErrors(['error' => 'Gagal menyimpan ke database: ' . $e->getMessage()]);
+    }
+}
+
+public function edit($id)
+{
+    $store = Store::findOrFail($id);
+    return view('superadmin.stores.edit', compact('store'));
+}
+
+public function update(Request $request, $id)
 {
     $request->validate([
-        'name' => 'required|string|max:255',
-        'address' => 'nullable|string|max:500',
+        'store_name' => 'required|string|max:255',
+        'store_address' => 'required|string',
     ]);
 
-    Store::create([
-        'store_name' => $request->name,
-        'store_address' => $request->address,
-        'owner_id' => Auth::id(), // Pemilik toko = user yang sedang login (Superadmin)
-    ]);
+    try {
+        $store = Store::findOrFail($id);
+        $store->store_name = $request->store_name;
+        $store->store_address = $request->store_address;
+        $store->save();
 
-    return redirect()->route('superadmin.store.index')->with('success', 'Toko berhasil ditambahkan.');
+        return redirect()->route('superadmin.store.index')
+            ->with('success', 'Data toko berhasil diperbarui!');
+    } catch (\Exception $e) {
+        return redirect()->back()
+            ->withInput()
+            ->withErrors(['error' => 'Gagal memperbarui database: ' . $e->getMessage()]);
+    }
 }
+
 public function destroy($id)
 {
     try {
-        DB::beginTransaction();
-
         $store = Store::findOrFail($id);
         $store->delete();
 
-        DB::commit();
-        return redirect()->route('superadmin.store.index')->with('success', 'Toko berhasil dihapus.');
+        return redirect()->route('superadmin.store.index')
+            ->with('success', 'Cabang toko berhasil dihapus!');
     } catch (\Exception $e) {
-        DB::rollBack();
-        return redirect()->route('superadmin.store.index')->with('error', 'Gagal menghapus toko.');
+        return redirect()->route('superadmin.store.index')
+            ->withErrors(['error' => 'Gagal menghapus toko: ' . $e->getMessage()]);
     }
 }
 

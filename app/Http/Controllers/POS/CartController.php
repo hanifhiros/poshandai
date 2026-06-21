@@ -16,6 +16,7 @@ use App\Services\InventoryService;
 use App\Services\AccountingService;
 use App\Services\CartService;
 use Illuminate\Support\Facades\Log;
+
 class CartController extends Controller
 {
     private CartService $cartService;
@@ -24,6 +25,7 @@ class CartController extends Controller
     {
         $this->cartService = $cartService;
     }
+
     public function index()
     {
         $cart = session('cart', []);
@@ -33,7 +35,6 @@ class CartController extends Controller
         $cartTotalPrice = 0;
         $discountTotal = 0;
 
-        // Batch load all variants at once to avoid N+1 queries
         $variantIds = array_column($cart, 'variant_id');
         $variants = ProductVariants::with(['product', 'options.attribute'])
             ->whereIn('id', $variantIds)
@@ -44,13 +45,12 @@ class CartController extends Controller
             $variant = $variants->get($item['variant_id']);
             if ($variant) {
                 $normalPrice = $variant->price;
-                    $promoPrice = ($variant->is_promo === ProductVariants::PROMO_YES)
+                $promoPrice = ($variant->is_promo === ProductVariants::PROMO_YES)
                     ? ($variant->price - $variant->price_discount)
                     : $variant->price;
 
                 $qty = $item['quantity'];
 
-                // compute available stock (produced quantity)
                 $producedQty = ProductionHistory::where('product_variants_id', $variant->id)
                     ->sum('quantity_produced');
 
@@ -78,7 +78,7 @@ class CartController extends Controller
 
         $customers = Customer::where('store_id', session('selected_store'))->orderBy('name')->get();
 
-        return view('handai-pos.checkout.checkout-pos', compact(
+        return view('handai-pos.checkout.checkout', compact(
             'cartDetails',
             'cartTotalItems',
             'subTotal',
@@ -103,7 +103,7 @@ class CartController extends Controller
     {
         $data = $request->validate([
             'product_id' => 'required|integer',
-            'variant_id' => 'required|integer', // ganti 'size_id' menjadi 'variant_id'
+            'variant_id' => 'required|integer',
             'quantity' => 'required|integer|min:1',
         ]);
 
@@ -118,8 +118,12 @@ class CartController extends Controller
 
         $producedQty = ProductionHistory::where('product_variants_id', $variantId)
             ->sum('quantity_produced');
+            
         if ($newQty > $producedQty) {
-            return response()->json(['success' => false, 'message' => 'Stok tidak mencukupi.'], 400);
+            return response()->json([
+                'success' => false, 
+                'message' => 'Stok tidak mencukupi! Sisa stok di gudang hanya ' . $producedQty . ' item.'
+            ], 400);
         }
 
         $finalPrice = ($variant->is_promo === ProductVariants::PROMO_YES)
@@ -149,11 +153,9 @@ class CartController extends Controller
         session(['cart' => $cart]);
 
         $itemTotal = $newQty * $finalPrice;
-
         $cartTotalItems = array_sum(array_column($cart, 'quantity'));
         $totals = $this->cartService->calculateTotals($cart);
 
-        // Hitung promo jika ada
         $promoDiscount = 0;
         $promoCode = session('promo_code');
 
@@ -188,7 +190,6 @@ class CartController extends Controller
         ]);
 
         $promoCode = $request->input('promo_code');
-
         $promo = $this->cartService->getPromoByCode($promoCode);
 
         if (!$promo) {
@@ -259,63 +260,6 @@ class CartController extends Controller
         $gross = $totalItemPrice + $ppn - $discount;
         return $gross < 0 ? 0 : $gross;
     }
-    public function checkoutSnap()
-    {
-        $totals = $this->cartService->calculateTotals(session('cart', []));
-        $promoDiscount = session('promo_discount') ?? 0;
-
-        $grossAmount = $this->calculateGrossAmount(
-            $totals['cartTotalPrice'],
-            $totals['ppn'],
-            $promoDiscount
-        );
-
-        $order = DB::transaction(function () use ($grossAmount, $totals) {
-            $order = Order::create([
-                'customer_id' => null,
-                'total_item_price' => $totals['cartTotalPrice'],
-                'PROMO_ID' => null,
-                'order_status' => 'terkirim',
-                'description' => 'Order via self kiosk',
-                'gross_amount' => $grossAmount,
-                'seller_id' => auth()->id(),
-            ]);
-
-            $orderId = 'ORD-' . $order->id . '-' . time();
-
-            Config::$serverKey = config('midtrans.serverKey');
-            Config::$isProduction = config('midtrans.isProduction');
-            Config::$isSanitized = config('midtrans.isSanitized');
-            Config::$is3ds = config('midtrans.is3ds');
-
-            $params = [
-                'transaction_details' => [
-                    'order_id' => $orderId,
-                    'gross_amount' => round($grossAmount)
-                ],
-            ];
-
-            $snapToken = Snap::getSnapToken($params);
-
-            $order->update([
-                'order_id' => $orderId,
-                'snap_token' => $snapToken
-            ]);
-
-            return $order;
-        });
-
-        $order->load(['customer']);
-
-        return response()->json([
-            'snap_token' => $order->snap_token,
-            'order_id' => $order->order_id,
-            'gross_amount' => $order->gross_amount,
-            'created_at' => optional($order->created_at)->toIso8601String(),
-            'cashier_name' => optional(auth()->user())->name,
-            'customer_name' => $order->customer->name ?? null,
-        ]);
-    }
 
     public function clearCart()
     {
@@ -362,19 +306,17 @@ class CartController extends Controller
             return response()->json(['success' => false, 'message' => 'Keranjang kosong.'], 400);
         }
 
-        // revalidate stock for each cart item
         foreach ($cart as $item) {
             $variant = ProductVariants::find($item['variant_id']);
             if (!$variant) continue;
-            // prior logic used production history; fall back to variant stock so cashier sees real quantity
+            
             $producedQty = ProductionHistory::where('product_variants_id', $variant->id)
                 ->sum('quantity_produced');
             $availableQty = max($producedQty, $variant->quantity ?? 0);
             if (($item['quantity'] ?? 0) > $availableQty) {
-                // tell client which variant is affected, how many are available and how many were requested
                 return response()->json([
                     'success' => false,
-                    'message' => 'Stok produk berubah. Silakan periksa kembali keranjang.',
+                    'message' => "Stok produk {$variant->product->name} telah habis / tidak mencukupi. Sisa stok: {$availableQty}.",
                     'variant_id' => $variant->id,
                     'available' => $availableQty,
                     'requested' => $item['quantity'] ?? 0,
@@ -386,7 +328,6 @@ class CartController extends Controller
             'payment_method' => 'required|in:tunai,non_tunai,campuran',
         ]);
 
-        // Handle customer
         $customerId = null;
         $customerType = $request->input('customer_type', 'none');
 
@@ -403,23 +344,15 @@ class CartController extends Controller
         }
 
         $totals = $this->cartService->calculateTotals($cart);
-
-        // Additional charges from frontend
         $additionalCharges = $request->input('additional_charges', []);
         $pajak = (int)($additionalCharges['pajak'] ?? 0);
         $ongkosKirim = (int)($additionalCharges['ongkos_kirim'] ?? 0);
         $kemasan = (int)($additionalCharges['kemasan'] ?? 0);
         $totalAdditional = $pajak + $ongkosKirim + $kemasan;
-
-        // Discount from frontend
         $discountAmount = (int)($request->input('discount_amount', 0));
-
         $grossAmount = max($totals['cartTotalPrice'] - $discountAmount + $totalAdditional, 0);
-
-        // Item notes
         $itemNotes = $request->input('item_notes', []);
 
-        // ── Stock Validation ─────────────────────────────
         $stockErrors = InventoryService::validateCartStock($cart);
         if (!empty($stockErrors)) {
             return response()->json([
@@ -440,7 +373,7 @@ class CartController extends Controller
                 'gross_amount' => $grossAmount,
                 'payment_type' => $request->payment_method,
                 'store_id' => session('selected_store'),
-                'seller_id' => auth()->id(), // record kasir/user who handled this
+                'seller_id' => auth()->id(), 
                 'pajak' => $pajak,
                 'ongkos_kirim' => $ongkosKirim,
                 'kemasan' => $kemasan,
@@ -467,14 +400,12 @@ class CartController extends Controller
                 $orderedQty += $quantity;
             }
 
-            // ── Stock Deduction & HPP via InventoryService ──
             $totalHpp = InventoryService::processSaleDeduction(
                 $cart, $order->id, session('selected_store')
             );
 
             $order->update(['total_hpp_orders' => $totalHpp]);
 
-            // ── Accounting Journal: POS Sale ──
             try {
                 AccountingService::journalSale(
                     session('selected_store'), $grossAmount, $totalHpp, $order->id, 'POS'
@@ -483,7 +414,6 @@ class CartController extends Controller
                 Log::warning('POS Accounting journal failed: ' . $e->getMessage());
             }
 
-            // Update customer stats if applicable
             if ($customerId) {
                 $customer = Customer::find($customerId);
                 if ($customer) {
@@ -497,13 +427,9 @@ class CartController extends Controller
             }
 
             DB::commit();
-
             session()->forget(['cart', 'promo_code', 'promo_discount']);
-
-            // reload relations to ensure we have fresh data
             $order->load(['customer']);
 
-            // decide what customer name to send back
             $displayName = 'Customer Umum';
             if ($customerId && $order->customer) {
                 $displayName = $order->customer->name;
@@ -532,5 +458,4 @@ class CartController extends Controller
             ], 500);
         }
     }
-
 }

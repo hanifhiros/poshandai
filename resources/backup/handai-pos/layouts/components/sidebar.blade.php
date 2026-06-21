@@ -6,7 +6,7 @@
         <!-- Kiri: Logo + Teks -->
         <div class="flex items-center ">
           <div class="ms-2 grid w-16 h-16 shrink-0 place-content-center">
-            <img src="{{ asset('assets/svg/handai-logo.svg') }}" alt="Handai Logo" width="38" height="auto"
+            <img src="{{ asset('assets/favicon.ico') }}" alt="Handai Logo" width="38" height="auto"
               class="object-contain" />
           </div>
 

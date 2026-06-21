@@ -1418,13 +1418,13 @@ public function destroy($id)
             ]);
         });
 
-        // ══════════════════════════════════════════════
-        //  MOVEMENT CHART DATA (30 days)
+// ══════════════════════════════════════════════
+        //  MOVEMENT CHART DATA (30 days) (POSTGRESQL FIX)
         // ══════════════════════════════════════════════
         $movementChartData = StockMovement::where('store_id', $selected_store_id)
             ->where('created_at', '>=', $thirtyDaysAgo)
-            ->selectRaw("strftime('%Y-%m-%d', created_at) as date, movement_type, SUM(ABS(quantity)) as total_qty")
-            ->groupBy('date', 'movement_type')
+            ->selectRaw("DATE(created_at) as date, movement_type, SUM(ABS(quantity)) as total_qty")
+            ->groupBy(DB::raw("DATE(created_at)"), 'movement_type')
             ->orderBy('date')
             ->get();
 

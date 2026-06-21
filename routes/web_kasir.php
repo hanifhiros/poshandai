@@ -17,7 +17,7 @@ Route::middleware(['web', 'auth', 'cekrole:Kasir'])->group(function () {
 
     // Order related routes
    
-    Route::post('cart/update', 'CartController@updateCartQuantity')->name('kasir.cart.update');
+    Route::post('cart/update', 'CartController@updateCartQuantity')->name('cart.update');
     Route::post('cart/checkout', 'CartController@checkoutWithCustomer')->name('kasir.cart.checkout');
     Route::post('cart/apply-promo', 'CartController@applyPromo')->name('kasir.cart.applyPromo');
     Route::get('cart/get-promos', 'CartController@getPromos')->name('kasir.cart.getPromos');

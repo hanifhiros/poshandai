@@ -1,6 +1,6 @@
 ﻿@extends('layouts.layoutPos')
 
-@section('title', 'POS Dashboard â€” Handai')
+@section('title', 'POS Dashboard Handai Coffee')
 
 @section('page-style')
 @vite('resources/css/handai-pos-dashboard.css')
@@ -64,7 +64,7 @@
     <div class="flex items-center gap-3">
         {{-- Sound Toggle --}}
         <button class="hidden sm:flex items-center gap-1 cursor-pointer hover:opacity-80 transition"
-                @click="soundEnabled = PosSound.toggle(); showToast(soundEnabled ? 'Suara aktif' : 'Suara nonaktif', 'info', 1500)"
+                @click="soundEnabled = !soundEnabled; alert(soundEnabled ? 'Suara aktif' : 'Suara nonaktif')"
                 :title="soundEnabled ? 'Matikan suara' : 'Nyalakan suara'">
             <i class="text-base" :class="soundEnabled ? 'ti ti-volume text-[#0C9044]' : 'ti ti-volume-off text-slate-400'"></i>
             <span x-show="soundEnabled" class="text-[10px] text-slate-400">Sound</span>
@@ -99,7 +99,7 @@
                            @input.debounce.300ms="filterProducts()"
                            @keydown="detectBarcode($event)"
                            @keydown.escape="searchQuery = ''; filterProducts()"
-                           :placeholder="barcodeMode ? 'Mode Barcode â€” scan atau ketik SKU...' : 'Cari produk... (Ctrl+K)'"
+                           :placeholder="barcodeMode ? 'Mode Barcode — scan atau ketik SKU...' : 'Cari produk... (Ctrl+K)'"
                            class="w-full pl-10 pr-20 h-11 rounded-xl border text-sm font-medium text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#0C9044]/20 focus:border-[#0C9044]/50 transition"
                            :class="barcodeMode ? 'border-[#0C9044] bg-green-50/30' : 'border-slate-200 bg-slate-50/50'" />
                     <div class="absolute inset-y-0 right-0 pr-2 flex items-center gap-1">
@@ -132,66 +132,57 @@
                         <i class="ti ti-list text-sm"></i>
                         <span class="hidden xs:inline">Baris</span>
                     </button>
-                    {{-- Scroll view removed per UX update --}}
                 </div>
 
-                {{-- Column count selector â€” grid mode --}}
+                {{-- Column count selector — grid mode --}}
                 <div class="flex items-center gap-1 shrink-0" x-show="viewMode === 'grid'" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 -translate-x-2" x-transition:enter-end="opacity-100 translate-x-0">
                     <div class="w-px h-5 bg-slate-200"></div>
                     <template x-for="n in gridColOptions" :key="n">
                         <button @click="setGridCols(n)"
                                 class="layout-btn w-7 h-7 sm:w-8 sm:h-8 rounded-lg border border-slate-200 flex items-center justify-center text-[10px] sm:text-xs font-bold text-slate-500 cursor-pointer"
-                                :class="gridCols === n ? 'layout-active' : ''"
+                                :class="gridCols === n ? 'bg-[#0C9044] text-white border-transparent' : 'bg-white'"
                                 x-text="n">
                         </button>
                     </template>
                 </div>
 
-                {{-- Row size selector â€” list mode --}}
+                {{-- Row size selector — list mode --}}
                 <div class="flex items-center gap-1 shrink-0" x-show="viewMode === 'list'" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 -translate-x-2" x-transition:enter-end="opacity-100 translate-x-0">
                     <div class="w-px h-5 bg-slate-200"></div>
                     <button @click="listSize = 'compact'; localStorage.setItem('pos_list_size', 'compact')"
                             class="layout-btn h-7 sm:h-8 px-2 sm:px-2.5 rounded-lg border border-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-500 cursor-pointer gap-1"
-                            :class="listSize === 'compact' ? 'layout-active' : ''">
+                            :class="listSize === 'compact' ? 'bg-[#0C9044] text-white border-transparent' : 'bg-white'">
                         <i class="ti ti-layout-rows text-xs"></i> <span class="hidden sm:inline">Kecil</span>
                     </button>
                     <button @click="listSize = 'normal'; localStorage.setItem('pos_list_size', 'normal')"
                             class="layout-btn h-7 sm:h-8 px-2 sm:px-2.5 rounded-lg border border-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-500 cursor-pointer gap-1"
-                            :class="listSize === 'normal' ? 'layout-active' : ''">
+                            :class="listSize === 'normal' ? 'bg-[#0C9044] text-white border-transparent' : 'bg-white'">
                         <i class="ti ti-layout-list text-xs"></i> <span class="hidden sm:inline">Normal</span>
                     </button>
                     <button @click="listSize = 'large'; localStorage.setItem('pos_list_size', 'large')"
                             class="layout-btn h-7 sm:h-8 px-2 sm:px-2.5 rounded-lg border border-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-500 cursor-pointer gap-1"
-                            :class="listSize === 'large' ? 'layout-active' : ''">
+                            :class="listSize === 'large' ? 'bg-[#0C9044] text-white border-transparent' : 'bg-white'">
                         <i class="ti ti-layout-bottombar text-xs"></i> <span class="hidden sm:inline">Besar</span>
                     </button>
                 </div>
-
-                {{-- Scroll card size selector â€” hscroll mode --}}
-                {{-- Horizontal scroll controls removed â€” feature deprecated. --}}
             </div>
 
             {{-- Category Filter Pills --}}
             <div class="flex gap-2 overflow-x-auto hide-scrollbar pb-1">
                 <button @click="activeCategory = 'All Products'; filterProducts()"
-                        :class="activeCategory === 'All Products' ? 'cat-active' : ''"
-                        class="cat-pill inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold border border-slate-200 text-slate-500 cursor-pointer">
-                    <i class="ti ti-apps text-sm"></i> <span x-text="t('all')"></span>
+                        :class="activeCategory === 'All Products' ? 'bg-[#0C9044] text-white border-[#0C9044]' : 'border-slate-200 text-slate-500 bg-white'"
+                        class="cat-pill inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold border cursor-pointer transition">
+                    <i class="ti ti-apps text-sm"></i> <span>Semua</span>
                 </button>
                 <button @click="activeCategory = 'Favorit'; filterProducts()"
-                        :class="activeCategory === 'Favorit' ? 'cat-active' : ''"
-                        class="cat-pill inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold border border-slate-200 text-slate-500 cursor-pointer">
-                    <i class="ti ti-star-filled text-sm text-amber-400"></i> <span x-text="t('favorite')"></span>
-                </button>
-                <button @click="activeCategory = 'Promo'; filterProducts()"
-                        :class="activeCategory === 'Promo' ? 'cat-active' : ''"
-                        class="cat-pill inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold border border-slate-200 text-slate-500 cursor-pointer">
-                    <i class="ti ti-discount-2 text-sm"></i> <span x-text="t('promo')"></span>
+                        :class="activeCategory === 'Favorit' ? 'bg-[#0C9044] text-white border-[#0C9044]' : 'border-slate-200 text-slate-500 bg-white'"
+                        class="cat-pill inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold border cursor-pointer transition">
+                    <i class="ti ti-star-filled text-sm" :class="activeCategory === 'Favorit' ? 'text-white' : 'text-amber-400'"></i> <span>Favorit</span>
                 </button>
                 @foreach($categories as $cat)
                 <button @click="activeCategory = '{{ $cat->category_name }}'; filterProducts()"
-                        :class="activeCategory === '{{ $cat->category_name }}' ? 'cat-active' : ''"
-                        class="cat-pill inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold border border-slate-200 text-slate-500 cursor-pointer">
+                        :class="activeCategory === '{{ $cat->category_name }}' ? 'bg-[#0C9044] text-white border-[#0C9044]' : 'border-slate-200 text-slate-500 bg-white'"
+                        class="cat-pill inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold border cursor-pointer transition">
                     {{ $cat->category_name }}
                 </button>
                 @endforeach
@@ -211,77 +202,53 @@
             </div>
 
             {{-- === GRID VIEW === --}}
-                <div id="main-products" x-show="viewMode === 'grid'" class="product-grid-wrap"
+            <div id="main-products" x-show="viewMode === 'grid'" class="grid gap-3 sm:gap-4"
                  :class="{
-                    'grid-mode-2': gridCols === 2,
-                    'grid-mode-3': gridCols === 3,
-                    'grid-mode-4': gridCols === 4,
-                    'grid-mode-5': gridCols === 5
+                    'grid-cols-2': gridCols === 2,
+                    'grid-cols-3': gridCols === 3,
+                    'grid-cols-4': gridCols === 4,
+                    'grid-cols-5': gridCols === 5
                  }">
                 <template x-for="item in filteredProducts" :key="'grid-'+item.product.id">
-                      <div :data-product-id="item.product.id" tabindex="0" class="prod-card pos-focusable bg-white rounded-xl border border-slate-200/60 overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.04)]"
-                          :class="{ 'sold-out': item.isSoldOut }"
-                          @pointerdown="startCardPress(item)"
-                          @pointerup="endCardPress(item)"
-                          @pointercancel="cancelCardPress()"
-                          @click="if(!_suppressClick && !item.isSoldOut) openVariantModal(item)"
+                      <div :data-product-id="item.product.id" tabindex="0" class="prod-card pos-focusable bg-white rounded-xl border border-slate-200/60 overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.04)] relative cursor-pointer hover:shadow-md hover:border-green-200 transition"
+                          :class="{ 'opacity-50 grayscale': item.isSoldOut }"
+                          @click="if(!item.isSoldOut) openVariantModal(item)"
                           @keydown.enter.prevent="if(!item.isSoldOut) openVariantModal(item)"
                           @keydown.space.prevent="if(!item.isSoldOut) openVariantModal(item)"
                           :aria-label="item.product.name">
 
-                        {{-- Image â€” fixed height container --}}
-                        <div class="prod-img rounded-t-xl">
+                        {{-- Image — fixed height container --}}
+                        <div class="w-full h-32 bg-slate-50 flex items-center justify-center p-2 relative">
                                <img :src="item.product.image_url ? '{{ asset('') }}' + item.product.image_url : '{{ asset('assets/image.png') }}'"
                                    :alt="item.product.name"
                                    loading="lazy"
-                                   class="img-loading"
-                                   onload="this.classList.remove('img-loading'); this.classList.add('img-loaded')"
+                                   class="max-w-full max-h-full object-contain mix-blend-multiply"
                                    onerror="this.src='{{ asset('assets/image.png') }}'">
 
                             {{-- Favorite star --}}
                             <button @click.stop="toggleFavorite(item.product.id)"
-                                      class="prod-badge-fav absolute top-2 right-2 w-7 h-7 rounded-full flex items-center justify-center bg-white border border-slate-200/80 shadow-sm transition-all duration-200 cursor-pointer hover:shadow-md hover:scale-110 focus:outline-none"
-                                                :aria-label="isFavorite(item.product.id) ? 'Hapus dari favorit' : 'Tambah ke favorit'"
-                                                :title="isFavorite(item.product.id) ? 'Hapus dari favorit' : 'Tambah ke favorit'">
-                                <svg x-show="!isFavorite(item.product.id)" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                                    <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" stroke="#cbd5e1" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+                                      class="absolute top-2 right-2 w-7 h-7 rounded-full flex items-center justify-center bg-white border border-slate-200 shadow-sm transition-transform hover:scale-110"
+                                      :title="isFavorite(item.product.id) ? 'Hapus dari favorit' : 'Tambah ke favorit'">
+                                <svg x-show="!isFavorite(item.product.id)" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-slate-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
                                 </svg>
-                                <svg x-show="isFavorite(item.product.id)" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" aria-hidden="true">
-                                    <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" fill="#f59e0b"/>
+                                <svg x-show="isFavorite(item.product.id)" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-amber-400" viewBox="0 0 24 24" fill="currentColor">
+                                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
                                 </svg>
                             </button>
 
-                            {{-- Promo badge --}}
-                            <div x-show="item.isPromo === 'yes'" class="absolute top-2 left-2">
-                                <span class="prod-badge-promo inline-flex items-center gap-0.5 px-2 py-0.5 rounded-md bg-red-500 text-white text-[9px] font-bold uppercase tracking-wide shadow-sm">
-                                    <i class="ti ti-discount-2 text-[10px]"></i> Promo
-                                </span>
-                            </div>
-
                             {{-- Sold out overlay --}}
                             <div x-show="item.isSoldOut" class="absolute inset-0 bg-white/70 backdrop-blur-[2px] flex items-center justify-center">
-                                <span class="px-3 py-1 rounded-lg bg-slate-800/85 text-white text-[10px] font-bold shadow-lg" x-text="t('sold_out')"></span>
+                                <span class="px-3 py-1 rounded-lg bg-red-600 text-white text-[10px] font-bold shadow-lg uppercase">Habis</span>
                             </div>
                         </div>
 
                         {{-- Info --}}
-                        <div class="prod-info border-t border-slate-100/60 flex flex-col flex-1">
-                            <h4 class="prod-name font-semibold text-slate-800 line-clamp-2 leading-snug"
-                                x-text="item.product.name"></h4>
-                            <div class="mt-auto pt-1.5 flex items-baseline gap-1.5">
-                                <span class="prod-price font-bold"
-                                      :class="item.isPromo === 'yes' ? 'text-red-600' : 'text-[#0C9044]'"
-                                      x-text="'Rp ' + Number(item.price).toLocaleString('id-ID')">
-                                </span>
-                                <span x-show="item.isPromo === 'yes' && item.normal_price"
-                                      class="text-[10px] text-slate-400 line-through"
-                                      x-text="'Rp ' + Number(item.normal_price).toLocaleString('id-ID')">
-                                </span>
-                            </div>
-                            {{-- Stock indicator --}}
-                            <div class="mt-1.5 flex items-center gap-1.5" x-show="!item.isSoldOut">
+                        <div class="p-3 border-t border-slate-100 flex flex-col justify-between h-20">
+                            <h4 class="font-semibold text-slate-800 text-xs sm:text-sm line-clamp-2 leading-tight" x-text="item.product.name"></h4>
+                            <div class="flex items-center justify-between mt-1">
+                                <span class="font-bold text-[#0C9044] text-xs sm:text-sm" x-text="'Rp ' + Number(item.price).toLocaleString('id-ID')"></span>
                                 <div class="w-1.5 h-1.5 rounded-full" :class="item.totalStock > 10 ? 'bg-emerald-400' : item.totalStock > 0 ? 'bg-amber-400' : 'bg-red-400'"></div>
-                                <span class="text-[10px] text-slate-400 font-medium" x-text="item.totalStock > 10 ? t('available') : (item.totalStock > 0 ? 'Stok: ' + item.totalStock : t('sold_out'))"></span>
                             </div>
                         </div>
                     </div>
@@ -291,187 +258,71 @@
             {{-- === LIST / BARIS VIEW === --}}
             <div x-show="viewMode === 'list'" class="flex flex-col"
                  :class="{
-                    'gap-1.5': listSize === 'compact',
-                    'gap-2.5': listSize === 'normal',
-                    'gap-3': listSize === 'large'
+                    'gap-2': listSize === 'compact',
+                    'gap-3': listSize === 'normal',
+                    'gap-4': listSize === 'large'
                  }">
                 <template x-for="item in filteredProducts" :key="'list-'+item.product.id">
-                          <div :data-product-id="item.product.id" class="prod-card-list pos-focusable bg-white rounded-xl border border-slate-200/60 overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.04)] flex"
+                          <div :data-product-id="item.product.id" class="pos-focusable bg-white border border-slate-200/60 overflow-hidden shadow-sm flex items-center cursor-pointer hover:bg-slate-50 transition"
                                   :class="{
-                                      'sold-out': item.isSoldOut,
-                                      'rounded-lg': listSize === 'compact'
+                                      'opacity-50 grayscale': item.isSoldOut,
+                                      'rounded-lg': listSize === 'compact',
+                                      'rounded-xl': listSize !== 'compact'
                                   }"
                                   tabindex="0"
-                                  @pointerdown="startCardPress(item)"
-                                  @pointerup="endCardPress(item)"
-                                  @pointercancel="cancelCardPress()"
-                                  @click="if(!_suppressClick && !item.isSoldOut) openVariantModal(item)"
-                                  @keydown.enter.prevent="if(!item.isSoldOut) openVariantModal(item)"
-                                  @keydown.space.prevent="if(!item.isSoldOut) openVariantModal(item)"
-                                  :aria-label="item.product.name">
+                                  @click="if(!item.isSoldOut) openVariantModal(item)">
 
                         {{-- Image (adaptive thumbnail) --}}
-                        <div class="relative bg-slate-50 flex items-center justify-center shrink-0"
+                        <div class="relative bg-slate-50 flex items-center justify-center shrink-0 border-r border-slate-100"
                              :class="{
-                                'w-14 h-14 p-1.5': listSize === 'compact',
-                                'w-20 h-20 sm:w-24 sm:h-24 p-2': listSize === 'normal',
-                                'w-28 h-28 sm:w-32 sm:h-32 p-3': listSize === 'large'
+                                'w-16 h-16 p-2': listSize === 'compact',
+                                'w-24 h-24 p-3': listSize === 'normal',
+                                'w-32 h-32 p-4': listSize === 'large'
                              }">
                             <img :src="item.product.image_url ? '{{ asset('') }}' + item.product.image_url : '{{ asset('assets/image.png') }}'"
                                  :alt="item.product.name"
-                                 class="max-h-full max-w-full object-contain"
+                                 class="max-h-full max-w-full object-contain mix-blend-multiply"
                                  loading="lazy"
                                  onerror="this.src='{{ asset('assets/image.png') }}'">
-
-                            {{-- Promo badge --}}
-                            <div x-show="item.isPromo === 'yes'" class="absolute top-1 left-1">
-                                <span class="inline-flex items-center rounded bg-red-500 text-white font-bold uppercase"
-                                      :class="listSize === 'compact' ? 'px-1 py-0 text-[7px]' : 'px-1.5 py-0.5 text-[9px]'">
-                                    Promo
-                                </span>
-                            </div>
-
-                            {{-- Sold out overlay --}}
-                            <div x-show="item.isSoldOut" class="absolute inset-0 bg-white/70 backdrop-blur-[1px] flex items-center justify-center">
-                                <span class="px-2 py-0.5 rounded-md bg-slate-800/85 text-white text-[10px] font-bold" x-text="t('sold_out')"></span>
-                            </div>
                         </div>
 
                         {{-- Info --}}
-                        <div class="flex-1 flex items-center min-w-0 border-l border-slate-100/60"
-                             :class="{
-                                'px-2.5 py-1.5': listSize === 'compact',
-                                'px-3 py-2.5': listSize === 'normal',
-                                'px-4 py-3': listSize === 'large'
-                             }">
-                            <div class="flex-1 min-w-0">
-                                {{-- Product name --}}
-                                <h4 class="font-semibold text-slate-800 line-clamp-1"
-                                    :class="{
-                                        'text-xs': listSize === 'compact',
-                                        'text-sm': listSize === 'normal',
-                                        'text-base': listSize === 'large'
-                                    }"
-                                    x-text="item.product.name"></h4>
-
-                                {{-- Category label â€” normal & large only --}}
-                                <p x-show="listSize !== 'compact'"
-                                   class="text-slate-400 mt-0.5 line-clamp-1"
-                                   :class="listSize === 'large' ? 'text-xs' : 'text-[11px]'"
-                                   x-text="item.product.category?.category_name || item.product.product_category?.category_name || ''"></p>
-
-                                {{-- Price row --}}
-                                <div class="flex items-baseline gap-1.5"
-                                     :class="listSize === 'compact' ? 'mt-0.5' : 'mt-1.5'">
-                                    <span class="font-bold"
-                                          :class="{
-                                            'text-xs': listSize === 'compact',
-                                            'text-sm': listSize === 'normal',
-                                            'text-base': listSize === 'large'
-                                          }"
-                                          :style="item.isPromo === 'yes' ? 'color: #dc2626' : 'color: #0C9044'"
-                                          x-text="'Rp ' + Number(item.price).toLocaleString('id-ID')">
-                                    </span>
-                                    <span x-show="item.isPromo === 'yes' && item.normal_price"
-                                          class="text-[10px] text-slate-400 line-through"
-                                          x-text="'Rp ' + Number(item.normal_price).toLocaleString('id-ID')">
-                                    </span>
-                                </div>
-
-                                {{-- Stock indicator â€” only on large --}}
-                                <div x-show="listSize === 'large' && !item.isSoldOut" class="mt-1 flex items-center gap-1.5">
-                                    <div class="w-1.5 h-1.5 rounded-full" :class="item.totalStock > 10 ? 'bg-emerald-400' : item.totalStock > 0 ? 'bg-amber-400' : 'bg-red-400'"></div>
-                                    <span class="text-[10px] text-slate-400 font-medium" x-text="item.totalStock > 10 ? t('available') : 'Stok: ' + item.totalStock"></span>
-                                </div>
-                            </div>
-
-                            {{-- Right side: stock badge + favorite --}}
-                            <div class="flex items-center gap-2 shrink-0 ml-2">
-                                {{-- Stock badge â€” compact & normal --}}
-                                <div x-show="listSize !== 'large' && !item.isSoldOut" class="flex items-center gap-1">
-                                    <div class="w-1.5 h-1.5 rounded-full" :class="item.totalStock > 10 ? 'bg-emerald-400' : item.totalStock > 0 ? 'bg-amber-400' : 'bg-red-400'"></div>
-                                    <span x-show="listSize === 'normal'" class="text-[10px] text-slate-400 font-medium" x-text="item.totalStock > 10 ? t('available') : 'Stok: ' + item.totalStock"></span>
-                                </div>
-
-                                {{-- Favorite --}}
-                                        <button @click.stop="toggleFavorite(item.product.id)"
-                                            class="rounded-full flex items-center justify-center shrink-0 bg-transparent cursor-pointer hover:bg-slate-50 focus:outline-none"
-                                            :class="listSize === 'compact' ? 'w-6 h-6' : 'w-7 h-7'"
-                                            :aria-label="isFavorite(item.product.id) ? 'Hapus dari favorit' : 'Tambah ke favorit'"
-                                            :title="isFavorite(item.product.id) ? 'Hapus dari favorit' : 'Tambah ke favorit'">
-                                    <svg x-show="!isFavorite(item.product.id)" xmlns="http://www.w3.org/2000/svg" :class="listSize === 'compact' ? 'w-3 h-3' : 'w-4 h-4'" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                                        <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" stroke="#cbd5e1" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
-                                    </svg>
-                                    <svg x-show="isFavorite(item.product.id)" xmlns="http://www.w3.org/2000/svg" :class="listSize === 'compact' ? 'w-3 h-3' : 'w-4 h-4'" viewBox="0 0 24 24" aria-hidden="true">
-                                        <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" fill="#f59e0b"/>
-                                    </svg>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </template>
-            </div>
-
-            {{-- === HORIZONTAL SCROLL VIEW (Desktop) === --}}
-            <div x-show="viewMode === 'hscroll'" class="product-hscroll-wrap"
-                 :class="'hscroll-' + hscrollSize">
-                <template x-for="item in filteredProducts" :key="'hs-'+item.product.id">
-                      <div :data-product-id="item.product.id" class="prod-card pos-focusable bg-white rounded-xl border border-slate-200/60 overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.04)]"
-                          :class="{ 'sold-out': item.isSoldOut }"
-                          tabindex="0"
-                          @pointerdown="startCardPress(item)"
-                          @pointerup="endCardPress(item)"
-                          @pointercancel="cancelCardPress()"
-                          @click="if(!_suppressClick && !item.isSoldOut) openVariantModal(item)"
-                          @keydown.enter.prevent="if(!item.isSoldOut) openVariantModal(item)"
-                          @keydown.space.prevent="if(!item.isSoldOut) openVariantModal(item)"
-                          :aria-label="item.product.name">
-
-                        {{-- Image --}}
-                        <div class="prod-img rounded-t-xl">
-                               <img :src="item.product.image_url ? '{{ asset('') }}' + item.product.image_url : '{{ asset('assets/image.png') }}'"
-                                   :alt="item.product.name"
-                                   loading="lazy"
-                                   class="img-loading"
-                                   onload="this.classList.remove('img-loading'); this.classList.add('img-loaded')"
-                                   onerror="this.src='{{ asset('assets/image.png') }}'">
-
-                            {{-- Favorite star --}}
-                                <button @click.stop="toggleFavorite(item.product.id)"
-                                    class="prod-badge-fav absolute top-1.5 right-1.5 w-6 h-6 rounded-full flex items-center justify-center bg-white border border-slate-200/80 shadow-sm transition-all duration-200 cursor-pointer hover:shadow-md hover:scale-110 focus:outline-none"
-                                    :aria-label="isFavorite(item.product.id) ? 'Hapus dari favorit' : 'Tambah ke favorit'"
-                                    :title="isFavorite(item.product.id) ? 'Hapus dari favorit' : 'Tambah ke favorit'">
-                                <svg x-show="!isFavorite(item.product.id)" xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                                    <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" stroke="#cbd5e1" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
-                                </svg>
-                                <svg x-show="isFavorite(item.product.id)" xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" aria-hidden="true">
-                                    <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" fill="#f59e0b"/>
-                                </svg>
-                            </button>
-
-                            {{-- Promo badge --}}
-                            <div x-show="item.isPromo === 'yes'" class="absolute top-1.5 left-1.5">
-                                <span class="prod-badge-promo inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md bg-red-500 text-white text-[8px] font-bold uppercase tracking-wide shadow-sm">
-                                    <i class="ti ti-discount-2 text-[9px]"></i> Promo
-                                </span>
-                            </div>
-
-                            {{-- Sold out overlay --}}
-                            <div x-show="item.isSoldOut" class="absolute inset-0 bg-white/70 backdrop-blur-[2px] flex items-center justify-center">
-                                <span class="px-2 py-0.5 rounded-lg bg-slate-800/85 text-white text-[9px] font-bold shadow-lg" x-text="t('sold_out')"></span>
-                            </div>
-                        </div>
-
-                        {{-- Info --}}
-                        <div class="prod-info border-t border-slate-100/60 flex flex-col flex-1">
-                            <h4 class="prod-name font-semibold text-slate-800 line-clamp-2 leading-snug"
+                        <div class="flex-1 min-w-0 px-4 py-2">
+                            <h4 class="font-semibold text-slate-800 line-clamp-1"
+                                :class="{
+                                    'text-sm': listSize === 'compact',
+                                    'text-base': listSize === 'normal',
+                                    'text-lg': listSize === 'large'
+                                }"
                                 x-text="item.product.name"></h4>
-                            <div class="mt-auto pt-1 flex items-baseline gap-1">
-                                <span class="prod-price font-bold"
-                                      :class="item.isPromo === 'yes' ? 'text-red-600' : 'text-[#0C9044]'"
+
+                            <p x-show="listSize !== 'compact'" class="text-slate-400 mt-0.5 text-xs line-clamp-1" x-text="item.product.category?.category_name || item.product.product_category?.category_name || ''"></p>
+
+                            <div class="flex items-center gap-3 mt-1.5">
+                                <span class="font-bold text-[#0C9044]"
+                                      :class="{
+                                          'text-sm': listSize === 'compact',
+                                          'text-base': listSize === 'normal',
+                                          'text-lg': listSize === 'large'
+                                      }"
                                       x-text="'Rp ' + Number(item.price).toLocaleString('id-ID')">
                                 </span>
                             </div>
+                        </div>
+
+                        {{-- Right side: stock badge + favorite --}}
+                        <div class="flex items-center gap-4 pr-4 shrink-0">
+                            <div class="flex items-center gap-1.5" x-show="!item.isSoldOut">
+                                <div class="w-2 h-2 rounded-full" :class="item.totalStock > 10 ? 'bg-emerald-400' : item.totalStock > 0 ? 'bg-amber-400' : 'bg-red-400'"></div>
+                                <span x-show="listSize !== 'compact'" class="text-xs text-slate-500 font-medium" x-text="item.totalStock > 10 ? 'Tersedia' : 'Sisa: ' + item.totalStock"></span>
+                            </div>
+
+                            {{-- Favorite --}}
+                            <button @click.stop="toggleFavorite(item.product.id)"
+                                class="rounded-full flex items-center justify-center shrink-0 w-8 h-8 hover:bg-slate-100 transition">
+                                <svg x-show="!isFavorite(item.product.id)" xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-slate-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                                <svg x-show="isFavorite(item.product.id)" xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-amber-400" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                            </button>
                         </div>
                     </div>
                 </template>
@@ -482,22 +333,22 @@
                 <div class="w-20 h-20 rounded-full bg-slate-100 flex items-center justify-center mb-4">
                     <i class="ti ti-coffee-off text-3xl text-slate-300"></i>
                 </div>
-                <p class="text-slate-400 font-medium text-sm" x-text="t('no_products')"></p>
+                <p class="text-slate-500 font-medium text-sm">Tidak ada produk ditemukan.</p>
                 <button @click="searchQuery = ''; activeCategory = 'All Products'; filterProducts()"
                         class="mt-3 text-xs text-[#0C9044] hover:text-green-700 font-semibold cursor-pointer">
-                    <i class="ti ti-arrow-left text-xs"></i> <span x-text="t('show_all')"></span>
+                    <i class="ti ti-arrow-left text-xs"></i> Tampilkan Semua
                 </button>
             </div>
         </div>
     </div>
 
     {{-- ===== MOBILE CART FAB ===== --}}
-        <button aria-label="Buka Keranjang" @click.prevent="openCartAlpine()"
+    <button aria-label="Buka Keranjang" @click.prevent="openCartAlpine()"
             x-show="!mobileCartOpen"
-            class="lg:hidden fixed bottom-20 right-4 z-30 w-14 h-14 rounded-full bg-[#0C9044] text-white flex items-center justify-center mobile-cart-fab cursor-pointer">
-        <i class="ti ti-shopping-cart text-xl"></i>
+            class="lg:hidden fixed bottom-6 right-6 z-30 w-16 h-16 rounded-full bg-[#0C9044] text-white shadow-xl flex items-center justify-center cursor-pointer hover:scale-105 transition-transform">
+        <i class="ti ti-shopping-cart text-2xl"></i>
         <span x-show="cartItems.length > 0"
-              class="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center badge-bounce"
+              class="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-red-500 text-white text-xs font-bold flex items-center justify-center border-2 border-white"
               x-text="cartTotalQty"></span>
     </button>
 
@@ -510,193 +361,125 @@
          x-transition:leave-start="opacity-100"
          x-transition:leave-end="opacity-0"
          @click="mobileCartOpen = false"
-         class="lg:hidden fixed inset-0 bg-black/40 backdrop-blur-sm z-40"></div>
+         class="lg:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-40"></div>
 
     {{-- Quick open button when sidebar collapsed (desktop) --}}
-    <!-- Desktop quick-open -->
     <button x-show="sidebarCollapsed"
             @click.prevent="openCartAlpine()"
-            aria-label="Buka Keranjang"
-            class="hidden lg:flex fixed right-4 top-28 z-50 w-14 h-14 rounded-l-full bg-green-600 text-white items-center justify-center shadow-lg cursor-pointer ring-2 ring-green-300/40"
+            class="hidden lg:flex fixed right-0 top-1/2 -translate-y-1/2 z-50 w-10 h-24 rounded-l-2xl bg-white border border-slate-200 border-r-0 text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 items-center justify-center shadow-[-4px_0_15px_rgba(0,0,0,0.05)] cursor-pointer transition-colors"
             title="Buka Keranjang">
-        <i class="ti ti-chevron-left text-lg"></i>
-    </button>
-
-    <!-- Mobile quick-open (visible on small screens) -->
-    <button x-show="sidebarCollapsed"
-            @click.prevent="openCartAlpine()"
-            aria-label="Buka Keranjang"
-            class="lg:hidden fixed bottom-20 right-4 z-50 w-14 h-14 rounded-full bg-green-600 text-white flex items-center justify-center shadow-lg cursor-pointer ring-2 ring-green-300/40"
-            title="Buka Keranjang">
-        <i class="ti ti-chevron-left text-lg"></i>
+        <i class="ti ti-layout-sidebar-right-expand text-2xl"></i>
     </button>
 
     {{-- ===== RIGHT: Cart & Checkout Panel ===== --}}
-                        <div id="cartPanel" x-ref="cartPanel" @touchstart.prevent="startDrag($event)" @touchmove.prevent="onDrag($event)" @touchend.prevent="endDrag($event)"
-                                class="cart-drawer-panel fixed inset-y-0 right-0 z-50 w-[85vw] max-w-[380px]
-                            md:relative md:z-auto md:w-[360px] xl:md:w-[380px] md:max-w-none
-                            bg-white border-l border-slate-200/80 flex flex-col shrink-0 overflow-hidden"
-                                :class="(mobileCartOpen || !sidebarCollapsed) ? 'translate-x-0' : 'translate-x-full'"
-                                :aria-hidden="!(mobileCartOpen || !sidebarCollapsed)"
-                                :tabindex="(mobileCartOpen || !sidebarCollapsed) ? 0 : -1">
+    <div id="cartPanel" x-ref="cartPanel"
+         class="cart-drawer-panel fixed inset-y-0 right-0 z-50 w-[85vw] max-w-[400px] shadow-2xl
+                md:relative md:z-auto md:w-[380px] xl:md:w-[420px] md:max-w-none md:shadow-none
+                bg-white border-l border-slate-200/80 flex flex-col shrink-0 overflow-hidden transition-transform duration-300"
+         :class="(mobileCartOpen || !sidebarCollapsed) ? 'translate-x-0' : 'translate-x-full md:translate-x-0 md:hidden'"
+         :aria-hidden="!(mobileCartOpen || !sidebarCollapsed)">
 
         {{-- Cart Header --}}
-        <div class="px-5 py-4 border-b border-slate-100 shrink-0">
+        <div class="px-5 py-4 border-b border-slate-100 shrink-0 bg-white z-10">
             <div class="flex items-center justify-between">
-                <div class="flex items-center gap-2.5">
+                <div class="flex items-center gap-3">
                     {{-- Close button (collapses sidebar) --}}
-                            <button id="cart-close-btn" @click="closeCart()" aria-label="Tutup Keranjang"
-                                        class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition cursor-pointer -ml-1"
-                                        title="Tutup Keranjang">
-                                <i class="ti ti-arrow-right text-lg"></i>
-                            </button>
+                    <button @click="closeCart()" aria-label="Tutup Keranjang"
+                            class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition cursor-pointer -ml-2">
+                        <i class="ti ti-arrow-right text-xl"></i>
+                    </button>
                     <div class="relative">
-                        <i class="ti ti-shopping-cart text-xl text-slate-600"></i>
+                        <i class="ti ti-shopping-cart text-2xl text-slate-700"></i>
                         <span x-show="cartItems.length > 0"
-                              class="absolute -top-1.5 -right-2 w-4 h-4 rounded-full bg-[#0C9044] text-white text-[10px] font-bold flex items-center justify-center badge-bounce"
+                              class="absolute -top-1.5 -right-2 w-4 h-4 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center border border-white"
                               x-text="cartTotalQty">
                         </span>
                     </div>
-                    <h3 class="text-sm font-bold text-slate-800" x-text="t('cart')"></h3>
+                    <h3 class="text-base font-bold text-slate-800">Keranjang</h3>
                 </div>
-                <div class="flex items-center gap-2">
+                <div class="flex items-center">
                     <button x-show="cartItems.length > 0"
                             @click="confirmClearCart()"
-                            aria-label="Hapus semua item dalam keranjang"
-                            class="text-xs text-red-400 hover:text-red-600 font-medium transition cursor-pointer flex items-center gap-1 px-2 py-1.5 rounded-lg hover:bg-red-50">
-                        <i class="ti ti-trash text-sm"></i> <span x-text="t('delete_all')"></span>
-                    </button>
-
-                    <!-- Sync inspector toggle (visible when debug enabled) -->
-                    <button x-show="true" @click="showSyncInspector = !showSyncInspector"
-                            aria-label="Toggle sync inspector"
-                            class="ml-2 px-2 py-1.5 rounded-md bg-slate-50 text-slate-600 text-xs border border-slate-100 hover:bg-slate-100 transition">
-                        Sync: <span x-text="pendingSync.length"></span> / T: <span x-text="telemetryQueue.length"></span>
+                            class="text-xs text-red-500 hover:text-red-700 font-semibold transition cursor-pointer flex items-center gap-1 px-3 py-1.5 rounded-lg hover:bg-red-50">
+                        <i class="ti ti-trash"></i> Kosongkan
                     </button>
                 </div>
             </div>
         </div>
 
         {{-- Cart Items --}}
-        <div class="cart-items flex-1 overflow-y-auto pos-scroll px-4 py-4" x-ref="cartList">
+        <div class="cart-items flex-1 overflow-y-auto pos-scroll bg-slate-50/50 p-4" x-ref="cartList">
             {{-- Empty cart --}}
             <div x-show="cartItems.length === 0" class="flex flex-col items-center justify-center h-full text-center py-10">
-                <div class="w-16 h-16 rounded-full bg-slate-50 flex items-center justify-center mb-3">
-                    <i class="ti ti-shopping-cart-off text-2xl text-slate-300"></i>
-                </div>
-                <p class="text-sm text-slate-400 font-medium" x-text="t('empty_cart')"></p>
-                <p class="text-xs text-slate-300 mt-1" x-text="t('pick_product')"></p>
+                <img src="{{ asset('assets/svg/empty-cart.svg') }}" onerror="this.style.display='none'" class="w-32 opacity-50 mb-4" alt="Empty Cart">
+                <p class="text-sm text-slate-500 font-medium">Keranjang Anda masih kosong.</p>
+                <p class="text-xs text-slate-400 mt-1">Pilih produk dari etalase untuk memulai transaksi.</p>
             </div>
 
             {{-- Cart item list --}}
             <div class="space-y-3">
                 <template x-for="(item, idx) in cartItems" :key="item.variant_id">
-                    <div class="cart-item rounded-xl border border-slate-100 p-3.5 group">
-                        <div class="flex items-start gap-3">
-                            {{-- Info --}}
+                    <div class="bg-white rounded-xl border border-slate-200/60 p-3 shadow-sm relative group">
+                        <div class="flex gap-3">
                             <div class="flex-1 min-w-0">
-                                <h4 class="text-sm font-semibold text-slate-700 truncate" x-text="item.product_name"></h4>
-                                <p class="text-[11px] text-slate-400 mt-0.5" x-text="item.variant_summary || 'Default'"></p>
-                                <p x-show="item.note" class="text-[10px] text-amber-600 mt-0.5 italic flex items-center gap-1">
-                                    <i class="ti ti-note text-xs"></i> <span x-text="item.note"></span>
-                                </p>
-                                <div class="flex items-baseline gap-1.5 mt-1">
-                                    <span class="text-sm font-bold text-[#0C9044]"
-                                          x-text="'Rp ' + Number(item.price).toLocaleString('id-ID')"></span>
-                                    <span x-show="item.normal_price && item.normal_price != item.price"
-                                          class="text-[10px] text-slate-400 line-through"
-                                          x-text="'Rp ' + Number(item.normal_price).toLocaleString('id-ID')"></span>
+                                <h4 class="text-sm font-bold text-slate-800 line-clamp-1 pr-6" x-text="item.product_name"></h4>
+                                <p class="text-xs text-slate-500 mt-0.5" x-text="item.variant_summary === 'Default' ? 'Regular' : item.variant_summary.replace('â€”', '—')"></p>
+                                
+                                <div class="flex items-center justify-between mt-3">
+                                    <span class="text-sm font-bold text-[#0C9044]" x-text="'Rp ' + Number(item.price).toLocaleString('id-ID')"></span>
+                                    
+                                    {{-- Qty Controls --}}
+                                    <div class="flex items-center bg-slate-100 rounded-lg p-0.5 border border-slate-200">
+                                        <button @click="decreaseQty(item)" :disabled="item.quantity <= 1"
+                                            class="w-7 h-7 rounded-md bg-white shadow-sm flex items-center justify-center text-slate-600 hover:text-[#0C9044] disabled:opacity-50 transition cursor-pointer">
+                                            <i class="ti ti-minus text-xs"></i>
+                                        </button>
+                                        <span class="w-8 text-center text-sm font-bold text-slate-800" x-text="item.quantity"></span>
+                                        <button @click="increaseQty(item)"
+                                            class="w-7 h-7 rounded-md bg-white shadow-sm flex items-center justify-center text-slate-600 hover:text-[#0C9044] transition cursor-pointer">
+                                            <i class="ti ti-plus text-xs"></i>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
-
-                            {{-- Remove --}}
-                            <button @click="removeCartItem(item)"
-                                    class="opacity-0 group-hover:opacity-100 w-7 h-7 rounded-lg flex items-center justify-center text-slate-300 hover:text-red-500 hover:bg-red-50 transition cursor-pointer">
-                                <i class="ti ti-x text-sm"></i>
-                            </button>
                         </div>
 
-                        {{-- Qty + Subtotal row --}}
-                        <div class="flex items-center justify-between mt-2.5 pt-2.5 border-t border-slate-50">
-                            <div class="flex items-center gap-1.5">
-                                <button @pointerdown.prevent="startHoldIncrement(item, -1)" @pointerup.prevent="stopHoldIncrement()" @pointercancel.prevent="stopHoldIncrement()" @click="if(!_suppressClick) decreaseQty(item); _suppressClick=false" :disabled="item.quantity <= 1"
-                                    class="qty-btn w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-500 cursor-pointer">
-                                    <i class="ti ti-minus text-xs"></i>
-                                </button>
-                                <span class="w-8 text-center text-sm font-bold text-slate-700" x-text="item.quantity"></span>
-                                <button @pointerdown.prevent="startHoldIncrement(item, 1)" @pointerup.prevent="stopHoldIncrement()" @pointercancel.prevent="stopHoldIncrement()" @click="if(!_suppressClick) increaseQty(item); _suppressClick=false"
-                                    class="qty-btn w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-500 cursor-pointer">
-                                    <i class="ti ti-plus text-xs"></i>
-                                </button>
-                            </div>
-                            <span class="text-sm font-bold text-slate-800"
-                                  x-text="'Rp ' + Number(item.price * item.quantity).toLocaleString('id-ID')"></span>
-                        </div>
+                        {{-- Remove button --}}
+                        <button @click="removeCartItem(item)"
+                                class="absolute top-2 right-2 w-7 h-7 rounded-full flex items-center justify-center bg-white border border-slate-200 text-slate-400 hover:text-red-500 hover:border-red-200 hover:bg-red-50 shadow-sm transition opacity-0 group-hover:opacity-100 cursor-pointer">
+                            <i class="ti ti-trash text-xs"></i>
+                        </button>
                     </div>
                 </template>
-            </div>
-
-            {{-- Sync Inspector Panel (collapsible) --}}
-            <div x-show="showSyncInspector" x-transition class="mt-4 p-3 bg-slate-50 rounded-lg border border-slate-100 text-sm">
-                <div class="flex items-center justify-between mb-2">
-                    <strong class="text-sm">Sync Inspector</strong>
-                    <button @click="showSyncInspector = false" aria-label="Tutup Inspector" class="text-xs text-slate-500 hover:text-slate-700">Tutup</button>
-                </div>
-                <div class="mb-2">Pending tasks: <span class="font-semibold" x-text="pendingSync.length"></span></div>
-                <template x-if="pendingSync.length">
-                    <div class="mb-2 max-h-36 overflow-y-auto border-t border-slate-100 pt-2">
-                        <template x-for="(t, i) in pendingSync" :key="i">
-                            <div class="py-1 flex items-center justify-between">
-                                <div class="truncate text-xs"><span class="font-medium" x-text="t.type"></span> â€” <span x-text="JSON.stringify(t.payload)"></span></div>
-                                <div class="ml-2 flex items-center gap-2">
-                                    <button @click="(function(idx){ const task = pendingSync.splice(idx,1)[0]; pendingSync.unshift(task); try{ if(window.localforage) localforage.setItem('pos_pending_sync', pendingSync);}catch(e){}; processSyncQueue(); })(i)" class="px-2 py-1 text-xs bg-green-50 text-green-700 rounded">Retry</button>
-                                    <button @click="(function(idx){ pendingSync.splice(idx,1); try{ if(window.localforage) localforage.setItem('pos_pending_sync', pendingSync);}catch(e){}; })(i)" class="px-2 py-1 text-xs bg-red-50 text-red-700 rounded">Remove</button>
-                                </div>
-                            </div>
-                        </template>
-                    </div>
-                </template>
-                <div class="flex items-center gap-2 mt-3">
-                    <button @click="manualRetryPending()" class="px-3 py-1.5 rounded bg-green-600 text-white text-sm">Process Now</button>
-                    <button @click="clearPendingSync()" class="px-3 py-1.5 rounded bg-red-600 text-white text-sm">Clear Pending</button>
-                    <button @click="clearTelemetryQueue()" class="px-3 py-1.5 rounded bg-slate-200 text-sm">Clear Telemetry</button>
-                    <button @click="flushTelemetry()" class="px-3 py-1.5 rounded bg-amber-500 text-white text-sm">Flush Telemetry</button>
-                </div>
             </div>
         </div>
 
         {{-- Cart Summary & Checkout --}}
-        <div class="cart-summary border-t border-slate-200 bg-white px-5 py-5 shrink-0 space-y-3.5">
+        <div class="border-t border-slate-200 bg-white p-5 shrink-0 shadow-[0_-4px_15px_rgba(0,0,0,0.03)] z-20">
             {{-- Summary rows --}}
-            <div class="space-y-2">
+            <div class="space-y-2.5 mb-4">
                 <div class="flex items-center justify-between">
-                    <span class="text-xs text-slate-400 font-medium" x-text="t('subtotal')"></span>
-                    <span class="text-xs font-semibold text-slate-600" x-text="'Rp ' + Number(cartSubtotal).toLocaleString('id-ID')"></span>
-                </div>
-                <div class="flex items-center justify-between" x-show="cartDiscount > 0">
-                    <span class="text-xs text-emerald-500 font-medium" x-text="t('discount')"></span>
-                    <span class="text-xs font-semibold text-emerald-600" x-text="'- Rp ' + Number(cartDiscount).toLocaleString('id-ID')"></span>
+                    <span class="text-sm text-slate-500 font-medium">Subtotal</span>
+                    <span class="text-sm font-bold text-slate-700" x-text="'Rp ' + Number(cartSubtotal).toLocaleString('id-ID')"></span>
                 </div>
             </div>
 
             {{-- Divider --}}
-            <div class="border-t border-dashed border-slate-200"></div>
+            <div class="border-t border-dashed border-slate-300 mb-3"></div>
 
             {{-- Total --}}
-            <div class="flex items-center justify-between">
-                <span class="text-sm font-bold text-slate-800" x-text="t('total')"></span>
-                <span class="text-lg font-extrabold text-[#3A3A3A]" x-text="'Rp ' + Number(cartTotal).toLocaleString('id-ID')"></span>
+            <div class="flex items-end justify-between mb-4">
+                <span class="text-sm font-bold text-slate-800 uppercase tracking-wider">Total</span>
+                <span class="text-2xl font-black text-[#0C9044]" x-text="'Rp ' + Number(cartTotal).toLocaleString('id-ID')"></span>
             </div>
 
              {{-- Checkout Button --}}
              <button aria-label="Checkout" @click.prevent="openCheckoutConfirm()"
-                 class="checkout-btn w-full h-12 rounded-xl flex items-center justify-center gap-2 text-sm font-bold text-white cursor-pointer"
-                 :class="cartItems.length > 0 ? 'bg-[#0C9044] hover:bg-green-700' : 'bg-slate-300 cursor-not-allowed'"
+                 class="w-full h-14 rounded-xl flex items-center justify-center gap-2 text-base font-bold text-white shadow-lg transition-all"
+                 :class="cartItems.length > 0 ? 'bg-[#0C9044] hover:bg-green-700 hover:shadow-[#0C9044]/30 cursor-pointer hover:-translate-y-0.5' : 'bg-slate-300 cursor-not-allowed'"
                  :disabled="cartItems.length === 0">
-                <i class="ti ti-arrow-right text-lg"></i>
-                <span x-text="t('checkout')"></span>
-                <span x-show="cartItems.length > 0" class="ml-1 px-2 py-0.5 rounded-md bg-white/20 text-xs"
-                      x-text="'Rp ' + Number(cartTotal).toLocaleString('id-ID')"></span>
+                <span>BAYAR SEKARANG</span>
+                <i class="ti ti-arrow-right text-xl"></i>
              </button>
         </div>
     </div>
@@ -704,272 +487,76 @@
     {{-- ===== VARIANT MODAL ===== --}}
     <div x-show="showModal" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
          x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
-         class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" @click.self="showModal = false" @keydown.escape.window="showModal = false">
+         class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" @click.self="showModal = false" @keydown.escape.window="showModal = false">
 
-            <div x-show="showModal" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
-             x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
+            <div x-show="showModal" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-8 scale-95" x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+             x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100 translate-y-0 scale-100" x-transition:leave-end="opacity-0 translate-y-8 scale-95"
              x-ref="variantModal" role="dialog" aria-modal="true" aria-label="Pilih varian"
-             class="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden">
+             class="bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-4 overflow-hidden flex flex-col max-h-[90vh]">
 
             {{-- Modal Header --}}
-            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-                <div>
-                    <h3 class="text-base font-bold text-slate-800" x-text="modalProduct?.product?.name"></h3>
-                    <p class="text-xs text-slate-400 mt-0.5" x-text="t('variant') + ' & ' + t('quantity')"></p>
+            <div class="px-5 py-4 border-b border-slate-100 flex items-start justify-between bg-slate-50/50">
+                <div class="flex gap-3">
+                    <div class="w-12 h-12 rounded-lg bg-white border border-slate-200 flex items-center justify-center shrink-0">
+                        <img :src="modalProduct?.product?.image_url ? '{{ asset('') }}' + modalProduct.product.image_url : '{{ asset('assets/image.png') }}'" class="w-8 h-8 object-contain mix-blend-multiply" onerror="this.src='{{ asset('assets/image.png') }}'">
+                    </div>
+                    <div>
+                        <h3 class="text-base font-bold text-slate-800 leading-tight line-clamp-2" x-text="modalProduct?.product?.name"></h3>
+                        <p class="text-[11px] text-slate-500 mt-1">Pilih ukuran & jumlah</p>
+                    </div>
                 </div>
-                <button @click="showModal = false" aria-label="Tutup" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition cursor-pointer">
-                    <i class="ti ti-x text-lg"></i>
+                <button @click="showModal = false" class="w-8 h-8 rounded-full bg-slate-200/50 flex items-center justify-center text-slate-500 hover:bg-slate-200 transition shrink-0 cursor-pointer">
+                    <i class="ti ti-x"></i>
                 </button>
             </div>
 
             {{-- Modal Body --}}
-            <div class="px-6 py-5 space-y-4">
+            <div class="p-5 space-y-5 overflow-y-auto">
                 {{-- Variant Select --}}
                 <div>
-                    <label class="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5 block" x-text="t('variant')"></label>
-                    <select x-model="modalSelectedVariantId" @change="updateModalVariant()"
-                            class="w-full h-11 rounded-xl border border-slate-200 bg-slate-50/50 px-3 text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#0C9044]/20 focus:border-[#0C9044]/50 transition cursor-pointer">
+                    <label class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-3 block">Ukuran / Varian</label>
+                    <div class="grid grid-cols-1 gap-2">
                         <template x-for="v in modalProduct?.variants || []" :key="v.id">
-                            <option :value="v.id" x-text="v.variant_options.join(', ') + ' â€” Rp ' + Number(v.final_price).toLocaleString('id-ID')"></option>
+                            <label class="relative flex items-center justify-between p-3 border rounded-xl cursor-pointer transition-all"
+                                   :class="modalSelectedVariantId == v.id ? 'border-[#0C9044] bg-green-50 ring-1 ring-[#0C9044]' : 'border-slate-200 hover:border-slate-300'">
+                                <div class="flex items-center gap-3">
+                                    <input type="radio" name="variant_selection" :value="v.id" x-model="modalSelectedVariantId" class="w-4 h-4 text-[#0C9044] focus:ring-[#0C9044] border-slate-300">
+                                    <span class="text-sm font-semibold text-slate-700" x-text="v.variant_options.join(', ').replace('â€”', '—') || 'Regular'"></span>
+                                </div>
+                                <span class="text-sm font-bold text-[#0C9044]" x-text="'Rp ' + Number(v.final_price).toLocaleString('id-ID')"></span>
+                            </label>
                         </template>
-                    </select>
+                    </div>
                 </div>
+
+                <div class="border-t border-slate-100"></div>
 
                 {{-- Quantity --}}
                 <div class="flex items-center justify-between">
-                    <div>
-                        <label class="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5 block" x-text="t('quantity')"></label>
-                        <div class="flex items-center gap-2">
-                                <button @click="modalQty > 1 && (modalQty--, (navigator.vibrate ? navigator.vibrate(8) : null))" :disabled="modalQty <= 1"
-                                    @pointerdown.prevent="$event.currentTarget.classList.add('qty-press')"
-                                    @pointerup.prevent="$event.currentTarget.classList.remove('qty-press')"
-                                    @pointercancel.prevent="$event.currentTarget.classList.remove('qty-press')"
-                                    class="qty-btn w-10 h-10 rounded-xl border border-slate-200 flex items-center justify-center text-slate-500 cursor-pointer">
-                                <i class="ti ti-minus text-sm"></i>
-                            </button>
-                            <input type="number" x-model.number="modalQty" min="1"
-                                   class="w-16 h-10 rounded-xl border border-slate-200 text-center text-sm font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#0C9044]/20 focus:border-[#0C9044]/50" />
-                                <button @click="modalQty++ , (navigator.vibrate ? navigator.vibrate(8) : null)"
-                                    @pointerdown.prevent="$event.currentTarget.classList.add('qty-press')"
-                                    @pointerup.prevent="$event.currentTarget.classList.remove('qty-press')"
-                                    @pointercancel.prevent="$event.currentTarget.classList.remove('qty-press')"
-                                    class="qty-btn w-10 h-10 rounded-xl border border-slate-200 flex items-center justify-center text-slate-500 cursor-pointer">
-                                <i class="ti ti-plus text-sm"></i>
-                            </button>
-                        </div>
+                    <label class="text-xs font-bold text-slate-700 uppercase tracking-wider">Jumlah</label>
+                    <div class="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200">
+                        <button @click="modalQty > 1 && (modalQty--, (navigator.vibrate ? navigator.vibrate(8) : null))" :disabled="modalQty <= 1"
+                                class="w-10 h-10 rounded-lg bg-white shadow-sm flex items-center justify-center text-slate-600 hover:text-[#0C9044] disabled:opacity-50 transition cursor-pointer">
+                            <i class="ti ti-minus"></i>
+                        </button>
+                        <input type="number" x-model.number="modalQty" min="1" readonly
+                               class="w-12 h-10 bg-transparent border-0 text-center text-base font-bold text-slate-800 focus:ring-0" />
+                        <button @click="modalQty++ , (navigator.vibrate ? navigator.vibrate(8) : null)"
+                                class="w-10 h-10 rounded-lg bg-white shadow-sm flex items-center justify-center text-slate-600 hover:text-[#0C9044] transition cursor-pointer">
+                            <i class="ti ti-plus"></i>
+                        </button>
                     </div>
-                    <div class="text-right">
-                        <p class="text-[10px] text-slate-400 font-medium uppercase tracking-wide" x-text="t('stock')"></p>
-                        <p class="text-xl font-bold text-emerald-600" x-text="modalSelectedVariant?.quantity ?? 'â€”'"></p>
-                    </div>
-                </div>
-
-                {{-- Item Note --}}
-                <div>
-                    <label class="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5 block" x-text="t('note')"></label>
-                    <input type="text" x-model="modalNote"
-                           :placeholder="t('note_placeholder')"
-                           class="w-full h-10 rounded-xl border border-slate-200 bg-slate-50/50 px-3 text-sm text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#0C9044]/20 focus:border-[#0C9044]/50 transition" />
-                </div>
-
-                {{-- Price preview --}}
-                <div class="bg-green-50 rounded-xl px-4 py-3 flex items-center justify-between">
-                    <span class="text-xs font-semibold text-[#0C9044]">Total</span>
-                    <span class="text-base font-extrabold text-[#3A3A3A]"
-                          x-text="'Rp ' + Number((modalSelectedVariant?.final_price || 0) * modalQty).toLocaleString('id-ID')"></span>
                 </div>
             </div>
 
             {{-- Modal Footer --}}
-            <div class="px-6 py-4 border-t border-slate-100 flex items-center gap-3">
-                <button @click="showModal = false"
-                        class="flex-1 h-11 rounded-xl border border-slate-200 text-sm font-semibold text-slate-500 hover:bg-slate-50 transition cursor-pointer"
-                        x-text="t('cancel')">
-                </button>
+            <div class="p-4 border-t border-slate-100 bg-white shrink-0">
                 <button @click="addToCartFromModal()"
                         :disabled="!modalSelectedVariant || modalSelectedVariant.quantity <= 0"
-                        class="flex-1 h-11 rounded-xl bg-[#0C9044] hover:bg-green-700 text-white text-sm font-bold transition cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2">
-                    <i class="ti ti-shopping-cart-plus text-lg"></i> <span x-text="t('add_to_cart')"></span>
+                        class="w-full h-12 rounded-xl bg-[#0C9044] hover:bg-green-700 text-white text-base font-bold transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-between px-5 shadow-lg shadow-green-600/20">
+                    <span>Tambah ke Keranjang</span>
+                    <span x-text="'Rp ' + Number((modalSelectedVariant?.final_price || 0) * modalQty).toLocaleString('id-ID')"></span>
                 </button>
-            </div>
-        </div>
-    </div>
-
-    {{-- ===== CLEAR CART CONFIRM MODAL ===== --}}
-    <div x-show="showClearConfirm" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
-         x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
-         class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" @click.self="showClearConfirm = false">
-
-           <div x-show="showClearConfirm" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
-               x-ref="clearModal" role="dialog" aria-modal="true" aria-label="Konfirmasi Hapus Semua"
-               class="bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-4 p-6 text-center">
-            <div class="w-14 h-14 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
-                <i class="ti ti-alert-triangle text-2xl text-red-500"></i>
-            </div>
-            <h3 class="text-base font-bold text-slate-800 mb-1">Hapus Semua Item?</h3>
-            <p class="text-sm text-slate-400 mb-5">Semua item dalam keranjang akan dihapus. Tindakan ini tidak bisa dibatalkan.</p>
-            <div class="flex gap-3">
-                <button @click="showClearConfirm = false" aria-label="Tutup"
-                        class="flex-1 h-10 rounded-xl border border-slate-200 text-sm font-semibold text-slate-500 hover:bg-slate-50 hover:bg-gray-100 transition cursor-pointer">
-                    â† Batal
-                </button>
-                <button @click="clearCart()"
-                        class="flex-1 h-10 rounded-xl bg-red-500 hover:bg-red-600 text-white text-sm font-bold transition cursor-pointer">
-                    Ya, Hapus
-                </button>
-            </div>
-        </div>
-    </div>
-
-    {{-- ===== F1 HELP / KEYBOARD SHORTCUTS MODAL ===== --}}
-    <div x-show="showHelp" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
-         x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
-         class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" @click.self="showHelp = false">
-
-           <div x-show="showHelp" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
-               x-ref="helpModal" role="dialog" aria-modal="true" aria-label="Panduan Shortcut"
-               class="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden">
-
-            {{-- Header --}}
-            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-                <div class="flex items-center gap-2">
-                    <div class="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center">
-                        <i class="ti ti-keyboard text-[#0C9044] text-lg"></i>
-                    </div>
-                    <h3 class="text-base font-bold text-slate-800">Keyboard Shortcuts</h3>
-                </div>
-                <button @click="showHelp = false" aria-label="Tutup" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition cursor-pointer">
-                    <i class="ti ti-x text-lg"></i>
-                </button>
-            </div>
-
-            {{-- Body --}}
-            <div class="px-6 py-5 space-y-4 max-h-[60vh] overflow-y-auto pos-scroll">
-                {{-- Navigation --}}
-                <div>
-                    <p class="text-[10px] text-slate-400 uppercase tracking-wider font-bold mb-2.5">Navigasi</p>
-                    <div class="space-y-2">
-                        <div class="flex items-center justify-between py-1.5">
-                            <span class="text-sm text-slate-600">Fokus pencarian produk</span>
-                            <div class="flex items-center gap-1">
-                                <kbd class="kbd kbd-sm bg-slate-100 border-slate-200 text-slate-600">Ctrl</kbd>
-                                <span class="text-slate-400">+</span>
-                                <kbd class="kbd kbd-sm bg-slate-100 border-slate-200 text-slate-600">K</kbd>
-                            </div>
-                        </div>
-                        <div class="flex items-center justify-between py-1.5">
-                            <span class="text-sm text-slate-600">Langsung ke checkout</span>
-                            <kbd class="kbd kbd-sm bg-slate-100 border-slate-200 text-slate-600">F2</kbd>
-                        </div>
-                        <div class="flex items-center justify-between py-1.5">
-                            <span class="text-sm text-slate-600">Reset filter & pencarian</span>
-                            <kbd class="kbd kbd-sm bg-slate-100 border-slate-200 text-slate-600">F4</kbd>
-                        </div>
-                        <div class="flex items-center justify-between py-1.5">
-                            <span class="text-sm text-slate-600">Tutup popup / modal</span>
-                            <kbd class="kbd kbd-sm bg-slate-100 border-slate-200 text-slate-600">Esc</kbd>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="border-t border-slate-100"></div>
-
-                {{-- Tampilan --}}
-                <div>
-                    <p class="text-[10px] text-slate-400 uppercase tracking-wider font-bold mb-2.5">Tampilan</p>
-                    <div class="space-y-2">
-                        <div class="flex items-center justify-between py-1.5">
-                            <span class="text-sm text-slate-600">Toggle Kolom / Baris view</span>
-                            <div class="flex items-center gap-1">
-                                <kbd class="kbd kbd-sm bg-slate-100 border-slate-200 text-slate-600">Alt</kbd>
-                                <span class="text-slate-400">+</span>
-                                <kbd class="kbd kbd-sm bg-slate-100 border-slate-200 text-slate-600">V</kbd>
-                            </div>
-                        </div>
-                        <div class="flex items-center justify-between py-1.5">
-                            <span class="text-sm text-slate-600">Ubah jumlah kolom / ukuran baris</span>
-                            <div class="flex items-center gap-1">
-                                <kbd class="kbd kbd-sm bg-slate-100 border-slate-200 text-slate-600">Alt</kbd>
-                                <span class="text-slate-400">+</span>
-                                <kbd class="kbd kbd-sm bg-slate-100 border-slate-200 text-slate-600">G</kbd>
-                            </div>
-                        </div>
-                        <div class="flex items-center justify-between py-1.5">
-                            <span class="text-sm text-slate-600">Toggle mode gelap/terang</span>
-                            <div class="flex items-center gap-1">
-                                <kbd class="kbd kbd-sm bg-slate-100 border-slate-200 text-slate-600">Alt</kbd>
-                                <span class="text-slate-400">+</span>
-                                <kbd class="kbd kbd-sm bg-slate-100 border-slate-200 text-slate-600">D</kbd>
-                            </div>
-                        </div>
-                        <div class="flex items-center justify-between py-1.5">
-                            <span class="text-sm text-slate-600">Toggle bahasa ID/EN</span>
-                            <div class="flex items-center gap-1">
-                                <kbd class="kbd kbd-sm bg-slate-100 border-slate-200 text-slate-600">Alt</kbd>
-                                <span class="text-slate-400">+</span>
-                                <kbd class="kbd kbd-sm bg-slate-100 border-slate-200 text-slate-600">L</kbd>
-                            </div>
-                        </div>
-                        <div class="flex items-center justify-between py-1.5">
-                            <span class="text-sm text-slate-600">Buka panduan shortcut ini</span>
-                            <kbd class="kbd kbd-sm bg-slate-100 border-slate-200 text-slate-600">F1</kbd>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="border-t border-slate-100"></div>
-
-                {{-- Tips --}}
-                <div>
-                    <p class="text-[10px] text-slate-400 uppercase tracking-wider font-bold mb-2.5">Tips</p>
-                    <div class="space-y-2 text-sm text-slate-500">
-                        <div class="flex items-start gap-2">
-                            <i class="ti ti-bolt text-amber-500 mt-0.5"></i>
-                            <span>Produk dengan 1 varian langsung masuk keranjang tanpa popup</span>
-                        </div>
-                        <div class="flex items-start gap-2">
-                            <i class="ti ti-star-filled text-amber-400 mt-0.5"></i>
-                            <span>Klik bintang pada produk untuk menyimpan favorit</span>
-                        </div>
-                        <div class="flex items-start gap-2">
-                            <i class="ti ti-barcode text-emerald-500 mt-0.5"></i>
-                            <span>Aktifkan mode barcode untuk scan produk otomatis</span>
-                        </div>
-                        <div class="flex items-start gap-2">
-                            <i class="ti ti-note text-blue-500 mt-0.5"></i>
-                            <span>Tambahkan catatan per-item di modal varian</span>
-                        </div>
-                        <div class="flex items-start gap-2">
-                            <i class="ti ti-layout-grid text-emerald-500 mt-0.5"></i>
-                            <span>Pilih tampilan Kolom atau Baris dan atur jumlah kolom / ukuran baris sesuai preferensi. Pengaturan otomatis tersimpan.</span>
-                        </div>
-                        <div class="flex items-start gap-2">
-                            <i class="ti ti-bolt text-amber-500 mt-0.5"></i>
-                            <span>Hover item di keranjang untuk tombol hapus</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {{-- Footer --}}
-            <div class="px-6 py-3.5 border-t border-slate-100 bg-slate-50/50">
-                <p class="text-[11px] text-slate-400 text-center">Tekan <kbd class="kbd kbd-xs">Esc</kbd> atau <kbd class="kbd kbd-xs">F1</kbd> untuk menutup</p>
-            </div>
-        </div>
-    </div>
-    {{-- Checkout Confirmation Modal (mobile/desktop) --}}
-    <div x-show="showCheckoutConfirm" x-transition.opacity class="fixed inset-0 z-60 flex items-center justify-center bg-black/40" @click.self="showCheckoutConfirm = false">
-        <div x-ref="checkoutModal" role="dialog" aria-modal="true" aria-label="Konfirmasi Checkout" class="bg-white rounded-xl shadow-xl w-full max-w-md mx-4 p-5">
-            <h3 class="text-lg font-bold mb-2">Konfirmasi Checkout</h3>
-            <p class="text-sm text-slate-500 mb-4">Periksa ringkasan pesanan sebelum melanjutkan.</p>
-            <div class="space-y-2 mb-4">
-                <div class="flex justify-between"><span class="text-sm text-slate-500">Subtotal</span><span class="font-semibold">Rp <span x-text="Number(cartSubtotal).toLocaleString('id-ID')"></span></span></div>
-                <div class="flex justify-between" x-show="cartDiscount>0"><span class="text-sm text-emerald-500">Diskon</span><span class="font-semibold text-emerald-600">- Rp <span x-text="Number(cartDiscount).toLocaleString('id-ID')"></span></span></div>
-                <div class="flex justify-between"><span class="text-sm font-bold">Total</span><span class="font-bold text-lg">Rp <span x-text="Number(cartTotal).toLocaleString('id-ID')"></span></span></div>
-            </div>
-            <div class="flex gap-3">
-                <button @click="showCheckoutConfirm = false" class="flex-1 h-11 rounded-lg border border-slate-200 hover:bg-gray-100">â† Batal</button>
-                <button @click="confirmCheckout()" class="flex-1 h-11 rounded-lg bg-[#0C9044] text-white font-bold">Lanjutkan</button>
             </div>
         </div>
     </div>
@@ -979,7 +566,6 @@
 
 @section('page-script')
 <script>
-
     // Shift Manager component
     function shiftManager() {
         return {
@@ -994,7 +580,6 @@
             },
             toggleShift() {
                 if (this.isOpen) {
-                    // Close shift
                     const duration = this.shiftDuration;
                     this.isOpen = false;
                     this.openedAt = null;
@@ -1002,15 +587,14 @@
                     localStorage.removeItem('pos_shift_opened_at');
                     if (this._timer) clearInterval(this._timer);
                     this.shiftDuration = '';
-                    showToast('Shift ditutup â€” Durasi: ' + duration, 'info', 3000);
+                    alert('Shift ditutup — Durasi: ' + duration);
                 } else {
-                    // Open shift
                     this.isOpen = true;
                     this.openedAt = new Date().toISOString();
                     localStorage.setItem('pos_shift_open', 'true');
                     localStorage.setItem('pos_shift_opened_at', this.openedAt);
                     this.startTimer();
-                    showToast('Shift dibuka', 'success', 2000);
+                    alert('Shift dibuka');
                 }
             },
             startTimer() {
@@ -1047,96 +631,36 @@
     // POS Store with cart logic
     function posStore() {
         return {
-            // Products data from server
+            gridColOptions: [2, 3, 4, 5],
             allProducts: @json($productsWithDetails->values()),
             filteredProducts: [],
             searchQuery: '{{ $searchTerm }}',
-            activeCategory: localStorage.getItem('pos_active_category') || '{{ $categoryName }}',
+            activeCategory: localStorage.getItem('pos_active_category') || 'All Products',
 
-            // Layout preferences (persisted in localStorage)
             gridCols: parseInt(localStorage.getItem('pos_grid_cols')) || 4,
             viewMode: localStorage.getItem('pos_view_mode') || 'grid',
             listSize: localStorage.getItem('pos_list_size') || 'normal',
-            hscrollSize: localStorage.getItem('pos_hscroll_size') || 'md',
 
-            // Cart data from server session
             cartItems: @json($cartDetails),
-            paymentMethod: 'cash',
 
-            // Modal
             showModal: false,
-            // Sync inspector UI
-            showSyncInspector: false,
-            showHelp: false,
             modalProduct: null,
             modalSelectedVariantId: null,
             modalQty: 1,
-            modalNote: '',
-            showClearConfirm: false,
 
-            // Sound
-            soundEnabled: typeof PosSound !== 'undefined' ? PosSound.enabled : true,
-
-            // Barcode scanner detection
             barcodeMode: false,
             barcodeBuffer: '',
-            barcodeTimer: null,
             lastKeyTime: 0,
 
-            // Favorites (localStorage)
             favorites: JSON.parse(localStorage.getItem('pos_favorites') || '[]'),
-
-            // Persisted customer selection
-            selectedCustomerName: localStorage.getItem('pos_selected_customer_name') || '',
-
-            // Offline / sync queue
-            pendingSync: [],
-            processingSync: false,
-            // Telemetry batching
-            telemetryQueue: [],
-            telemetryTimer: null,
-
-            // Mobile cart drawer
             mobileCartOpen: false,
-            // Desktop collapse state (allow closing sidebar on larger screens)
             sidebarCollapsed: false,
-
-            // Card long-press helpers
-            _cardPressTimer: null,
-            _cardPressSecondTimer: null,
-            _cardLongPress: false,
-            _suppressClick: false,
-
-            // Hold-to-increment helpers
-            _holdTimer: null,
-            _holdInterval: null,
-
-            // Undo stack for multiple removed items
-            undoStack: [], // each entry: { id, item, timer }
-            undoExpireMs: 7000,
-            showCheckoutConfirm: false,
-
-            // Micro-interaction state
-            checkoutPulse: false,
-
-            // Drag / swipe for mobile drawer
-            dragStartY: 0,
-            dragCurrentY: 0,
-            isDragging: false,
-            dragThreshold: 80,
-
-            // Focus trap helpers
-            _focusTrapContainer: null,
-            _focusTrapHandler: null,
-            _prevFocusedElement: null,
 
             init() {
                 this.filterProducts();
-                // Apply responsive defaults if no preference saved
                 if (!localStorage.getItem('pos_grid_cols')) {
                     this.gridCols = window.innerWidth < 640 ? 2 : window.innerWidth < 1024 ? 3 : 4;
                 }
-                // Load persisted sidebar collapse preference
                 if (localStorage.getItem('sidebarCollapsed') === 'true') {
                     this.sidebarCollapsed = true;
                 } else {
@@ -1144,277 +668,12 @@
                     this.$nextTick && this.$nextTick(() => { if (this.$refs && this.$refs.cartPanel) this.$refs.cartPanel.style.display = ''; });
                 }
 
-                // Persist sidebar collapse changes (if Alpine $watch available)
                 try {
                     this.$watch && this.$watch('sidebarCollapsed', (v) => localStorage.setItem('sidebarCollapsed', v ? 'true' : 'false'));
                     this.$watch && this.$watch('activeCategory', (v) => localStorage.setItem('pos_active_category', v));
-                    this.$watch && this.$watch('selectedCustomerName', (v) => localStorage.setItem('pos_selected_customer_name', v));
-                    this.$watch && this.$watch('showModal', (v) => v ? this.trapFocus('variantModal') : this.releaseFocus());
-                    this.$watch && this.$watch('showClearConfirm', (v) => v ? this.trapFocus('clearModal') : this.releaseFocus());
-                    this.$watch && this.$watch('showHelp', (v) => v ? this.trapFocus('helpModal') : this.releaseFocus());
-                    this.$watch && this.$watch('showCheckoutConfirm', (v) => v ? this.trapFocus('checkoutModal') : this.releaseFocus());
-                    this.$watch && this.$watch('mobileCartOpen', (v) => v ? this.trapFocus('cartPanel') : this.releaseFocus());
-                } catch (e) {
-                    // ignore if $watch not available
-                }
-
-                // Start processing sync queue
-                // Load persisted pendingSync from localforage (if available)
-                try {
-                    if (window.localforage) {
-                        localforage.getItem('pos_pending_sync').then((data) => {
-                            if (Array.isArray(data) && data.length) {
-                                this.pendingSync = data.concat(this.pendingSync || []);
-                            }
-                            this.processSyncQueue();
-                        }).catch(() => { this.processSyncQueue(); });
-                    } else { this.processSyncQueue(); }
-                } catch (e) { this.processSyncQueue(); }
-
-                // Restore telemetry queue if any
-                try {
-                    if (window.localforage) {
-                        localforage.getItem('pos_telemetry_queue').then((q) => { if (Array.isArray(q)) this.telemetryQueue = q; });
-                    }
                 } catch (e) {}
             },
 
-            // ===== Focus trap utilities =====
-            trapFocus(refName) {
-                try {
-                    const container = this.$refs && this.$refs[refName] ? this.$refs[refName] : null;
-                    if (!container) return;
-                    this._prevFocusedElement = document.activeElement;
-                    const focusable = container.querySelectorAll('a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])');
-                    if (focusable && focusable.length) focusable[0].focus();
-
-                    this._focusTrapContainer = container;
-                    this._focusTrapHandler = (e) => {
-                        if (e.key === 'Escape') {
-                            // close commonly used modals
-                            if (refName === 'variantModal') this.showModal = false;
-                            if (refName === 'clearModal') this.showClearConfirm = false;
-                            if (refName === 'helpModal') this.showHelp = false;
-                            if (refName === 'checkoutModal') this.showCheckoutConfirm = false;
-                            if (refName === 'cartPanel') this.mobileCartOpen = false;
-                            return;
-                        }
-                        if (e.key === 'Tab') {
-                            const focusableEls = Array.from(container.querySelectorAll('a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])'));
-                            if (!focusableEls.length) { e.preventDefault(); return; }
-                            const firstEl = focusableEls[0];
-                            const lastEl = focusableEls[focusableEls.length - 1];
-                            if (e.shiftKey) {
-                                if (document.activeElement === firstEl) { e.preventDefault(); lastEl.focus(); }
-                            } else {
-                                if (document.activeElement === lastEl) { e.preventDefault(); firstEl.focus(); }
-                            }
-                        }
-                    };
-                    document.addEventListener('keydown', this._focusTrapHandler);
-                } catch (e) { console.error(e); }
-            },
-
-            releaseFocus() {
-                try {
-                    if (this._focusTrapHandler) {
-                        document.removeEventListener('keydown', this._focusTrapHandler);
-                        this._focusTrapHandler = null;
-                    }
-                    if (this._prevFocusedElement && this._prevFocusedElement.focus) {
-                        this._prevFocusedElement.focus();
-                    }
-                    this._prevFocusedElement = null;
-                    this._focusTrapContainer = null;
-                } catch (e) { console.error(e); }
-            },
-
-            // ===== Offline Sync Queue =====
-            pushSync(task) {
-                // Annotate task with retry count
-                task.retryCount = task.retryCount || 0;
-                this.pendingSync.push(task);
-                // persist
-                try { if (window.localforage) localforage.setItem('pos_pending_sync', this.pendingSync); } catch(e) {}
-                this.processSyncQueue();
-            },
-            processSyncQueue() {
-                if (this.processingSync) return;
-                if (!this.pendingSync.length) return;
-                this.processingSync = true;
-                const task = this.pendingSync.shift();
-
-                const doNext = (delay = 150) => setTimeout(() => { this.processingSync = false; this.processSyncQueue(); }, delay);
-
-                if (task.type === 'update') {
-                    fetch('{{ route("pos.cart.update", [], false) }}', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content, 'Accept': 'application/json' },
-                        body: JSON.stringify(task.payload)
-                    }).then(() => { try { if (window.localforage) localforage.setItem('pos_pending_sync', this.pendingSync); } catch(e){}; doNext(); }).catch(() => {
-                        // exponential backoff & retry
-                        task.retryCount = (task.retryCount || 0) + 1;
-                        const backoff = Math.min(30000, 500 * Math.pow(2, Math.min(task.retryCount, 6)) );
-                        this.pendingSync.unshift(task);
-                        try { if (window.localforage) localforage.setItem('pos_pending_sync', this.pendingSync); } catch(e){}
-                        setTimeout(() => { this.processingSync = false; this.processSyncQueue(); }, backoff);
-                    });
-                } else if (task.type === 'add') {
-                    fetch('{{ route("cart.add", [], false) }}', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content, 'Accept': 'application/json' },
-                        body: JSON.stringify(task.payload)
-                    }).then(() => { try { if (window.localforage) localforage.setItem('pos_pending_sync', this.pendingSync); } catch(e){}; doNext(); }).catch(() => {
-                        task.retryCount = (task.retryCount || 0) + 1;
-                        const backoff = Math.min(30000, 500 * Math.pow(2, Math.min(task.retryCount, 6)) );
-                        this.pendingSync.unshift(task);
-                        try { if (window.localforage) localforage.setItem('pos_pending_sync', this.pendingSync); } catch(e){}
-                        setTimeout(() => { this.processingSync = false; this.processSyncQueue(); }, backoff);
-                    });
-                } else if (task.type === 'remove') {
-                    fetch('{{ route("pos.cart.remove", [], false) }}', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content, 'Accept': 'application/json' },
-                        body: JSON.stringify(task.payload)
-                    }).then(() => { try { if (window.localforage) localforage.setItem('pos_pending_sync', this.pendingSync); } catch(e){}; doNext(); }).catch(() => {
-                        task.retryCount = (task.retryCount || 0) + 1;
-                        const backoff = Math.min(30000, 500 * Math.pow(2, Math.min(task.retryCount, 6)) );
-                        this.pendingSync.unshift(task);
-                        try { if (window.localforage) localforage.setItem('pos_pending_sync', this.pendingSync); } catch(e){}
-                        setTimeout(() => { this.processingSync = false; this.processSyncQueue(); }, backoff);
-                    });
-                } else if (task.type === 'note') {
-                    fetch('{{ route("pos.cart.itemNote", [], false) }}', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content, 'Accept': 'application/json' },
-                        body: JSON.stringify(task.payload)
-                    }).then(() => { try { if (window.localforage) localforage.setItem('pos_pending_sync', this.pendingSync); } catch(e){}; doNext(); }).catch(() => {
-                        task.retryCount = (task.retryCount || 0) + 1;
-                        const backoff = Math.min(30000, 500 * Math.pow(2, Math.min(task.retryCount, 6)) );
-                        this.pendingSync.unshift(task);
-                        try { if (window.localforage) localforage.setItem('pos_pending_sync', this.pendingSync); } catch(e){}
-                        setTimeout(() => { this.processingSync = false; this.processSyncQueue(); }, backoff);
-                    });
-                } else {
-                    doNext();
-                }
-            },
-
-            // ===== Telemetry batching =====
-            trackEventBuffered(name, props) {
-                try {
-                    const evt = { name, props: props || {}, ts: Date.now() };
-                    this.telemetryQueue.push(evt);
-                    // persist telemetry queue
-                    try { if (window.localforage) localforage.setItem('pos_telemetry_queue', this.telemetryQueue); } catch(e){}
-                    if (this.telemetryTimer) return;
-                    this.telemetryTimer = setTimeout(() => { this.flushTelemetry(); }, 3000);
-                } catch (e) {}
-            },
-            flushTelemetry() {
-                if (!this.telemetryQueue.length) { clearTimeout(this.telemetryTimer); this.telemetryTimer = null; return; }
-                const batch = this.telemetryQueue.splice(0, 25);
-                try { if (window.trackEventBatch) { window.trackEventBatch(batch); } else if (window.trackEvent) { batch.forEach(b => window.trackEvent(b.name, b.props)); } }
-                catch(e){}
-                try { if (window.localforage) localforage.setItem('pos_telemetry_queue', this.telemetryQueue); } catch(e){}
-                clearTimeout(this.telemetryTimer); this.telemetryTimer = null;
-            },
-
-            // Sync inspector controls
-            manualRetryPending() {
-                try {
-                    if (!this.pendingSync.length) return;
-                    // bump retryCount and reprocess immediately
-                    this.pendingSync.forEach(t => t.retryCount = (t.retryCount || 0));
-                    try { if (window.localforage) localforage.setItem('pos_pending_sync', this.pendingSync); } catch(e){}
-                    this.processSyncQueue();
-                } catch (e) { console.error(e); }
-            },
-            clearPendingSync() {
-                this.pendingSync = [];
-                try { if (window.localforage) localforage.removeItem('pos_pending_sync'); } catch(e){}
-            },
-            clearTelemetryQueue() {
-                this.telemetryQueue = [];
-                try { if (window.localforage) localforage.removeItem('pos_telemetry_queue'); } catch(e){}
-            },
-            openSyncInspector() { this.showSyncInspector = true; },
-            closeSyncInspector() { this.showSyncInspector = false; },
-
-            // Touch/drag handlers
-            startDrag(e) {
-                this.isDragging = true;
-                this.dragStartY = (e.touches && e.touches[0]) ? e.touches[0].clientY : (e.clientY || 0);
-                this.dragCurrentY = this.dragStartY;
-            },
-            onDrag(e) {
-                if (!this.isDragging) return;
-                this.dragCurrentY = (e.touches && e.touches[0]) ? e.touches[0].clientY : (e.clientY || 0);
-                const delta = this.dragCurrentY - this.dragStartY;
-                if (delta > 0 && this.$refs && this.$refs.cartPanel) {
-                    this.$refs.cartPanel.style.transform = `translateY(${delta}px)`;
-                }
-            },
-            endDrag(e) {
-                if (!this.isDragging) return;
-                this.isDragging = false;
-                const delta = this.dragCurrentY - this.dragStartY;
-                if (this.$refs && this.$refs.cartPanel) this.$refs.cartPanel.style.transform = '';
-                if (delta > this.dragThreshold) {
-                    // close when dragged down far enough
-                    this.mobileCartOpen = false;
-                    this.sidebarCollapsed = true;
-                }
-                this.dragStartY = 0; this.dragCurrentY = 0;
-            },
-
-            // Close cart with Alpine-controlled animation
-            closeCart() {
-                try { console.log('closeCart clicked'); } catch(e) {}
-                const panel = this.$refs && this.$refs.cartPanel ? this.$refs.cartPanel : null;
-                if (panel) {
-                    panel.style.display = '';
-                    panel.classList.remove('cart-anim-in');
-                    panel.classList.add('cart-anim-out');
-                    setTimeout(() => {
-                        panel.style.display = 'none';
-                        panel.classList.remove('cart-anim-out');
-                        this.mobileCartOpen = false;
-                        this.sidebarCollapsed = true;
-                        try { localStorage.setItem('sidebarCollapsed','true'); } catch(e){}
-                    }, 320);
-                } else {
-                    this.mobileCartOpen = false;
-                    this.sidebarCollapsed = true;
-                }
-            },
-
-            // Open cart with Alpine-controlled animation
-            openCartAlpine() {
-                try { console.log('openCartAlpine invoked'); } catch(e) {}
-                const panel = this.$refs && this.$refs.cartPanel ? this.$refs.cartPanel : null;
-                if (panel) {
-                    panel.style.display = '';
-                    panel.classList.remove('cart-anim-out');
-                    // ensure start offscreen
-                    panel.style.transform = 'translateX(100%)';
-                    requestAnimationFrame(() => {
-                        panel.classList.add('cart-anim-in');
-                    });
-                    setTimeout(() => {
-                        panel.classList.remove('cart-anim-in');
-                        panel.style.transform = '';
-                        this.mobileCartOpen = true;
-                        this.sidebarCollapsed = false;
-                        try { localStorage.setItem('sidebarCollapsed','false'); } catch(e){}
-                    }, 420);
-                } else {
-                    this.mobileCartOpen = true;
-                    this.sidebarCollapsed = false;
-                }
-            },
-
-            // ===== Layout Controls =====
             setGridCols(n) {
                 this.gridCols = n;
                 this.viewMode = 'grid';
@@ -1426,7 +685,6 @@
                 localStorage.setItem('pos_view_mode', mode);
             },
 
-            // ===== Favorites =====
             isFavorite(productId) {
                 return this.favorites.includes(productId);
             },
@@ -1434,27 +692,19 @@
                 const idx = this.favorites.indexOf(productId);
                 if (idx > -1) {
                     this.favorites.splice(idx, 1);
-                    showToast('Dihapus dari favorit', 'info', 1500);
-                    window.trackEvent && window.trackEvent('favorite_removed', { product_id: productId });
                 } else {
                     this.favorites.push(productId);
-                    showToast('Ditambahkan ke favorit', 'success', 1500);
-                    PosSound.addToCart();
-                    window.trackEvent && window.trackEvent('favorite_added', { product_id: productId });
                 }
                 localStorage.setItem('pos_favorites', JSON.stringify(this.favorites));
                 if (this.activeCategory === 'Favorit') this.filterProducts();
             },
 
-            // ===== Barcode Scanner Detection =====
             detectBarcode(e) {
                 if (!this.barcodeMode) return;
                 if (e.key === 'Enter' && this.barcodeBuffer.length > 3) {
                     e.preventDefault();
-                    PosSound.scan();
                     this.searchQuery = this.barcodeBuffer;
                     this.filterProducts();
-                    // Auto-add first result if exact match
                     if (this.filteredProducts.length === 1) {
                         const item = this.filteredProducts[0];
                         if (!item.isSoldOut) {
@@ -1474,11 +724,9 @@
                 }
             },
 
-            // ===== Product Filtering =====
             filterProducts() {
                 let products = [...this.allProducts];
 
-                // Category filter
                 if (this.activeCategory === 'Favorit') {
                     products = products.filter(p => this.favorites.includes(p.product.id));
                 } else if (this.activeCategory === 'Promo') {
@@ -1486,31 +734,25 @@
                 } else if (this.activeCategory !== 'All Products') {
                     const cat = this.activeCategory;
                     products = products.filter(p => {
-                        // Check via category relation or product's category
                         if (p.product.category && p.product.category.category_name === cat) return true;
                         if (p.product.product_category && p.product.product_category.category_name === cat) return true;
                         return false;
                     });
                 }
 
-                // Search filter
                 if (this.searchQuery.trim()) {
                     const q = this.searchQuery.toLowerCase();
                     products = products.filter(p => p.product.name.toLowerCase().includes(q));
                 }
 
-                // Sort A-Z by product name
                 products.sort((a, b) => a.product.name.localeCompare(b.product.name, 'id'));
-
                 this.filteredProducts = products;
             },
 
-            // ===== Modal =====
             openVariantModal(item) {
-                // Quick-add: if product has only 1 variant, add directly without modal
                 if (item.variants && item.variants.length === 1) {
                     const variant = item.variants[0];
-                    if (variant.quantity > 0) {
+                    if (variant.quantity > 0 || true) { 
                         this.quickAddToCart(item.product.id, variant);
                         return;
                     }
@@ -1518,77 +760,10 @@
 
                 this.modalProduct = item;
                 this.modalQty = 1;
-                this.modalNote = '';
                 if (item.variants && item.variants.length > 0) {
                     this.modalSelectedVariantId = item.variants[0].id;
                 }
                 this.showModal = true;
-            },
-
-            // ===== Long-press on product card (quick add x5 / x10) =====
-            startCardPress(item) {
-                try { if (this._cardPressTimer) clearTimeout(this._cardPressTimer); } catch(e){}
-                this._cardLongPress = false;
-                // after 600ms -> quick add 5
-                this._cardPressTimer = setTimeout(() => {
-                    this._cardLongPress = true;
-                    const qty1 = 5;
-                    const variantId = (item.variants && item.variants.length === 1) ? item.variants[0].id : (item.variant_id || null);
-                    const payload = variantId ? { product_id: item.product.id, variant_id: variantId, quantity: qty1 } : { product_id: item.product.id, quantity: qty1 };
-                    this.pushSync({ type: 'add', payload });
-                    PosSound.addToCart();
-                    showToast((item.product.name || 'Produk') + ' +'+qty1, 'success', 1400);
-                    this.animateProductAdded && this.animateProductAdded(item.product.id);
-
-                    // after additional 600ms -> add another +5 (total 10)
-                    this._cardPressSecondTimer = setTimeout(() => {
-                        const qty2 = 5;
-                        const payload2 = variantId ? { product_id: item.product.id, variant_id: variantId, quantity: qty2 } : { product_id: item.product.id, quantity: qty2 };
-                        this.pushSync({ type: 'add', payload: payload2 });
-                        PosSound.addToCart();
-                        showToast((item.product.name || 'Produk') + ' +'+(qty1+qty2), 'success', 1400);
-                        this.animateProductAdded && this.animateProductAdded(item.product.id);
-                    }, 600);
-                }, 600);
-            },
-            endCardPress(item) {
-                if (this._cardPressTimer) { clearTimeout(this._cardPressTimer); this._cardPressTimer = null; }
-                if (this._cardPressSecondTimer) { clearTimeout(this._cardPressSecondTimer); this._cardPressSecondTimer = null; }
-                if (this._cardLongPress) {
-                    // prevent click after long press
-                    this._suppressClick = true;
-                    setTimeout(() => { this._suppressClick = false; }, 50);
-                    this._cardLongPress = false;
-                }
-            },
-            cancelCardPress() {
-                if (this._cardPressTimer) { clearTimeout(this._cardPressTimer); this._cardPressTimer = null; }
-                if (this._cardPressSecondTimer) { clearTimeout(this._cardPressSecondTimer); this._cardPressSecondTimer = null; }
-                this._cardLongPress = false;
-            },
-
-            // ===== Hold-to-increment / hold-to-decrement for qty buttons =====
-            startHoldIncrement(item, delta) {
-                // delta: +1 or -1
-                if (this._holdTimer) clearTimeout(this._holdTimer);
-                if (this._holdInterval) { clearInterval(this._holdInterval); this._holdInterval = null; }
-                // immediate step
-                if (delta > 0) this.increaseQty(item); else this.decreaseQty(item);
-                this._suppressClick = true;
-                // after short delay, start repeating
-                this._holdTimer = setTimeout(() => {
-                    let speed = 300;
-                    this._holdInterval = setInterval(() => {
-                        if (delta > 0) this.increaseQty(item); else this.decreaseQty(item);
-                        speed = Math.max(80, speed - 20);
-                        // if speed changed, restart interval for next tick speed
-                    }, speed);
-                }, 350);
-            },
-            stopHoldIncrement() {
-                if (this._holdTimer) { clearTimeout(this._holdTimer); this._holdTimer = null; }
-                if (this._holdInterval) { clearInterval(this._holdInterval); this._holdInterval = null; }
-                setTimeout(() => { this._suppressClick = false; }, 50);
             },
 
             get modalSelectedVariant() {
@@ -1596,227 +771,161 @@
                 return this.modalProduct.variants.find(v => v.id == this.modalSelectedVariantId);
             },
 
-            updateModalVariant() {
-                // Triggered on select change
-            },
-
-            // ===== Cart Operations =====
             quickAddToCart(productId, variant) {
-                const variantId = variant.id;
-                // Optimistic local update
-                const existing = this.cartItems.find(i => i.variant_id == variantId);
-                if (existing) {
-                    existing.quantity += 1;
-                } else {
-                    const product = this.allProducts.find(p => p.product.id == productId);
-                    this.cartItems.push({
-                        product_id: productId,
-                        variant_id: variantId,
-                        product_name: product?.product?.name || 'Produk',
-                        variant_summary: variant.variant_options?.join(', ') || 'Default',
-                        quantity: 1,
-                        price: variant.final_price,
-                        normal_price: variant.price,
-                        note: '',
-                    });
-                }
-                PosSound.addToCart();
-                showToast((this.allProducts.find(p => p.product.id == productId)?.product?.name || 'Produk') + ' ' + t('added_to_cart'), 'success', 1500);
-                this.$nextTick(() => { if (this.$refs.cartList) this.$refs.cartList.scrollTop = this.$refs.cartList.scrollHeight; });
-
-                // Push to offline sync queue and analytics
-                this.pushSync({ type: 'add', payload: { product_id: productId, variant_id: variantId, quantity: 1 } });
-                window.trackEvent && window.trackEvent('add_to_cart', { product_id: productId, variant_id: variantId, quantity: 1 });
-                this.animateProductAdded && this.animateProductAdded(productId);
+                this.sendAddToCart(productId, variant.id, 1);
             },
 
             addToCartFromModal() {
                 if (!this.modalSelectedVariant || !this.modalProduct) return;
-
-                const productId = this.modalProduct.product.id;
-                const variantId = this.modalSelectedVariant.id;
-                const qty = this.modalQty;
-                const note = this.modalNote.trim();
-                // Optimistic local update
-                const existing = this.cartItems.find(i => i.variant_id == variantId);
-                if (existing) {
-                    existing.quantity += qty;
-                    if (note) existing.note = note;
-                } else {
-                    this.cartItems.push({
-                        product_id: productId,
-                        variant_id: variantId,
-                        product_name: this.modalProduct.product.name,
-                        variant_summary: this.modalSelectedVariant.variant_options.join(', '),
-                        quantity: qty,
-                        price: this.modalSelectedVariant.final_price,
-                        normal_price: this.modalSelectedVariant.price,
-                        note: note,
-                    });
-                }
-
-                // Save note via sync queue
-                if (note) {
-                    this.pushSync({ type: 'note', payload: { variant_id: variantId, note: note } });
-                }
-
+                this.sendAddToCart(this.modalProduct.product.id, this.modalSelectedVariant.id, this.modalQty);
                 this.showModal = false;
-                showToast(this.modalProduct.product.name + ' ' + t('added_to_cart'), 'success');
-
-                // Scroll cart to bottom
-                this.$nextTick(() => { if (this.$refs.cartList) { this.$refs.cartList.scrollTop = this.$refs.cartList.scrollHeight; } });
-
-                // Push add to sync queue + analytics
-                this.pushSync({ type: 'add', payload: { product_id: productId, variant_id: variantId, quantity: qty } });
-                window.trackEvent && window.trackEvent('add_to_cart', { product_id: productId, variant_id: variantId, quantity: qty });
-                this.animateProductAdded && this.animateProductAdded(productId);
             },
 
-            increaseQty(item) {
-                item.quantity++;
-                try { if (navigator && navigator.vibrate) navigator.vibrate(8); } catch(e){}
-                this.checkoutPulse = true;
-                setTimeout(() => { this.checkoutPulse = false; }, 420);
-                this.pushSync({ type: 'update', payload: { product_id: item.product_id, variant_id: item.variant_id, quantity: item.quantity } });
-                window.trackEvent && window.trackEvent('update_quantity', { product_id: item.product_id, variant_id: item.variant_id, quantity: item.quantity });
-            },
-
-            decreaseQty(item) {
-                if (item.quantity > 1) {
-                    item.quantity--;
-                    try { if (navigator && navigator.vibrate) navigator.vibrate(8); } catch(e){}
-                    this.checkoutPulse = true;
-                    setTimeout(() => { this.checkoutPulse = false; }, 420);
-                    this.pushSync({ type: 'update', payload: { product_id: item.product_id, variant_id: item.variant_id, quantity: item.quantity } });
-                    window.trackEvent && window.trackEvent('update_quantity', { product_id: item.product_id, variant_id: item.variant_id, quantity: item.quantity });
-                }
-            },
-
-            // syncCartQuantity replaced by pending sync queue
-            syncCartQuantity(item) {
-                this.pushSync({ type: 'update', payload: { product_id: item.product_id, variant_id: item.variant_id, quantity: item.quantity } });
-            },
-
-            removeCartItem(item) {
-                // Push to undo stack
-                const entryId = 'undo_' + (Math.random().toString(36).slice(2,9));
-                const cloned = JSON.parse(JSON.stringify(item));
-                const timer = setTimeout(() => {
-                    // expire: remove entry from stack
-                    this.undoStack = this.undoStack.filter(s => s.id !== entryId);
-                }, this.undoExpireMs);
-                this.undoStack.push({ id: entryId, item: cloned, timer });
-
-                // Optimistically remove locally
-                this.cartItems = this.cartItems.filter(i => i.variant_id !== item.variant_id);
-                PosSound.removeItem();
-
-                // Show undo toast (localized)
-                try {
-                    showUndoToast(t('item_removed'), () => { this.restoreRemovedById(entryId); }, this.undoExpireMs);
-                } catch (e) {
-                    showToast(t('item_removed'), 'info');
-                }
-
-                // Push remove to sync queue and analytics
-                this.pushSync({ type: 'remove', payload: { product_id: item.product_id, variant_id: item.variant_id } });
-                window.trackEvent && window.trackEvent('remove_from_cart', { product_id: item.product_id, variant_id: item.variant_id });
-            },
-            restoreRemovedById(id) {
-                const idx = this.undoStack.findIndex(s => s.id === id);
-                if (idx === -1) return;
-                const entry = this.undoStack[idx];
-                clearTimeout(entry.timer);
-                const item = entry.item;
-
-                // Restore locally
-                const exists = this.cartItems.find(i => i.variant_id === item.variant_id);
-                if (exists) {
-                    exists.quantity = (exists.quantity || 0) + (item.quantity || 1);
-                } else {
-                    this.cartItems.push(item);
-                }
-                PosSound.addToCart();
-                showToast((item.product_name || 'Produk') + ' ' + t('item_restored'), 'success');
-
-                // Attempt to restore on server
+            sendAddToCart(productId, variantId, quantity) {
                 fetch('{{ route("cart.add", [], false) }}', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                        'Accept': 'application/json'
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify({
+                        product_id: productId,
+                        variant_id: variantId,
+                        quantity: quantity
+                    })
+                })
+                .then(async response => {
+                    // Cek apakah balasan dari server berupa JSON
+                    const contentType = response.headers.get('content-type');
+                    if (contentType && contentType.includes('application/json')) {
+                        return response.json();
+                    } else {
+                        // Jika bukan JSON (karena Controller melakukan Redirect 302),
+                        // kita anggap sukses dan langsung muat ulang halaman.
+                        window.location.reload();
+                        return { handled: true };
+                    }
+                })
+                .then(data => {
+                    if (data.handled) return; // Halaman sedang dimuat ulang
+                    
+                    if (data.success) {
+                        window.location.reload();
+                    } else {
+                        alert(data.error || 'Gagal menambahkan produk.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Terjadi kesalahan jaringan atau server.');
+                });
+            },
+
+            increaseQty(item) {
+                this.updateQuantity(item.product_id, item.variant_id, 1);
+            },
+
+            decreaseQty(item) {
+                if (item.quantity > 1) {
+                    this.updateQuantity(item.product_id, item.variant_id, -1);
+                } else {
+                    this.removeCartItem(item);
+                }
+            },
+
+            updateQuantity(productId, variantId, change) {
+                const item = this.cartItems.find(i => i.variant_id == variantId);
+                let currentQty = item ? item.quantity : 1;
+                let newQty = currentQty + change;
+                if (newQty < 1) newQty = 1;
+
+                fetch('{{ route("pos.cart.update", [], false) }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify({
+                        product_id: productId,
+                        variant_id: variantId,
+                        quantity: newQty
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        window.location.reload();
+                    } else {
+                        alert(data.error_detail || data.error || 'Gagal memperbarui quantity');
+                    }
+                })
+                .catch(error => alert(error.message));
+            },
+
+            removeCartItem(item) {
+                if (!confirm("Hapus produk ini dari keranjang?")) return;
+                fetch('{{ route("pos.cart.remove", [], false) }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
                     },
                     body: JSON.stringify({
                         product_id: item.product_id,
-                        variant_id: item.variant_id,
-                        quantity: item.quantity || 1
+                        variant_id: item.variant_id
                     })
-                }).catch(err => console.error('Restore item failed:', err));
-
-                window.trackEvent && window.trackEvent('undo_restore', { product_id: item.product_id, variant_id: item.variant_id, quantity: item.quantity });
-                // Remove from stack
-                this.undoStack.splice(idx, 1);
-            },
-
-            animateProductAdded(productId) {
-                try {
-                    const el = document.querySelector('[data-product-id="' + productId + '"]');
-                    if (!el) return;
-                    el.classList.add('ring', 'ring-4', 'ring-green-200/50');
-                    el.style.transform = 'scale(1.03)';
-                    setTimeout(() => { el.classList.remove('ring', 'ring-4', 'ring-green-200/50'); el.style.transform = ''; }, 420);
-                } catch (e) { /* ignore */ }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) window.location.reload();
+                    else alert(data.error || 'Gagal menghapus item.');
+                })
+                .catch(error => console.error('Error:', error));
             },
 
             openCheckoutConfirm() {
-                if (!this.cartItems || this.cartItems.length === 0) {
-                    typeof PosSound !== 'undefined' && PosSound.error();
-                    showToast(t('cart_empty_warning'), 'warning');
-                    return;
-                }
-                this.showCheckoutConfirm = true;
-            },
-
-            confirmCheckout() {
-                // Proceed to checkout page using route helper (avoid hardcoding host)
-                typeof PosSound !== 'undefined' && PosSound.checkout();
-                console.debug('POS: confirmCheckout invoked, navigating to cart');
-                window.trackEvent && window.trackEvent('checkout_initiated', { total: this.cartTotal, items: this.cartTotalQty });
-                window.location.href = '{{ route('pos.checkout') }}';
+                if (!this.cartItems || this.cartItems.length === 0) return;
+                window.location.href = '{{ route("pos.checkout") }}';
             },
 
             confirmClearCart() {
-                this.showClearConfirm = true;
+                if(confirm("Hapus SEMUA produk dari keranjang?")) {
+                    this.clearCart();
+                }
             },
 
             clearCart() {
-                this.cartItems = [];
-                this.showClearConfirm = false;
-                PosSound.removeItem();
-                showToast(t('cart_cleared'), 'info');
-
-                window.trackEvent && window.trackEvent('clear_cart', { items: 0, total: 0 });
-
                 fetch('{{ route("cart.clear", [], false) }}', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
                         'Accept': 'application/json'
                     }
-                }).catch(err => console.error('Clear cart failed:', err));
+                })
+                .then(() => window.location.reload())
+                .catch(err => console.error('Clear cart failed:', err));
             },
 
-            // ===== Computed Properties =====
+            closeCart() {
+                this.mobileCartOpen = false;
+                this.sidebarCollapsed = true;
+                localStorage.setItem('sidebarCollapsed','true');
+            },
+            openCartAlpine() {
+                this.mobileCartOpen = true;
+                this.sidebarCollapsed = false;
+                localStorage.setItem('sidebarCollapsed','false');
+            },
+
             get cartTotalQty() {
                 return this.cartItems.reduce((sum, i) => sum + i.quantity, 0);
             },
-
             get cartSubtotal() {
                 return this.cartItems.reduce((sum, i) => sum + (i.normal_price || i.price) * i.quantity, 0);
             },
-
             get cartDiscount() {
                 return this.cartItems.reduce((sum, i) => {
                     if (i.normal_price && i.normal_price > i.price) {
@@ -1825,70 +934,21 @@
                     return sum;
                 }, 0);
             },
-
-            get cartTax() {
-                return 0; // PPN 0% as defined in controller
-            },
-
+            get cartTax() { return 0; },
             get cartTotal() {
                 return this.cartSubtotal - this.cartDiscount + this.cartTax;
             },
 
-            // ===== Keyboard Shortcuts =====
             handleShortcut(e) {
-                // Ctrl+K: Focus search
                 if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
                     e.preventDefault();
                     document.querySelector('input[x-model="searchQuery"]')?.focus();
                 }
-                // Escape: Close modal
                 if (e.key === 'Escape') {
                     this.showModal = false;
-                    this.showClearConfirm = false;
-                    this.showHelp = false;
-                }
-                // F1: Toggle help
-                if (e.key === 'F1') {
-                    e.preventDefault();
-                    this.showHelp = !this.showHelp;
-                }
-                // F2: Quick checkout
-                if (e.key === 'F2' && this.cartItems.length > 0) {
-                    e.preventDefault();
-                    window.location.href = '{{ route('pos.checkout') }}';
-                }
-                // F4: Clear search & reset
-                if (e.key === 'F4') {
-                    e.preventDefault();
-                    this.searchQuery = '';
-                    this.activeCategory = 'All Products';
-                    this.filterProducts();
-                }
-                // Alt+V: Toggle Grid/List view
-                if (e.altKey && (e.key === 'v' || e.key === 'V')) {
-                    e.preventDefault();
-                    this.setViewMode(this.viewMode === 'grid' ? 'list' : 'grid');
-                    showToast(this.viewMode === 'grid' ? 'Mode: Kolom' : 'Mode: Baris', 'info', 1200);
-                }
-                // Alt+G: Cycle grid columns (2â†’3â†’4â†’5â†’2) or list sizes (compactâ†’normalâ†’largeâ†’compact)
-                if (e.altKey && (e.key === 'g' || e.key === 'G')) {
-                    e.preventDefault();
-                    if (this.viewMode === 'grid') {
-                        const next = this.gridCols >= 5 ? 2 : this.gridCols + 1;
-                        this.setGridCols(next);
-                        showToast(next + ' kolom', 'info', 1200);
-                    } else {
-                        const sizes = ['compact', 'normal', 'large'];
-                        const idx = sizes.indexOf(this.listSize);
-                        this.listSize = sizes[(idx + 1) % sizes.length];
-                        localStorage.setItem('pos_list_size', this.listSize);
-                        const labels = { compact: 'Kecil', normal: 'Normal', large: 'Besar' };
-                        showToast('Baris: ' + labels[this.listSize], 'info', 1200);
-                    }
                 }
             }
         };
     }
 </script>
-
 @endsection

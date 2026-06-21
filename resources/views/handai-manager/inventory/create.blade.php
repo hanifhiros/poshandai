@@ -130,7 +130,7 @@
             <div class="bg-white rounded-2xl border border-slate-200/80 mt-4 shadow-sm p-6">
                 <div class="flex items-center justify-between gap-3">
 
-                     <a href="{{ route('manager.inventory.products') }}" class="h-9 px-4 inline-flex items-center text-[13px] font-medium text-gray-600 bg-white border border-gray-200 hover:bg-gray-50 hover:bg-gray-100 rounded-lg transition">â† Batal</a>
+                     <a href="{{ route('manager.inventory.products') }}" class="h-9 px-4 inline-flex items-center text-[13px] font-medium text-gray-600 bg-white border border-gray-200 hover:bg-gray-50 hover:bg-gray-100 rounded-lg transition">Batal</a>
 
                     <button type="submit" class="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg shadow-sm">
                         Tambah Produk

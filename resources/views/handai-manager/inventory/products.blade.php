@@ -163,7 +163,7 @@
         {{-- Info bar --}}
         <div class="px-5 py-2.5 border-b border-gray-50 flex items-center justify-between">
             <p class="text-[12px] text-gray-400">
-                <span class="font-medium text-gray-500">{{ $variants->firstItem() ?? 0 }}â€“{{ $variants->lastItem() ?? 0 }}</span> dari {{ $variants->total() }} varian
+                <span class="font-medium text-gray-500">{{ $variants->firstItem() ?? 0 }}-{{ $variants->lastItem() ?? 0 }}</span> dari {{ $variants->total() }} varian
             </p>
             @if(request()->hasAny(['search','status','category','expired_range']))
             <a href="{{ route('manager.inventory.products') }}" class="text-[11px] text-emerald-600 hover:text-emerald-700 font-medium inline-flex items-center gap-1">
@@ -547,7 +547,7 @@
         {{-- Info bar --}}
         <div class="px-5 py-2.5 border-b border-gray-50 flex items-center justify-between">
             <p class="text-[12px] text-gray-400">
-                <span class="font-medium text-gray-500">{{ $semiFinishedProducts->firstItem() ?? 0 }}â€“{{ $semiFinishedProducts->lastItem() ?? 0 }}</span> dari {{ $semiFinishedProducts->total() }} produk
+                <span class="font-medium text-gray-500">{{ $semiFinishedProducts->firstItem() ?? 0 }}-{{ $semiFinishedProducts->lastItem() ?? 0 }}</span> dari {{ $semiFinishedProducts->total() }} produk
             </p>
             @if(request()->hasAny(['search','status']))
             <a href="{{ route('manager.inventory.products', ['tab' => 'setengah_jadi']) }}" class="text-[11px] text-violet-600 hover:text-violet-700 font-medium inline-flex items-center gap-1">

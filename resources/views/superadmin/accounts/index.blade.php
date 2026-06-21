@@ -1,4 +1,4 @@
-@extends('layouts.layoutMaster')
+@extends('layouts.layoutBlank')
 
 @section('title', 'Manajemen Akun')
 
@@ -132,21 +132,23 @@
     </div>
 @endif
 
-                            </td>
-                            <td class="px-6 py-4 text-center space-x-3">
-                                <a href="{{ route('superadmin.accounts.edit', ['id' => $user->id]) }}" class="text-[#0C9044] hover:underline font-medium">Edit</a>
+<td class="px-6 py-4 whitespace-nowrap text-sm font-medium flex items-center space-x-2">
+    <a href="{{ route('superadmin.accounts.edit', $user->id) }}" 
+       class="inline-flex items-center px-3 py-1.5 bg-yellow-50 text-yellow-600 border border-yellow-200 rounded-lg hover:bg-yellow-600 hover:text-white transition duration-200">
+        <i class="ti ti-edit mr-1"></i> Edit
+    </a>
 
-
-                                <form action="{{ route('superadmin.accounts.destroy', $user->id) }}"
-                                      method="POST"
-                                      class="inline"
-                                      onsubmit="return confirm('Yakin ingin menghapus akun ini?')">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit"
-                                            class="text-red-600 hover:underline font-medium">Hapus</button>
-                                </form>
-                            </td>
+    <form action="{{ route('superadmin.accounts.destroy', $user->id) }}" method="POST" class="inline">
+        @csrf
+        @method('DELETE')
+        
+        <button type="button" 
+                onclick="if(confirm('Apakah Anda yakin ingin menghapus akun {{ $user->name }}? Tindakan ini tidak bisa dibatalkan.')) { this.closest('form').submit(); }"
+                class="inline-flex items-center px-3 py-1.5 bg-red-50 text-red-600 border border-red-200 rounded-lg hover:bg-red-600 hover:text-white transition duration-200">
+            <i class="ti ti-trash mr-1"></i> Hapus
+        </button>
+    </form>
+</td>
                         </tr>
                     @empty
                         <tr>

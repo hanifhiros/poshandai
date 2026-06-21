@@ -26,7 +26,6 @@
     </script>
     @vite('resources/js/app.js')
     @vite('resources/css/app.css')
-    @vite('resources/css/layout-theme.css')
     @yield('vendor-style')
     @yield('page-style')
     <link rel="preconnect" href="https://fonts.googleapis.com">
