@@ -217,13 +217,9 @@
                           @keydown.space.prevent="if(!item.isSoldOut) openVariantModal(item)"
                           :aria-label="item.product.name">
 
-                        {{-- Image — fixed height container --}}
+                        {{-- Image Disabled — Using Icon --}}
                         <div class="w-full h-32 bg-slate-50 flex items-center justify-center p-2 relative">
-                               <img :src="item.product.image_url ? '{{ asset('') }}' + item.product.image_url : '{{ asset('assets/image.png') }}'"
-                                   :alt="item.product.name"
-                                   loading="lazy"
-                                   class="max-w-full max-h-full object-contain mix-blend-multiply"
-                                   onerror="this.src='{{ asset('assets/image.png') }}'">
+                            <i class="ti ti-coffee text-4xl text-slate-300"></i>
 
                             {{-- Favorite star --}}
                             <button @click.stop="toggleFavorite(item.product.id)"
@@ -272,18 +268,19 @@
                                   tabindex="0"
                                   @click="if(!item.isSoldOut) openVariantModal(item)">
 
-                        {{-- Image (adaptive thumbnail) --}}
+                        {{-- Image Disabled — Using Icon --}}
                         <div class="relative bg-slate-50 flex items-center justify-center shrink-0 border-r border-slate-100"
                              :class="{
                                 'w-16 h-16 p-2': listSize === 'compact',
                                 'w-24 h-24 p-3': listSize === 'normal',
                                 'w-32 h-32 p-4': listSize === 'large'
                              }">
-                            <img :src="item.product.image_url ? '{{ asset('') }}' + item.product.image_url : '{{ asset('assets/image.png') }}'"
-                                 :alt="item.product.name"
-                                 class="max-h-full max-w-full object-contain mix-blend-multiply"
-                                 loading="lazy"
-                                 onerror="this.src='{{ asset('assets/image.png') }}'">
+                             <i class="ti ti-coffee text-slate-300" 
+                                :class="{
+                                    'text-xl': listSize === 'compact',
+                                    'text-3xl': listSize === 'normal',
+                                    'text-4xl': listSize === 'large'
+                                }"></i>
                         </div>
 
                         {{-- Info --}}
@@ -383,7 +380,6 @@
         <div class="px-5 py-4 border-b border-slate-100 shrink-0 bg-white z-10">
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-3">
-                    {{-- Close button (collapses sidebar) --}}
                     <button @click="closeCart()" aria-label="Tutup Keranjang"
                             class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition cursor-pointer -ml-2">
                         <i class="ti ti-arrow-right text-xl"></i>
@@ -411,7 +407,9 @@
         <div class="cart-items flex-1 overflow-y-auto pos-scroll bg-slate-50/50 p-4" x-ref="cartList">
             {{-- Empty cart --}}
             <div x-show="cartItems.length === 0" class="flex flex-col items-center justify-center h-full text-center py-10">
-                <img src="{{ asset('assets/svg/empty-cart.svg') }}" onerror="this.style.display='none'" class="w-32 opacity-50 mb-4" alt="Empty Cart">
+                <div class="w-20 h-20 rounded-full bg-white shadow-sm flex items-center justify-center mb-4">
+                    <i class="ti ti-shopping-cart-off text-3xl text-slate-300"></i>
+                </div>
                 <p class="text-sm text-slate-500 font-medium">Keranjang Anda masih kosong.</p>
                 <p class="text-xs text-slate-400 mt-1">Pilih produk dari etalase untuk memulai transaksi.</p>
             </div>
@@ -456,7 +454,6 @@
 
         {{-- Cart Summary & Checkout --}}
         <div class="border-t border-slate-200 bg-white p-5 shrink-0 shadow-[0_-4px_15px_rgba(0,0,0,0.03)] z-20">
-            {{-- Summary rows --}}
             <div class="space-y-2.5 mb-4">
                 <div class="flex items-center justify-between">
                     <span class="text-sm text-slate-500 font-medium">Subtotal</span>
@@ -464,16 +461,13 @@
                 </div>
             </div>
 
-            {{-- Divider --}}
             <div class="border-t border-dashed border-slate-300 mb-3"></div>
 
-            {{-- Total --}}
             <div class="flex items-end justify-between mb-4">
                 <span class="text-sm font-bold text-slate-800 uppercase tracking-wider">Total</span>
                 <span class="text-2xl font-black text-[#0C9044]" x-text="'Rp ' + Number(cartTotal).toLocaleString('id-ID')"></span>
             </div>
 
-             {{-- Checkout Button --}}
              <button aria-label="Checkout" @click.prevent="openCheckoutConfirm()"
                  class="w-full h-14 rounded-xl flex items-center justify-center gap-2 text-base font-bold text-white shadow-lg transition-all"
                  :class="cartItems.length > 0 ? 'bg-[#0C9044] hover:bg-green-700 hover:shadow-[#0C9044]/30 cursor-pointer hover:-translate-y-0.5' : 'bg-slate-300 cursor-not-allowed'"
@@ -497,8 +491,8 @@
             {{-- Modal Header --}}
             <div class="px-5 py-4 border-b border-slate-100 flex items-start justify-between bg-slate-50/50">
                 <div class="flex gap-3">
-                    <div class="w-12 h-12 rounded-lg bg-white border border-slate-200 flex items-center justify-center shrink-0">
-                        <img :src="modalProduct?.product?.image_url ? '{{ asset('') }}' + modalProduct.product.image_url : '{{ asset('assets/image.png') }}'" class="w-8 h-8 object-contain mix-blend-multiply" onerror="this.src='{{ asset('assets/image.png') }}'">
+                    <div class="w-12 h-12 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center shrink-0">
+                        <i class="ti ti-coffee text-xl text-slate-400"></i>
                     </div>
                     <div>
                         <h3 class="text-base font-bold text-slate-800 leading-tight line-clamp-2" x-text="modalProduct?.product?.name"></h3>
@@ -512,7 +506,6 @@
 
             {{-- Modal Body --}}
             <div class="p-5 space-y-5 overflow-y-auto">
-                {{-- Variant Select --}}
                 <div>
                     <label class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-3 block">Ukuran / Varian</label>
                     <div class="grid grid-cols-1 gap-2">
@@ -531,7 +524,6 @@
 
                 <div class="border-t border-slate-100"></div>
 
-                {{-- Quantity --}}
                 <div class="flex items-center justify-between">
                     <label class="text-xs font-bold text-slate-700 uppercase tracking-wider">Jumlah</label>
                     <div class="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200">
@@ -561,12 +553,10 @@
         </div>
     </div>
 </div>
-
 @endsection
 
 @section('page-script')
 <script>
-    // Shift Manager component
     function shiftManager() {
         return {
             isOpen: localStorage.getItem('pos_shift_open') === 'true',
@@ -611,7 +601,6 @@
         };
     }
 
-    // Clock component
     function clock() {
         return {
             time: '',
@@ -628,7 +617,6 @@
         };
     }
 
-    // POS Store with cart logic
     function posStore() {
         return {
             gridColOptions: [2, 3, 4, 5],
@@ -787,8 +775,8 @@
                     headers: {
                         'Content-Type': 'application/json',
                         'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                        'Accept': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest'
+                        // Tambahkan header ini agar Laravel tahu kita merequest via AJAX
+                        'X-Requested-With': 'XMLHttpRequest' 
                     },
                     body: JSON.stringify({
                         product_id: productId,
@@ -796,30 +784,28 @@
                         quantity: quantity
                     })
                 })
-                .then(async response => {
-                    // Cek apakah balasan dari server berupa JSON
+                .then(response => {
+                    // Karena DashboardPOS@addToCart melakukan Redirect (302) ke halaman HTML, bukan JSON
                     const contentType = response.headers.get('content-type');
-                    if (contentType && contentType.includes('application/json')) {
-                        return response.json();
-                    } else {
-                        // Jika bukan JSON (karena Controller melakukan Redirect 302),
-                        // kita anggap sukses dan langsung muat ulang halaman.
+                    if (!contentType || !contentType.includes('application/json')) {
+                        // Jika bukan JSON, berarti Redirect berhasil. Langsung reload!
                         window.location.reload();
-                        return { handled: true };
+                        return null;
                     }
+                    return response.json();
                 })
                 .then(data => {
-                    if (data.handled) return; // Halaman sedang dimuat ulang
-                    
+                    if (!data) return; // Jika null, halaman sedang proses reload
                     if (data.success) {
                         window.location.reload();
                     } else {
-                        alert(data.error || 'Gagal menambahkan produk.');
+                        alert(data.message || data.error_detail || data.error || 'Gagal menambahkan produk.');
                     }
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    alert('Terjadi kesalahan jaringan atau server.');
+                    // Jika terjadi error saat membaca fetch, paksa reload untuk berjaga-jaga
+                    window.location.reload();
                 });
             },
 
@@ -858,7 +844,8 @@
                     if (data.success) {
                         window.location.reload();
                     } else {
-                        alert(data.error_detail || data.error || 'Gagal memperbarui quantity');
+                        // ✅ Menampilkan detail pesan error dari backend
+                        alert(data.message || data.error_detail || data.error || 'Gagal memperbarui quantity');
                     }
                 })
                 .catch(error => alert(error.message));

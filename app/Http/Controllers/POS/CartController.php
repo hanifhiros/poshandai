@@ -116,38 +116,53 @@ class CartController extends Controller
             return response()->json(['error' => 'Produk tidak ditemukan.'], 404);
         }
 
+        // 1. Ambil data keranjang saat ini untuk tahu apakah user menekan [+] atau [-]
+        $cart = session('cart', []);
+        $oldQty = 0;
+        $foundIndex = -1;
+
+        foreach ($cart as $index => $item) {
+            if ($item['product_id'] == $productId && $item['variant_id'] == $variantId) {
+                $oldQty = $item['quantity'];
+                $foundIndex = $index;
+                break;
+            }
+        }
+
+        if ($foundIndex === -1) {
+            return response()->json(['error' => 'Item tidak ditemukan di cart.'], 404);
+        }
+
+        // 2. Cek stok di database
         $producedQty = ProductionHistory::where('product_variants_id', $variantId)
             ->sum('quantity_produced');
             
+        // 3. Logika Pintar Penyelamat "Keranjang Nyangkut"
         if ($newQty > $producedQty) {
-            return response()->json([
-                'success' => false, 
-                'message' => 'Stok tidak mencukupi! Sisa stok di gudang hanya ' . $producedQty . ' item.'
-            ], 400);
+            if ($newQty >= $oldQty) {
+                // Jika user menekan [+] dan melebihi stok -> TOLAK
+                return response()->json([
+                    'success' => false, 
+                    'message' => 'Stok tidak mencukupi! Sisa stok di gudang hanya ' . $producedQty . ' item.'
+                ], 400);
+            } else {
+                // Jika user menekan [-] tapi angka barunya masih di atas stok asli
+                // (Kasus nyangkut dari 5 mau ke 4, padahal stok 1)
+                // PAKSA angkanya langsung turun ke batas maksimal stok.
+                $newQty = $producedQty > 0 ? $producedQty : 1; 
+            }
         }
 
         $finalPrice = ($variant->is_promo === ProductVariants::PROMO_YES)
             ? ($variant->price - $variant->price_discount)
             : $variant->price;
 
-        $cart = session('cart', []);
-        $found = false;
+        // Update nilai di array keranjang
+        $cart[$foundIndex]['quantity'] = $newQty;
+        $cart[$foundIndex]['price'] = $finalPrice;
 
-        foreach ($cart as $index => $item) {
-            if ($item['product_id'] == $productId && $item['variant_id'] == $variantId) {
-                $cart[$index]['quantity'] = $newQty;
-                $cart[$index]['price'] = $finalPrice;
-
-                if (!isset($cart[$index]['normal_price'])) {
-                    $cart[$index]['normal_price'] = $variant->price;
-                }
-                $found = true;
-                break;
-            }
-        }
-
-        if (!$found) {
-            return response()->json(['error' => 'Item tidak ditemukan di cart.'], 404);
+        if (!isset($cart[$foundIndex]['normal_price'])) {
+            $cart[$foundIndex]['normal_price'] = $variant->price;
         }
 
         session(['cart' => $cart]);
