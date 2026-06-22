@@ -14,8 +14,9 @@ class RecipeTest extends TestCase
 
     public function test_can_access_recipe_create_page()
     {
-        $user = User::factory()->create();
-        $this->actingAs($user)->withSession(['selected_store' => 1]);
+        $store = \App\Models\Store::factory()->create();
+        $user = User::factory()->create(['role' => 'Manager']);
+        $this->actingAs($user)->withSession(['selected_store' => $store->id, 'user_role' => 'Manager']);
 
         $response = $this->get('/manager/inventory/recipes/create');
         $response->assertStatus(200);
@@ -24,11 +25,12 @@ class RecipeTest extends TestCase
 
     public function test_quick_create_stock_api()
     {
-        $user = User::factory()->create();
-        $this->actingAs($user)->withSession(['selected_store' => 1]);
+        $store = \App\Models\Store::factory()->create();
+        $user = User::factory()->create(['role' => 'Manager']);
+        $this->actingAs($user)->withSession(['selected_store' => $store->id, 'user_role' => 'Manager']);
 
-        Unit::factory()->create(['unit_type' => 'weight']);
-        StockCategory::factory()->create();
+        Unit::create(['symbol' => 'kg', 'name' => 'Kilogram', 'unit_type' => 'weight']);
+        StockCategory::create(['stock_category_name' => 'Bahan Baku']);
 
         $payload = [
             'name' => 'Bahan X',

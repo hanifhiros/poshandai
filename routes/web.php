@@ -6,13 +6,13 @@ use App\Http\Controllers\Superadmin\AccountController;
 use App\Http\Controllers\Superadmin\StoreController;
 use App\Http\Controllers\Superadmin\SimulateController;
 use App\Http\Controllers\Public\HomeController;
-use App\Http\Controllers\AuthController;
+use App\Http\Controllers\Login;
 use App\Http\Controllers\LogoutController;
 
 Route::group(['middleware' => ['web'], 'prefix' => '/', 'namespace' => 'App\Http\Controllers'], function () {
     Route::GET('/', [HomeController::class, 'index'])->name('home');
     Route::GET('login', 'Login@index')->name('login');
-    Route::POST('/login', [AuthController::class, 'login'])->name('login.post');
+    Route::POST('/login', [Login::class, 'exe'])->name('login.post');
     Route::POST('logout', 'Login@logout')->name('logout');
 });
 

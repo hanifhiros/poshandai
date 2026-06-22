@@ -12,11 +12,12 @@ class ProductFactory extends Factory
     {
         return [
             'name' => $this->faker->word(),
-            'price' => $this->faker->randomFloat(2, 10, 100),
-            'date_created' => $this->faker->date(),
-            'date_expired' => $this->faker->date(),
             'category_id' => ProductCategory::factory(),
             'store_id' => Store::factory(),
+            'is_promo' => 'no',
+            'price_discount' => 0,
+            'expired_duration' => 30,
+            'hpp' => $this->faker->randomFloat(2, 5, 50),
         ];
     }
 }

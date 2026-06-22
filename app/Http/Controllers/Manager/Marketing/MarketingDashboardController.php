@@ -795,7 +795,7 @@ class MarketingDashboardController extends Controller
             $products = $query->select(
                 'product.id as product_id',
                 'product.name',
-                DB::raw('COALESCE(product_category.category_name, "Tanpa Kategori") as category'),
+                DB::raw("COALESCE(product_category.category_name, 'Tanpa Kategori') as category"),
                 DB::raw('SUM(invoice.total_price) as revenue'),
                 DB::raw('SUM(invoice.quantity_bought) as quantity_sold'),
                 DB::raw('AVG(CASE WHEN invoice.price > 0 THEN (invoice.price - product.hpp) / invoice.price * 100 ELSE 0 END) as gross_margin')
@@ -912,7 +912,7 @@ class MarketingDashboardController extends Controller
                 ->where('orders.store_id', $store_id)
                 ->whereBetween('orders.created_at', [$startDate, $endDate])
                 ->select(
-                    DB::raw('COALESCE(product_category.category_name, "Tanpa Kategori") as category'),
+                    DB::raw("COALESCE(product_category.category_name, 'Tanpa Kategori') as category"),
                     DB::raw('SUM(invoice.total_price) as revenue')
                 )
                 ->groupBy('category')

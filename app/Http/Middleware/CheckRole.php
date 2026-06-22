@@ -21,15 +21,30 @@ class CheckRole
         $user = Auth::user();
 
         // 1. BYPASS KHUSUS SUPERADMIN: Bebas masuk ke mana saja!
-        if ($user->role === 'Superadmin') {
+        //    Support both: column `role` on users table AND pivot `role_user_store`
+        if ($user->role === 'Superadmin' || $user->hasRole('Superadmin')) {
             return $next($request);
         }
 
-        // 2. Logika lama untuk mengecek role pegawai lainnya (Manager/Kasir)
-        if (!in_array($user->role, $roles)) {
-            abort(403, 'UNAUTHORIZED - YOU DO NOT HAVE THE REQUIRED ROLE.');
+        // 2. Check role dari session (set saat login)
+        $sessionRole = Session::get('user_role');
+        if ($sessionRole && in_array($sessionRole, $roles)) {
+            return $next($request);
         }
 
-        return $next($request);
+        // 3. Check role dari kolom `role` di tabel users
+        if ($user->role && in_array($user->role, $roles)) {
+            return $next($request);
+        }
+
+        // 4. Fallback: check role dari pivot table `role_user_store`
+        $userRoleNames = $user->roles->pluck('name')->toArray();
+        foreach ($roles as $requiredRole) {
+            if (in_array($requiredRole, $userRoleNames)) {
+                return $next($request);
+            }
+        }
+
+        abort(403, 'UNAUTHORIZED - Anda tidak memiliki akses ke halaman ini.');
     }
 }

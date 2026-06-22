@@ -1,4 +1,4 @@
-﻿@extends('layouts.master')
+@extends('layouts.master')
 
 @section('title', 'Edit Resep - ' . ($isSemi ?? false ? ('Produk Setengah Jadi (ID ' . ($outputId ?? '') . ')') : ($product->name ?? '')))
 
@@ -764,8 +764,8 @@
                     <label class="block text-[11px] font-medium text-gray-400 uppercase tracking-wider mb-1">Kategori</label>
                     <select x-model="newStock.category_id" class="rcp-select">
                         <option value="">-- Pilih --</option>
-                        @foreach(\App\Models\StockCategory::orderBy('name')->get() as $cat)
-                            <option value="{{ $cat->id }}">{{ $cat->name }}</option>
+                        @foreach(\App\Models\StockCategory::orderBy('stock_category_name')->get() as $cat)
+                            <option value="{{ $cat->id }}">{{ $cat->stock_category_name }}</option>
                         @endforeach
                     </select>
                 </div>

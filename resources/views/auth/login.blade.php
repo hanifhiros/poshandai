@@ -79,10 +79,10 @@
                                        class="text-center py-2 text-sm rounded-lg border cursor-pointer transition-all font-medium">
                                     <input type="radio" x-model="selectedRole" value="Manager" class="hidden"> Manager
                                 </label>
-                                <label :class="selectedRole === 'Kasir' ? 'bg-green-600 text-white border-green-600' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'"
+                                <label :class="selectedRole === 'POS' ? 'bg-green-600 text-white border-green-600' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'"
                                        class="text-center py-2 text-sm rounded-lg border cursor-pointer transition-all font-medium">
-                                    <!-- Value tetap "Kasir" untuk database, tapi label visualnya Kasir / POS -->
-                                    <input type="radio" x-model="selectedRole" value="Kasir" class="hidden"> Kasir / POS
+                                    <!-- Value diubah ke "POS" agar sinkron dengan database seeder dan route middleware -->
+                                    <input type="radio" x-model="selectedRole" value="POS" class="hidden"> Kasir / POS
                                 </label>
                             </div>
                         </div>

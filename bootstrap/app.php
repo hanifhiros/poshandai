@@ -16,6 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // Mendaftarkan alias middleware agar bisa dipanggil di routes/web.php
         $middleware->alias([
             'role' => \App\Http\Middleware\CheckRole::class,
+            'ensure.store' => \App\Http\Middleware\EnsureStoreSelected::class,
         ]);
         
     })

@@ -41,8 +41,13 @@ use App\Http\Controllers\Manager\Operational\OperationalKpiController;
 
 Route::middleware(['web', 'auth', 'role:Manager'])->group(function () {
 
+    // Store selection — no ensure.store needed here
     Route::get('/select-store', [ManagerController::class, 'index'])->name('manager.store');
     Route::post('/set-store', [ManagerController::class, 'setStore'])->name('manager.setstore');
+
+    // All other routes require a selected store
+    Route::middleware(['ensure.store'])->group(function () {
+
     Route::get('/dashboard', [DashboardManager::class, 'index'])->name('manager.dashboard');
 
   
@@ -158,6 +163,17 @@ Route::middleware(['web', 'auth', 'role:Manager'])->group(function () {
         Route::get('/orders', [OrderController::class, 'index'])->name('manager.operational.orders.index');
         Route::post('/orders/{id}/mark-shipped', [OrderController::class, 'markAsShipped'])->name('manager.operational.orders.markAsShipped');
         Route::post('/orders/{id}/cancel', [OrderController::class, 'cancel'])->name('manager.operational.orders.cancel');
+
+        // ── Purchase Order (PO) ──
+        Route::prefix('purchase-orders')->name('manager.operational.po.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Manager\Operational\PurchaseOrderController::class, 'index'])->name('index');
+            Route::get('/create', [\App\Http\Controllers\Manager\Operational\PurchaseOrderController::class, 'create'])->name('create');
+            Route::post('/', [\App\Http\Controllers\Manager\Operational\PurchaseOrderController::class, 'store'])->name('store');
+            Route::get('/{id}', [\App\Http\Controllers\Manager\Operational\PurchaseOrderController::class, 'show'])->name('show');
+            Route::post('/{id}/approve', [\App\Http\Controllers\Manager\Operational\PurchaseOrderController::class, 'approve'])->name('approve');
+            Route::post('/{id}/receive', [\App\Http\Controllers\Manager\Operational\PurchaseOrderController::class, 'receive'])->name('receive');
+            Route::post('/{id}/cancel', [\App\Http\Controllers\Manager\Operational\PurchaseOrderController::class, 'cancel'])->name('cancel');
+        });
     });
     Route::prefix('finance')->group(function () {
         // ══ Finance Dashboard ══
@@ -356,6 +372,8 @@ Route::middleware(['web', 'auth', 'role:Manager'])->group(function () {
         Route::post('/{id}/process', [ReturnController::class, 'process'])->name('process');
         Route::post('/{id}/complete', [ReturnController::class, 'complete'])->name('complete');
     });
+
+    }); // end ensure.store group
 
 });
 

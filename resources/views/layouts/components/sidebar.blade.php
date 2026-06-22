@@ -187,6 +187,19 @@
           </button>
       </a>
 
+      <a href="{{ route('manager.operational.po.index') }}" class="relative flex h-15 w-full items-center rounded-md transition-colors">
+          <button type="button" @click="selected = 'Purchase Order'" 
+                  :class="selected === 'Purchase Order' ? 'bg-green-600/10 text-green-800' : 'text-slate-500 hover:bg-slate-100'"
+                  class="relative flex h-15 w-full items-center rounded-md transition-colors cursor-pointer">
+              <div class="grid h-full w-16 place-content-center">
+                  <i :class="selected === 'Purchase Order' ? 'ti ti-file-invoice' : 'ti ti-file-invoice'"></i>
+              </div>
+              <span x-show="open" x-transition class="absolute ml-16 text font-medium text-nowrap">
+                  Purchase Order
+              </span>
+          </button>
+      </a>
+
   </div>
 
     <div class="relative flex border-t border-slate-300">

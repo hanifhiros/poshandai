@@ -123,4 +123,16 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | PPN / Tax Rate
+    |--------------------------------------------------------------------------
+    |
+    | Rate pajak PPN untuk transaksi POS. Set 0.11 untuk PPN 11%.
+    | Default: 0 (tidak ada pajak).
+    |
+    */
+
+    'ppn_rate' => (float) env('PPN_RATE', 0),
+
 ];

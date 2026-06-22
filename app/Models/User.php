@@ -25,6 +25,7 @@ class User extends Authenticatable
         'password',
         'contact_number',
         'created_by',
+        'role',
     ];
 
     /**
@@ -110,8 +111,9 @@ class User extends Authenticatable
 
 public function accessibleStores()
 {
-    // Cek jika user adalah Superadmin (role `superadmin`)
-    $isSuperAdmin = $this->roles()->where('name', 'superadmin')->exists();
+    // Cek jika user adalah Superadmin — support both column and pivot, case-insensitive
+    $isSuperAdmin = $this->role === 'Superadmin'
+        || $this->roles()->where('name', 'Superadmin')->exists();
 
     if ($isSuperAdmin) {
         // Jika superadmin, tampilkan store yang owner_id = user.id

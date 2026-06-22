@@ -58,6 +58,7 @@ class Kernel extends HttpKernel
    */
   protected $middlewareAliases = [
     'role' => \App\Http\Middleware\CheckRole::class,
+    'ensure.store' => \App\Http\Middleware\EnsureStoreSelected::class,
     'auth' => \App\Http\Middleware\Authenticate::class,
     'cekrole' => \App\Http\Middleware\CekRole::class,
     'auth.basic' => \Illuminate\Auth\Middleware\AuthenticateWithBasicAuth::class,

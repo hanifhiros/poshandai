@@ -73,7 +73,8 @@ class CartController extends Controller
         }
 
         $cartTotalItems = array_sum(array_column($cart, 'quantity'));
-        $ppn = $cartTotalPrice * 0.0;
+        $ppnRate = config('app.ppn_rate', 0.0); // Configurable PPN rate (default 0%)
+        $ppn = $cartTotalPrice * $ppnRate;
         $grandTotal = $cartTotalPrice + $ppn;
 
         $customers = Customer::where('store_id', session('selected_store'))->orderBy('name')->get();
@@ -321,24 +322,6 @@ class CartController extends Controller
             return response()->json(['success' => false, 'message' => 'Keranjang kosong.'], 400);
         }
 
-        foreach ($cart as $item) {
-            $variant = ProductVariants::find($item['variant_id']);
-            if (!$variant) continue;
-            
-            $producedQty = ProductionHistory::where('product_variants_id', $variant->id)
-                ->sum('quantity_produced');
-            $availableQty = max($producedQty, $variant->quantity ?? 0);
-            if (($item['quantity'] ?? 0) > $availableQty) {
-                return response()->json([
-                    'success' => false,
-                    'message' => "Stok produk {$variant->product->name} telah habis / tidak mencukupi. Sisa stok: {$availableQty}.",
-                    'variant_id' => $variant->id,
-                    'available' => $availableQty,
-                    'requested' => $item['quantity'] ?? 0,
-                ], 400);
-            }
-        }
-
         $request->validate([
             'payment_method' => 'required|in:tunai,non_tunai,campuran',
         ]);
@@ -367,14 +350,6 @@ class CartController extends Controller
         $discountAmount = (int)($request->input('discount_amount', 0));
         $grossAmount = max($totals['cartTotalPrice'] - $discountAmount + $totalAdditional, 0);
         $itemNotes = $request->input('item_notes', []);
-
-        $stockErrors = InventoryService::validateCartStock($cart);
-        if (!empty($stockErrors)) {
-            return response()->json([
-                'success' => false,
-                'message' => implode(', ', $stockErrors)
-            ], 400);
-        }
 
         DB::beginTransaction();
         try {

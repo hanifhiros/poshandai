@@ -15,7 +15,7 @@ class StoreController extends Controller
     public function index(): View
     {
         $user = Auth::user();
-        $stores = Store::where('owner_id', $user->id)->get();
+        $stores = $user->accessibleStores();
 
         return view('handai-pos.outlet', compact('stores'));
     }

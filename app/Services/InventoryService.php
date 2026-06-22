@@ -186,10 +186,29 @@ class InventoryService
         $totalHpp = 0;
 
         $variantIds = array_column($cart, 'variant_id');
+
+        // Lock variants for update to prevent race conditions
         $variants = ProductVariants::with('product')
             ->whereIn('id', $variantIds)
+            ->lockForUpdate()
             ->get()
             ->keyBy('id');
+
+        // Validate stock inside the lock (atomic check)
+        foreach ($cart as $item) {
+            $variant = $variants->get($item['variant_id']);
+            if (!$variant) {
+                throw new \Exception("Produk varian #{$item['variant_id']} tidak ditemukan.");
+            }
+
+            $quantity = $item['quantity'] ?? 0;
+            if ($variant->quantity < $quantity) {
+                $name = $variant->product?->name ?? 'Unknown';
+                throw new \Exception(
+                    "Stok '{$name}' tidak mencukupi. Dibutuhkan: {$quantity}, tersedia: {$variant->quantity}"
+                );
+            }
+        }
 
         foreach ($cart as $item) {
             $variant = $variants->get($item['variant_id']);
@@ -233,13 +252,21 @@ class InventoryService
      */
     public static function validateAndDeductOnShip(Order $order): void
     {
-        $order->loadMissing('invoices.variant.product');
+        $order->loadMissing('invoices');
 
-        // First pass: validate all stock
+        // Collect variant IDs and lock them for update
+        $variantIds = $order->invoices->pluck('variant_id')->filter()->unique()->values()->toArray();
+        $lockedVariants = ProductVariants::with('product')
+            ->whereIn('id', $variantIds)
+            ->lockForUpdate()
+            ->get()
+            ->keyBy('id');
+
+        // First pass: validate all stock (using locked data)
         foreach ($order->invoices as $invoice) {
-            if (!$invoice->variant) continue;
+            $variant = $lockedVariants->get($invoice->variant_id);
+            if (!$variant) continue;
 
-            $variant = $invoice->variant;
             $required = $invoice->quantity_bought;
 
             if ($variant->quantity < $required) {
@@ -253,9 +280,9 @@ class InventoryService
 
         // Second pass: deduct and record movements
         foreach ($order->invoices as $invoice) {
-            if (!$invoice->variant) continue;
+            $variant = $lockedVariants->get($invoice->variant_id);
+            if (!$variant) continue;
 
-            $variant = $invoice->variant;
             $quantity = $invoice->quantity_bought;
             $variantHpp = $variant->hpp ?? 0;
 

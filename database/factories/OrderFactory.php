@@ -3,10 +3,8 @@
 namespace Database\Factories;
 
 use App\Models\Customer;
-use App\Models\Employee;
-use App\Models\Payment;
+use App\Models\User;
 use App\Models\Store;
-use App\Models\Promo;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class OrderFactory extends Factory
@@ -20,10 +18,10 @@ class OrderFactory extends Factory
             'order_status' => $this->faker->randomElement(['terkirim', 'belum terkirim']),
             'description' => $this->faker->sentence(),
             'customer_id' => Customer::factory(),
-            'payment_id' => Payment::factory(),
-            'seller_id' => Employee::factory(),
+            'payment_id' => null,
+            'seller_id' => User::factory(),
             'store_id' => Store::factory(),
-            'PROMO_ID' => Promo::factory(),
+            'PROMO_ID' => null,
         ];
     }
 }

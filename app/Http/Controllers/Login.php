@@ -55,7 +55,7 @@ class Login extends Controller
     {
         $request->validate([
             'email' => 'required|email',
-            'password' => 'required|min:6',
+            'password' => 'required',
         ]);
 
         $user = User::where('email', $request->email)->first();
@@ -63,70 +63,93 @@ class Login extends Controller
         if (!$user || !Hash::check($request->password, $user->password)) {
             return back()->withErrors([
                 'email' => 'Email atau password salah.',
-                'password' => 'Email atau password salah.',
-            ]);
+            ])->onlyInput('email');
         }
 
         Auth::login($user);
+        $request->session()->regenerate();
 
-        $loginType = $request->input('login_type', 'seller');
+        $loginType = $request->input('login_type', 'admin');
 
         // Reseller login
         if ($loginType === 'reseller') {
             return $this->handleResellerLogin($user);
         }
 
-        // Superadmin bypass — no role selection needed
-        if ($user->hasRole('Superadmin')) {
+        // Superadmin check — support both column `role` and pivot `role_user_store`
+        $isSuperadmin = ($user->role === 'Superadmin') || $user->hasRole('Superadmin');
+
+        if ($loginType === 'admin' && $isSuperadmin) {
             Session::put('user_role', 'Superadmin');
             Session::put('store_id', null);
+            Session::put('selected_store', null);
             Session::put('isMultistore', 1);
             Session::put('globar_id', $user->id);
 
             return redirect()->route('superadmin.dashboard');
         }
 
-        // Regular user — must select role
-        $request->validate([
-            'role' => 'required',
-        ], [
-            'role.required' => 'Silakan pilih role login.',
-        ]);
+        // If user tried to login as admin but is not Superadmin
+        if ($loginType === 'admin' && !$isSuperadmin) {
+            Auth::logout();
+            return back()->withErrors([
+                'email' => 'Akun ini bukan Superadmin.',
+            ])->onlyInput('email');
+        }
 
+        // Regular user (pegawai) — must select role
         $requestedRole = trim((string) $request->input('role', ''));
-        $availableRoles = $user->roles->pluck('name')->values()->all();
 
-        // If the hidden field is empty, fall back to the only role the user has.
         if ($requestedRole === '') {
-            $role = $user->roles->count() === 1 ? $user->roles->first() : null;
-        } else {
-            $normalizedRequestedRole = Str::lower($requestedRole);
+            Auth::logout();
+            return back()->withErrors([
+                'role' => 'Silakan pilih role login.',
+            ])->onlyInput('email');
+        }
 
-            $role = $user->roles->first(function ($r) use ($normalizedRequestedRole) {
-                $normalizedRoleName = Str::lower(trim($r->name));
+        // Try to match role from pivot table first
+        $normalizedRequestedRole = Str::lower($requestedRole);
 
-                return $normalizedRoleName === $normalizedRequestedRole
-                    || Str::startsWith($normalizedRoleName, $normalizedRequestedRole)
-                    || Str::startsWith($normalizedRequestedRole, $normalizedRoleName);
-            });
+        $role = $user->roles->first(function ($r) use ($normalizedRequestedRole) {
+            $normalizedRoleName = Str::lower(trim($r->name));
+
+            return $normalizedRoleName === $normalizedRequestedRole
+                || Str::startsWith($normalizedRoleName, $normalizedRequestedRole)
+                || Str::startsWith($normalizedRequestedRole, $normalizedRoleName);
+        });
+
+        // Fallback: check column `role` if pivot returned nothing
+        if (!$role && $user->role && Str::lower($user->role) === $normalizedRequestedRole) {
+            // Column-based match — set sessions manually
+            Session::put('user_role', $user->role);
+            Session::put('store_id', null);
+            Session::put('selected_store', null);
+            Session::put('isMultistore', 0);
+
+            return match (true) {
+                str_starts_with($user->role, 'Manager')  => redirect()->route('manager.store'),
+                str_starts_with($user->role, 'POS')      => redirect()->route('pos.store'),
+                str_starts_with($user->role, 'Kasir')    => redirect()->route('pos.store'),
+                default                                   => redirect()->route('home'),
+            };
         }
 
         if (!$role) {
             Auth::logout();
-
             return back()->withErrors([
-                'role' => 'Role tidak sesuai dengan akun ini.',
-            ]);
+                'role' => 'Role "' . $requestedRole . '" tidak sesuai dengan akun ini.',
+            ])->onlyInput('email');
         }
 
         Session::put('user_role', $role->name);
         Session::put('store_id', $role->pivot->store_id);
+        Session::put('selected_store', $role->pivot->store_id);
         Session::put('isMultistore', $role->pivot->is_multistore);
 
         return match (true) {
             str_starts_with($role->name, 'Manager')  => redirect()->route('manager.store'),
             str_starts_with($role->name, 'POS')      => redirect()->route('pos.store'),
-            str_starts_with($role->name, 'Kasir')    => redirect()->route('kasir.store'),
+            str_starts_with($role->name, 'Kasir')    => redirect()->route('pos.store'),
             str_starts_with($role->name, 'Reseller') => redirect()->route('reseller.dashboard'),
             default                                   => redirect()->route('home'),
         };

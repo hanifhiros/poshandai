@@ -1744,6 +1744,7 @@ public function destroy($id)
                 'unit_id'     => $stock->unit_id,
                 'unit_symbol' => $unit?->symbol ?? '-',
                 'unit_name'   => $unit?->name ?? '-',
+                'unit_type'   => $unit?->unit_type ?? '',
             ],
             'message' => 'Bahan baru berhasil dibuat!',
         ]);

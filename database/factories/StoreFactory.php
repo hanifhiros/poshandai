@@ -12,7 +12,7 @@ class StoreFactory extends Factory
         return [
             'store_name' => $this->faker->company(),
             'store_address' => $this->faker->address(),
-            'account_id' => User::factory(),
+            'owner_id' => User::factory(),
         ];
     }
 }
