@@ -135,6 +135,32 @@
           </button>
       </a>
 
+      <a href="{{ route('manager.operational.stock-movements.index') }}" class="relative flex h-15 w-full items-center rounded-md transition-colors">
+          <button type="button" @click="selected = 'Mutasi Stok'" 
+                  :class="selected === 'Mutasi Stok' ? 'bg-green-600/10 text-green-800' : 'text-slate-500 hover:bg-slate-100'"
+                  class="relative flex h-15 w-full items-center rounded-md transition-colors cursor-pointer">
+              <div class="grid h-full w-16 place-content-center">
+                  <i :class="selected === 'Mutasi Stok' ? 'ti ti-arrows-exchange-2' : 'ti ti-arrows-exchange'"></i>
+              </div>
+              <span x-show="open" x-transition class="absolute ml-16 text font-medium text-nowrap">
+                  Mutasi Stok
+              </span>
+          </button>
+      </a>
+
+      <a href="{{ route('manager.operational.stock-opname.index') }}" class="relative flex h-15 w-full items-center rounded-md transition-colors">
+          <button type="button" @click="selected = 'Stock Opname'" 
+                  :class="selected === 'Stock Opname' ? 'bg-green-600/10 text-green-800' : 'text-slate-500 hover:bg-slate-100'"
+                  class="relative flex h-15 w-full items-center rounded-md transition-colors cursor-pointer">
+              <div class="grid h-full w-16 place-content-center">
+                  <i :class="selected === 'Stock Opname' ? 'ti ti-clipboard-check' : 'ti ti-clipboard-list'"></i>
+              </div>
+              <span x-show="open" x-transition class="absolute ml-16 text font-medium text-nowrap">
+                  Stock Opname
+              </span>
+          </button>
+      </a>
+
       <a href="{{ route('manager.operational.produksi') }}" class="relative flex h-15 w-full items-center rounded-md transition-colors">
           <button type="button" @click="selected = 'Produksi'" 
                   :class="selected === 'Produksi' ? 'bg-green-600/10 text-green-800' : 'text-slate-500 hover:bg-slate-100'"
@@ -196,6 +222,239 @@
               </div>
               <span x-show="open" x-transition class="absolute ml-16 text font-medium text-nowrap">
                   Purchase Order
+              </span>
+          </button>
+      </a>
+
+      {{-- Section Marketing --}}
+      <div class="h-3 mt-6 mb-2 flex items-center">
+          <p x-show="open" x-transition class="text-slate-600 ps-6 text-sm font-semibold">Marketing</p>
+          <hr x-show="!open" x-transition class="border-t border-slate-300 w-full" />
+      </div>
+
+      <a href="{{ route('manager.marketing.dashboard') }}" class="relative flex h-15 w-full items-center rounded-md transition-colors">
+          <button type="button" @click="selected = 'Dashboard Marketing'" 
+                  :class="selected === 'Dashboard Marketing' ? 'bg-green-600/10 text-green-800' : 'text-slate-500 hover:bg-slate-100'"
+                  class="relative flex h-15 w-full items-center rounded-md transition-colors cursor-pointer">
+              <div class="grid h-full w-16 place-content-center">
+                  <i :class="selected === 'Dashboard Marketing' ? 'ti ti-chart-bar-filled' : 'ti ti-chart-bar'"></i>
+              </div>
+              <span x-show="open" x-transition class="absolute ml-16 text font-medium text-nowrap">
+                  Dashboard Marketing
+              </span>
+          </button>
+      </a>
+
+      <a href="{{ route('manager.marketing.customer-analytics') }}" class="relative flex h-15 w-full items-center rounded-md transition-colors">
+          <button type="button" @click="selected = 'Customer Analytics'" 
+                  :class="selected === 'Customer Analytics' ? 'bg-green-600/10 text-green-800' : 'text-slate-500 hover:bg-slate-100'"
+                  class="relative flex h-15 w-full items-center rounded-md transition-colors cursor-pointer">
+              <div class="grid h-full w-16 place-content-center">
+                  <i :class="selected === 'Customer Analytics' ? 'ti ti-users-group' : 'ti ti-users'"></i>
+              </div>
+              <span x-show="open" x-transition class="absolute ml-16 text font-medium text-nowrap">
+                  Analisis Pelanggan
+              </span>
+          </button>
+      </a>
+
+      <a href="{{ route('manager.marketing.retention') }}" class="relative flex h-15 w-full items-center rounded-md transition-colors">
+          <button type="button" @click="selected = 'Retensi Pelanggan'" 
+                  :class="selected === 'Retensi Pelanggan' ? 'bg-green-600/10 text-green-800' : 'text-slate-500 hover:bg-slate-100'"
+                  class="relative flex h-15 w-full items-center rounded-md transition-colors cursor-pointer">
+              <div class="grid h-full w-16 place-content-center">
+                  <i :class="selected === 'Retensi Pelanggan' ? 'ti ti-user-check' : 'ti ti-user-check'"></i>
+              </div>
+              <span x-show="open" x-transition class="absolute ml-16 text font-medium text-nowrap">
+                  Retensi Pelanggan
+              </span>
+          </button>
+      </a>
+
+      <a href="{{ route('manager.marketing.product-performance') }}" class="relative flex h-15 w-full items-center rounded-md transition-colors">
+          <button type="button" @click="selected = 'Performa Produk'" 
+                  :class="selected === 'Performa Produk' ? 'bg-green-600/10 text-green-800' : 'text-slate-500 hover:bg-slate-100'"
+                  class="relative flex h-15 w-full items-center rounded-md transition-colors cursor-pointer">
+              <div class="grid h-full w-16 place-content-center">
+                  <i :class="selected === 'Performa Produk' ? 'ti ti-trending-up' : 'ti ti-trending-up'"></i>
+              </div>
+              <span x-show="open" x-transition class="absolute ml-16 text font-medium text-nowrap">
+                  Performa Produk
+              </span>
+          </button>
+      </a>
+
+      <a href="{{ route('manager.marketing.revenue-analytics') }}" class="relative flex h-15 w-full items-center rounded-md transition-colors">
+          <button type="button" @click="selected = 'Analisis Omset'" 
+                  :class="selected === 'Analisis Omset' ? 'bg-green-600/10 text-green-800' : 'text-slate-500 hover:bg-slate-100'"
+                  class="relative flex h-15 w-full items-center rounded-md transition-colors cursor-pointer">
+              <div class="grid h-full w-16 place-content-center">
+                  <i :class="selected === 'Analisis Omset' ? 'ti ti-chart-pie' : 'ti ti-chart-pie'"></i>
+              </div>
+              <span x-show="open" x-transition class="absolute ml-16 text font-medium text-nowrap">
+                  Analisis Omset Marketing
+              </span>
+          </button>
+      </a>
+
+      <a href="{{ route('manager.marketing.campaign-analysis') }}" class="relative flex h-15 w-full items-center rounded-md transition-colors">
+          <button type="button" @click="selected = 'Campaign Analysis'" 
+                  :class="selected === 'Campaign Analysis' ? 'bg-green-600/10 text-green-800' : 'text-slate-500 hover:bg-slate-100'"
+                  class="relative flex h-15 w-full items-center rounded-md transition-colors cursor-pointer">
+              <div class="grid h-full w-16 place-content-center">
+                  <i :class="selected === 'Campaign Analysis' ? 'ti ti-speakerphone' : 'ti ti-speakerphone'"></i>
+              </div>
+              <span x-show="open" x-transition class="absolute ml-16 text font-medium text-nowrap">
+                  Kampanye Promosi
+              </span>
+          </button>
+      </a>
+
+      <a href="{{ route('manager.marketing.customers.index') }}" class="relative flex h-15 w-full items-center rounded-md transition-colors">
+          <button type="button" @click="selected = 'Pelanggan CRM'" 
+                  :class="selected === 'Pelanggan CRM' ? 'bg-green-600/10 text-green-800' : 'text-slate-500 hover:bg-slate-100'"
+                  class="relative flex h-15 w-full items-center rounded-md transition-colors cursor-pointer">
+              <div class="grid h-full w-16 place-content-center">
+                  <i :class="selected === 'Pelanggan CRM' ? 'ti ti-address-book' : 'ti ti-address-book'"></i>
+              </div>
+              <span x-show="open" x-transition class="absolute ml-16 text font-medium text-nowrap">
+                  Data Pelanggan (CRM)
+              </span>
+          </button>
+      </a>
+
+      {{-- Section Keuangan --}}
+      <div class="h-3 mt-6 mb-2 flex items-center">
+          <p x-show="open" x-transition class="text-slate-600 ps-6 text-sm font-semibold">Keuangan (Finance)</p>
+          <hr x-show="!open" x-transition class="border-t border-slate-300 w-full" />
+      </div>
+
+      <a href="{{ route('manager.finance.dashboard.index') }}" class="relative flex h-15 w-full items-center rounded-md transition-colors">
+          <button type="button" @click="selected = 'Dashboard Keuangan'" 
+                  :class="selected === 'Dashboard Keuangan' ? 'bg-green-600/10 text-green-800' : 'text-slate-500 hover:bg-slate-100'"
+                  class="relative flex h-15 w-full items-center rounded-md transition-colors cursor-pointer">
+              <div class="grid h-full w-16 place-content-center">
+                  <i :class="selected === 'Dashboard Keuangan' ? 'ti ti-wallet' : 'ti ti-wallet'"></i>
+              </div>
+              <span x-show="open" x-transition class="absolute ml-16 text font-medium text-nowrap">
+                  Dashboard Keuangan
+              </span>
+          </button>
+      </a>
+
+      <a href="{{ route('manager.finance.revenue.index') }}" class="relative flex h-15 w-full items-center rounded-md transition-colors">
+          <button type="button" @click="selected = 'Pendapatan'" 
+                  :class="selected === 'Pendapatan' ? 'bg-[#0C9044]/10 text-[#0C9044]' : 'text-slate-500 hover:bg-slate-100'"
+                  class="relative flex h-15 w-full items-center rounded-md transition-colors cursor-pointer">
+              <div class="grid h-full w-16 place-content-center">
+                  <i :class="selected === 'Pendapatan' ? 'ti ti-cash' : 'ti ti-cash'"></i>
+              </div>
+              <span x-show="open" x-transition class="absolute ml-16 text font-medium text-nowrap">
+                  Pemasukan / Revenue
+              </span>
+          </button>
+      </a>
+
+      <a href="{{ route('manager.finance.expenses.index') }}" class="relative flex h-15 w-full items-center rounded-md transition-colors">
+          <button type="button" @click="selected = 'Pengeluaran'" 
+                  :class="selected === 'Pengeluaran' ? 'bg-green-600/10 text-green-800' : 'text-slate-500 hover:bg-slate-100'"
+                  class="relative flex h-15 w-full items-center rounded-md transition-colors cursor-pointer">
+              <div class="grid h-full w-16 place-content-center">
+                  <i :class="selected === 'Pengeluaran' ? 'ti ti-receipt-refund' : 'ti ti-receipt-refund'"></i>
+              </div>
+              <span x-show="open" x-transition class="absolute ml-16 text font-medium text-nowrap">
+                  Pengeluaran (Expenses)
+              </span>
+          </button>
+      </a>
+
+      <a href="{{ route('manager.finance.profit-loss.index') }}" class="relative flex h-15 w-full items-center rounded-md transition-colors">
+          <button type="button" @click="selected = 'Laba Rugi'" 
+                  :class="selected === 'Laba Rugi' ? 'bg-green-600/10 text-green-800' : 'text-slate-500 hover:bg-slate-100'"
+                  class="relative flex h-15 w-full items-center rounded-md transition-colors cursor-pointer">
+              <div class="grid h-full w-16 place-content-center">
+                  <i :class="selected === 'Laba Rugi' ? 'ti ti-report-analytics' : 'ti ti-report-analytics'"></i>
+              </div>
+              <span x-show="open" x-transition class="absolute ml-16 text font-medium text-nowrap">
+                  Laporan Laba Rugi
+              </span>
+          </button>
+      </a>
+
+      <a href="{{ route('manager.finance.cashflow.index') }}" class="relative flex h-15 w-full items-center rounded-md transition-colors">
+          <button type="button" @click="selected = 'Arus Kas'" 
+                  :class="selected === 'Arus Kas' ? 'bg-green-600/10 text-green-800' : 'text-slate-500 hover:bg-slate-100'"
+                  class="relative flex h-15 w-full items-center rounded-md transition-colors cursor-pointer">
+              <div class="grid h-full w-16 place-content-center">
+                  <i :class="selected === 'Arus Kas' ? 'ti ti-arrows-left-right' : 'ti ti-arrows-left-right'"></i>
+              </div>
+              <span x-show="open" x-transition class="absolute ml-16 text font-medium text-nowrap">
+                  Arus Kas (Cashflow)
+              </span>
+          </button>
+      </a>
+
+      <a href="{{ route('manager.finance.ap.index') }}" class="relative flex h-15 w-full items-center rounded-md transition-colors">
+          <button type="button" @click="selected = 'Hutang AP'" 
+                  :class="selected === 'Hutang AP' ? 'bg-green-600/10 text-green-800' : 'text-slate-500 hover:bg-slate-100'"
+                  class="relative flex h-15 w-full items-center rounded-md transition-colors cursor-pointer">
+              <div class="grid h-full w-16 place-content-center">
+                  <i :class="selected === 'Hutang AP' ? 'ti ti-scale-outline' : 'ti ti-scale'"></i>
+              </div>
+              <span x-show="open" x-transition class="absolute ml-16 text font-medium text-nowrap">
+                  Hutang Usaha (AP)
+              </span>
+          </button>
+      </a>
+
+      <a href="{{ route('manager.finance.ar.index') }}" class="relative flex h-15 w-full items-center rounded-md transition-colors">
+          <button type="button" @click="selected = 'Piutang AR'" 
+                  :class="selected === 'Piutang AR' ? 'bg-green-600/10 text-green-800' : 'text-slate-500 hover:bg-slate-100'"
+                  class="relative flex h-15 w-full items-center rounded-md transition-colors cursor-pointer">
+              <div class="grid h-full w-16 place-content-center">
+                  <i :class="selected === 'Piutang AR' ? 'ti ti-coin' : 'ti ti-coin'"></i>
+              </div>
+              <span x-show="open" x-transition class="absolute ml-16 text font-medium text-nowrap">
+                  Piutang Usaha (AR)
+              </span>
+          </button>
+      </a>
+
+      <a href="{{ route('manager.finance.accounting.dashboard') }}" class="relative flex h-15 w-full items-center rounded-md transition-colors">
+          <button type="button" @click="selected = 'Akuntansi'" 
+                  :class="selected === 'Akuntansi' ? 'bg-green-600/10 text-green-800' : 'text-slate-500 hover:bg-slate-100'"
+                  class="relative flex h-15 w-full items-center rounded-md transition-colors cursor-pointer">
+              <div class="grid h-full w-16 place-content-center">
+                  <i :class="selected === 'Akuntansi' ? 'ti ti-calculator' : 'ti ti-calculator'"></i>
+              </div>
+              <span x-show="open" x-transition class="absolute ml-16 text font-medium text-nowrap">
+                  Akuntansi & Jurnal
+              </span>
+          </button>
+      </a>
+
+      <a href="{{ route('manager.finance.invoices.index') }}" class="relative flex h-15 w-full items-center rounded-md transition-colors">
+          <button type="button" @click="selected = 'Invoices'" 
+                  :class="selected === 'Invoices' ? 'bg-green-600/10 text-green-800' : 'text-slate-500 hover:bg-slate-100'"
+                  class="relative flex h-15 w-full items-center rounded-md transition-colors cursor-pointer">
+              <div class="grid h-full w-16 place-content-center">
+                  <i :class="selected === 'Invoices' ? 'ti ti-file-text' : 'ti ti-file-text'"></i>
+              </div>
+              <span x-show="open" x-transition class="absolute ml-16 text font-medium text-nowrap">
+                  Invoice & Penagihan
+              </span>
+          </button>
+      </a>
+
+      <a href="{{ route('finance.rnd-request.index') }}" class="relative flex h-15 w-full items-center rounded-md transition-colors">
+          <button type="button" @click="selected = 'RND Finance'" 
+                  :class="selected === 'RND Finance' ? 'bg-green-600/10 text-green-800' : 'text-slate-500 hover:bg-slate-100'"
+                  class="relative flex h-15 w-full items-center rounded-md transition-colors cursor-pointer">
+              <div class="grid h-full w-16 place-content-center">
+                  <i :class="selected === 'RND Finance' ? 'ti ti-flask' : 'ti ti-flask'"></i>
+              </div>
+              <span x-show="open" x-transition class="absolute ml-16 text font-medium text-nowrap">
+                  Pengajuan R&D
               </span>
           </button>
       </a>
